@@ -1,0 +1,37 @@
+# Peru GDP Real-Time Dataset - Frozen Dependencies
+# ================================================
+# Generated on 2025-12-16
+# Use this file for exact reproducibility across environments
+# Install with: pip install -r requirements-frozen.txt
+
+# Core data processing
+pandas==2.1.4
+numpy==1.26.3
+
+# Configuration
+pyyaml==6.0.3
+
+# HTTP and web scraping
+requests==2.31.0
+urllib3==2.5.0
+selenium==4.35.0
+webdriver-manager==4.0.2
+
+# PDF processing
+PyMuPDF==1.23.26
+PyPDF2==3.0.1
+tabula-py==2.9.0
+# Note: tabula-py requires Java Runtime Environment (JRE) to be installed
+
+# Utilities
+pygame==2.5.2
+roman==4.1
+tqdm==4.66.5
+
+# Jupyter support (optional for notebooks)
+ipywidgets==8.1.3
+jupyter==1.0.0
+notebook==7.0.6
+
+# Optional: Progress bars and UI
+colorama==0.4.6

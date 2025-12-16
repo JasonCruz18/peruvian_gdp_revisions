@@ -167,7 +167,83 @@ cp config/config.example.yaml config/config.yaml
 nano config/config.yaml  # or use any text editor
 ```
 
-### Method 2: Development Installation
+### Method 2: Conda Installation (Recommended for Conda Users)
+
+For users who prefer conda for environment management:
+
+#### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/JasonCruz18/peru_gdp_revisions.git
+cd peru_gdp_revisions
+```
+
+#### Step 2: Create Conda Environment from File
+
+```bash
+# Create environment from environment.yml (includes all dependencies)
+conda env create -f environment.yml
+
+# Activate the environment
+conda activate peru_gdp_rtd
+```
+
+**Alternative: Manual conda environment creation:**
+
+```bash
+# Create environment with Python 3.10
+conda create -n peru_gdp_rtd python=3.10
+
+# Activate environment
+conda activate peru_gdp_rtd
+
+# Install dependencies via conda and pip
+conda install -c conda-forge pandas numpy pyyaml requests selenium openjdk
+pip install -r requirements.txt
+```
+
+#### Step 3: Configure the Pipeline
+
+```bash
+# Copy example configuration
+cp config/config.example.yaml config/config.yaml
+```
+
+#### Step 4: Verify Installation
+
+```bash
+# Test the installation
+python tests/test_smoke.py
+
+# Check pipeline help
+python scripts/update_rtd.py --help
+```
+
+**Note:** The conda environment includes Java (OpenJDK 11) automatically, so you don't need to install it separately.
+
+### Method 3: Exact Version Reproducibility
+
+For exact reproducibility with pinned versions:
+
+```bash
+# Clone repository
+git clone https://github.com/JasonCruz18/peru_gdp_revisions.git
+cd peru_gdp_revisions
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install with exact pinned versions
+pip install -r requirements-frozen.txt
+
+# Configure
+cp config/config.example.yaml config/config.yaml
+```
+
+This ensures the exact same package versions used during development.
+
+### Method 4: Development Installation
 
 For contributors who want to modify the code:
 

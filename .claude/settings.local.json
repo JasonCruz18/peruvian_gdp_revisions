@@ -14,7 +14,11 @@
       "Bash(git push:*)",
       "Bash(python -m black:*)",
       "Bash(python -m pytest:*)",
-      "Bash(gh run list:*)"
+      "Bash(gh run list:*)",
+      "Bash(pip install:*)",
+      "Bash(ls:*)",
+      "Bash(streamlit run:*)",
+      "Bash(pip freeze:*)"
     ],
     "deny": [],
     "ask": []
