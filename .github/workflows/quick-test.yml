@@ -1,0 +1,60 @@
+name: Quick Test
+
+on:
+  push:
+    branches: [ repo_restructuring ]
+  workflow_dispatch:
+
+jobs:
+  minimal-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Check repository structure
+      run: |
+        echo "=== Repository structure ==="
+        ls -la
+        echo ""
+        echo "=== Config directory ==="
+        ls -la config/ || echo "Config directory not found"
+        echo ""
+        echo "=== Tests directory ==="
+        ls -la tests/ || echo "Tests directory not found"
+
+    - name: Install minimal dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyyaml pydantic pathlib
+
+    - name: Create config file
+      run: |
+        if [ -f config/config.example.yaml ]; then
+          cp config/config.example.yaml config/config.yaml
+          echo "✓ Config file created"
+        else
+          echo "✗ config.example.yaml not found"
+          exit 1
+        fi
+
+    - name: Test basic imports
+      run: |
+        python -c "import sys; print('Python version:', sys.version)"
+        python -c "import yaml; print('✓ PyYAML works')"
+        python -c "from pathlib import Path; print('✓ pathlib works')"
+
+    - name: Check package structure
+      run: |
+        if [ -f setup.py ] || [ -f pyproject.toml ]; then
+          echo "✓ Package configuration found"
+        else
+          echo "✗ No setup.py or pyproject.toml found"
+          exit 1
+        fi
