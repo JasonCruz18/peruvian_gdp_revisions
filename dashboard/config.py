@@ -206,26 +206,26 @@ CUSTOM_CSS = """
 /* Add your custom CSS here */
 
 /* Example: Custom button styling */
-.stButton > button {
+.stButton > button {{
     transition: all 0.3s ease;
-}
+}}
 
-.stButton > button:hover {
+.stButton > button:hover {{
     transform: translateY(-2px);
-}
+}}
 
 /* Example: Custom metric styling */
-.metric-value {
+.metric-value {{
     font-weight: 700;
-}
+}}
 
 /* Example: Gradient header */
-.gradient-header {
+.gradient-header {{
     background: linear-gradient(90deg, {primary} 0%, {secondary} 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-}
+}}
 """
 
 # JavaScript for advanced interactions (optional)
