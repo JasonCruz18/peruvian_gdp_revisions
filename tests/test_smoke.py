@@ -39,7 +39,7 @@ def test_config_paths():
 
     # Check that paths exist
     assert settings.paths.data_root.parent.exists()
-    assert "gdp_revisions_datasets" in str(settings.paths.data_root)
+    assert "peru_gdp_revisions" in str(settings.paths.data_root)
 
     # Check path names
     assert settings.paths.data_root.name == "data"
