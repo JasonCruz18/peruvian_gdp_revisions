@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this software or dataset, please cite it as below."
+type: software
+title: "Peru GDP Real-Time Dataset Construction Pipeline"
+version: "1.0.0"
+date-released: "2025-12-15"
+authors:
+  - family-names: "Cruz"
+    given-names: "Jason"
+    email: "jj.cruza@up.edu.pe"
+    affiliation: "Universidad del Pacífico - CIUP"
+    orcid: "https://orcid.org/0000-0000-0000-0000"  # TODO: Add your ORCID
+repository-code: "https://github.com/JasonCruz18/peru_gdp_revisions"
+url: "https://github.com/JasonCruz18/peru_gdp_revisions"
+abstract: >-
+  Production-ready pipeline for constructing real-time datasets (RTD) of
+  Peruvian GDP revisions from BCRP Weekly Reports. Features automated web
+  scraping, PDF processing, comprehensive data cleaning (70+ functions),
+  and transformation to multiple dataset formats. Includes interactive
+  dashboard for visualization and exploration.
+keywords:
+  - GDP revisions
+  - Real-time data
+  - Peru
+  - Economic statistics
+  - Data pipeline
+  - Nowcasting
+license: MIT
+preferred-citation:
+  type: article
+  title: "Rationality and Nowcasting on Peruvian GDP Revisions"
+  authors:
+    - family-names: "Cruz"
+      given-names: "Jason"
+  year: 2025
+  journal: "TBD"  # TODO: Update with journal name
+  institution: "Universidad del Pacífico - CIUP"
