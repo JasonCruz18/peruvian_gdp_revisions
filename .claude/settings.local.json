@@ -18,7 +18,8 @@
       "Bash(pip install:*)",
       "Bash(ls:*)",
       "Bash(streamlit run:*)",
-      "Bash(pip freeze:*)"
+      "Bash(pip freeze:*)",
+      "Bash(pip index:*)"
     ],
     "deny": [],
     "ask": []
