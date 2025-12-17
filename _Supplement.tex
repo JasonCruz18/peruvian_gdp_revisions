@@ -1,6 +1,32 @@
 \documentclass[a4paper, fleqn, 11pt]{article}
 
-\input{CWT_Format}  
+\input{CWT_Format}
+
+% Additional packages for code listings
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Configure code listing style
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    framerule=0.8pt, % Adjust thickness of the border
+    backgroundcolor=\color{smoke_white!10},
+    numbers=left,
+    numberstyle=\tiny\color{light_black},
+    keywordstyle=\color{bubblegum_blue},
+    commentstyle=\color{light_jade!75!light_black},
+    stringstyle=\color{bubblegum_red},
+    showstringspaces=false,
+    rulecolor=\color{light_black} % Change this to the color you want for the box border
+}
+
+% Custom commands for technical terms
+\newcommand{\pymodule}[1]{\texttt{#1}}
+\newcommand{\pyfunction}[1]{\texttt{#1()}}
+\newcommand{\filepath}[1]{\texttt{#1}}
+\newcommand{\bashcmd}[1]{\texttt{#1}}
 
 \newcommand{\sigone}[0]{***}
 \newcommand{\sigfive}[0]{**\phantom{*}}
@@ -13,7 +39,7 @@
 \begin{center}
 \emph{Online Supplement \red{(Not intended for publication)}} \\[2mm]
 \Large{
-\textbf{Rationality and Nowcasting in Emerging Economies:\\ Evidence from GDP Revisions in Peru}} \\[5mm]
+\textbf{Nowcasting GDP Using Data Revisions in an Emerging Economy}} \\[5mm]
 
 \normalsize
 \iffalse
@@ -31,9 +57,9 @@
 \today
 \end{center}
 
-This supplemental document provides detailed information on the data sources, collection procedures, processing steps, and terminology used to construct the first real-time dataset (RTD) of Peruvian GDP growth. It focuses on the methodological workflow, quality-control standards, and replication resources that underpin the empirical analysis.
+This supplemental document provides detailed information on the data sources, collection procedures, processing steps, and computational implementation used to construct the first real-time dataset (RTD) of Peruvian GDP growth. It focuses on the methodological workflow, quality-control standards, and replication resources that underpin the empirical analysis.
 
-In Peru, the National Institute of Statistics and Informatics (\href{https://www.inei.gob.pe/estadisticas/indice-tematico/economia/}{INEI}) produces and disseminates GDP statistics, while the Central Reserve Bank of Peru (\href{https://www.bcrp.gob.pe/publications/weekly-reports/weekly-report.html}{BCRP}) republishes these figures in its \href{https://www.bcrp.gob.pe/statistics/weekly-report-tables.html}{Weekly Report} (WR). Although INEI is the primary source, the BCRP provides a clearer and more consistent record of releases, reflecting legal obligations under article 84 of the Peruvian Constitution and articles 2 and 74 of the BCRP’s Organic Law, which require the periodic publication of key national macroeconomic statistics. Our data collection strategy draws on both sources to construct the RTD of Peruvian GDP growth.
+In Peru, the National Institute of Statistics and Informatics (\href{https://www.inei.gob.pe/estadisticas/indice-tematico/economia/}{INEI}) produces and disseminates GDP statistics, while the Central Reserve Bank of Peru (\href{https://www.bcrp.gob.pe/publications/weekly-reports/weekly-report.html}{BCRP}) republishes these figures in its \href{https://www.bcrp.gob.pe/statistics/weekly-report-tables.html}{Weekly Report} (WR). Although INEI is the primary source, the BCRP provides a clearer and more consistent record of releases, reflecting legal obligations under article 84 of the Peruvian Constitution and articles 2 and 74 of the BCRP's Organic Law, which require the periodic publication of key national macroeconomic statistics. Our data collection strategy draws on both sources to construct the RTD of Peruvian GDP growth.
 
 %-----------------------------------------------------------------------
 % 1. Revision Calendar
@@ -46,13 +72,13 @@ A formal publication calendar governs the initial release of GDP growth figures,
 
 For the construction of a RTD, however, a revision calendar is indispensable. Without a consistent schedule of updates, it becomes impossible to define vintages and track revisions systematically. A regular calendar ensures comparability across time, while irregular release dates complicate measurement, since the horizon between releases varies.
 
-To address this limitation, we reconstructed an implicit revision calendar using the BCRP’s WR. Each WR reproduces INEI’s figures and specifies the date of the update. We then harmonized this information to a monthly frequency—consistent with the ``horizon'' definition in the main paper—based on two criteria: 
+To address this limitation, we reconstructed an implicit revision calendar using the BCRP's WR. Each WR reproduces INEI's figures and specifies the date of the update. We then harmonized this information to a monthly frequency—consistent with the ``horizon'' definition in the main paper—based on two criteria:
 
 \begin{enumerate}
     \item \href{https://www.gob.pe/institucion/inei/normas-legales/2294897-316-2003-inei}{Chief Resolution No. 316-2003-INEI} mandates that sectoral offices update their data at least quarterly (e.g., March, June, September, December). These offices also produce monthly statistical information for the Monthly Index of National Production (IMPN), suggeting that revisions are made monthly.
 
     \item In the WR, revisions are effectively made on a month-to-month basis rather than week-to-week. Our reconstructed calendar confirms that the WR report updated GDP figures at least once per month.
-\end{enumerate} 
+\end{enumerate}
 
 %-----------------------------------------------------------------------
 % 2. Raw Data Sources
@@ -65,33 +91,33 @@ Once the monthly revision calendar was established, we compiled the last WR of e
 
 The WR republishes GDP growth rates by sector as released by INEI. These sectoral growth rates are reported year-on-year and presented in a well-organized table whose structure has changed little over the past three decades, although the table numbering has varied across issues. Two key tables were systematically extracted: one reporting monthly growth rates, and another reporting quarterly and annual growth rates
 
-Historically, until the early 2000s, the WR was titled the ``Weekly Bulletin'', and no digital versions of either the Bulletin or the Report exist prior to 2013. Consequently, for the period spanning 2000–2012, the macroeconomic tables are only accessible in hardcover volumes available at the BCRP’s \href{https://biblioteca.bcrp.gob.pe/discovery/search?vid=51BCDRDP_INST:51BCDRDP2}{Renzo
+Historically, until the early 2000s, the WR was titled the ``Weekly Bulletin'', and no digital versions of either the Bulletin or the Report exist prior to 2013. Consequently, for the period spanning 2000–2012, the macroeconomic tables are only accessible in hardcover volumes available at the BCRP's \href{https://biblioteca.bcrp.gob.pe/discovery/search?vid=51BCDRDP_INST:51BCDRDP2}{Renzo
  Rossini Library}, requiring in-person consultation. These volumes cannot be removed from the library, but they may be photocopied or photographed. This process is not always straightforward, as the historical WRs are often bound in large, heavy volumes.
 
-From 2013 to the present, however, WRs have been freely accessible on the BCRP’s website in PDF format, which has greatly facilitated data collection. The data are also presented in spreadsheets and in the BCRP data database, although only in their revised form.
+From 2013 to the present, however, WRs have been freely accessible on the BCRP's website in PDF format, which has greatly facilitated data collection. The data are also presented in spreadsheets and in the BCRP data database, although only in their revised form.
 
 \subsection{Scanned Data (pre–2013)}
 
-For the pre-2013 period, the WRs  were scanned into PDF format, producing non-structured hardcopies. Consequently, the extraction process was far from trivial and followed three main steps: (i) Computer-based extraction, (ii) manual correction and verification, and (iii) construction of parsed structured tables feeding into automated vintage-building codes. %\footnote{OCR was especially critical for the years prior to 2002. For subsequent years up to 2010, we were provided with confidential files containing GDP growth rates by BCRP specialists.}
+For the pre-2013 period, the WRs  were scanned into PDF format, producing non-structured hardcopies. Consequently, the extraction process was far from trivial and followed three main steps: (i) Computer-based extraction, (ii) manual correction and verification, and (iii) construction of parsed structured tables feeding into automated vintage-building routines implemented in the \pymodule{peru\_gdp\_rtd.cleaners.old\_table\_cleaner} module.
 
-The scanned sources posed significant challenges:  
+The scanned sources posed significant challenges:
 %
 \begin{itemize}
-    \item Warped or distorted text and misaligned table lines, often caused by hardcover bindings during scanning.  
-    \item Shadowing, opacity, or blur reducing legibility.  
-    \item Fragmented or incomplete tables.  
-    \item Highlighted entries interfering with optical recognition accuracy.  
-    \item Inconsistent font sizes across tables within the same report.  
-    \item Residual marks obscuring decimal points or digits.  
-    \item Ink and other physical spots disrupting recognition.  
+    \item Warped or distorted text and misaligned table lines, often caused by hardcover bindings during scanning.
+    \item Shadowing, opacity, or blur reducing legibility.
+    \item Fragmented or incomplete tables.
+    \item Highlighted entries interfering with optical recognition accuracy.
+    \item Inconsistent font sizes across tables within the same report.
+    \item Residual marks obscuring decimal points or digits.
+    \item Ink and other physical spots disrupting recognition.
 \end{itemize}
 
-Figures~\ref{fig:wr_2_2007_table_1} and \ref{fig:wr_2_2007_table_2} show examples of scanned tables exhibiting some of these difficulties.  
+Figures~\ref{fig:wr_2_2007_table_1} and \ref{fig:wr_2_2007_table_2} show examples of scanned tables exhibiting some of these difficulties.
 
 \begin{figure}[!t]
 \caption{Table 70, WR 2 (January 2007): monthly growth rates}
 \includegraphics[width=1\textwidth]{pictures/wr_2_2007_table_1.pdf}
-\label{fig:wr_2_2007_table_1}\\ 
+\label{fig:wr_2_2007_table_1}\\
 \footnotesize \textbf{Notes:} The low resolution, uneven lighting, and shadowing from the page fold in this figure illustrate common difficulties for OCR processing. Distortions in the horizontal and vertical alignment of cells, faint characters, and overlapping text reduce recognition accuracy. Highlighted values and residual marks (e.g., spots or smudges) can obscure digits or decimal points, leading to frequent misclassifications. In this specific case, blurred numbers in the central columns and shading near the binding make it particularly challenging to extract reliable machine-readable data without extensive manual correction.
 \end{figure}
 
@@ -100,38 +126,38 @@ Figures~\ref{fig:wr_2_2007_table_1} and \ref{fig:wr_2_2007_table_2} show example
 Given these limitations, data extraction was particularly demanding and did not provide definite results. We employed Optical Character Recognition (OCR) using the open-source \href{https://github.com/tesseract-ocr/tesseract}{\texttt{Tesseract}} engine in \texttt{Python}. Originally developed by Hewlett-Packard and now maintained by Google, \texttt{Tesseract} is widely used for digitizing printed material, including statistical reports.
 
 \newpage
-The OCR workflow consisted of:  
+The OCR workflow consisted of:
 %
 \begin{enumerate}
-    \item Converting pages into PNG format.  
-    \item Transforming visual text into machine-readable formats, with extensive pre-processing to improve accuracy:  
+    \item Converting pages into PNG format.
+    \item Transforming visual text into machine-readable formats, with extensive pre-processing to improve accuracy:
         \begin{itemize}
-            \item Grayscale conversion and binarization to separate text from background.  
-            \item Noise removal (e.g., speckles, smudges) using median filtering or adaptive thresholding.  
-            \item Skew correction (deskewing) to align rotated text.  
-            \item Image scaling to ensure at least 300 DPI resolution.  
-            \item Contrast enhancement (e.g., via CLAHE) to make characters more prominent.  
-            \item Thinning and skeletonization to separate thick or touching characters.  
-            \item Border removal to avoid false detections.  
+            \item Grayscale conversion and binarization to separate text from background.
+            \item Noise removal (e.g., speckles, smudges) using median filtering or adaptive thresholding.
+            \item Skew correction (deskewing) to align rotated text.
+            \item Image scaling to ensure at least 300 DPI resolution.
+            \item Contrast enhancement (e.g., via CLAHE) to make characters more prominent.
+            \item Thinning and skeletonization to separate thick or touching characters.
+            \item Border removal to avoid false detections.
         \end{itemize}
-    \item Extracting tabular text into editable formats.  
+    \item Extracting tabular text into editable formats.
 \end{enumerate}
 
 Although OCR provided an initial transcription, frequent misclassifications occurred (e.g., reading \texttt{9.4} as \texttt{5.4}), making manual verification indispensable.
 
 \begin{figure}[!t]
 \caption{Table 88, WR 2 (January 2007): quarterly and annual growth rates}  \label{fig:wr_2_2007_table_2}
-\includegraphics[width=1\textwidth]{pictures/wr_2_2007_table_2.pdf}\\      
+\includegraphics[width=1\textwidth]{pictures/wr_2_2007_table_2.pdf}\\
 \footnotesize \textbf{Notes:} Another example of a problematic scanned WR table. OCR processing is hindered by uneven contrast, faint print, shading near the binding, and inconsistent alignment. Highlighted values, small font sizes, and residual marks further obscure digits and decimal points, making reliable digitization difficult without extensive pre-processing and manual checks.
 \end{figure}
 
-Once raw tables were extracted and put in  readable csv format, we parsed and processed the data using functions documented in \texttt{old\_gdp\_dataset\_functions.py} and implemented in \texttt{old\_gdp\_dataset.ipynb}. The pipeline involved: 
+Once raw tables were extracted and converted to readable CSV format, we processed the data using the \pymodule{peru\_gdp\_rtd.cleaners.old\_table\_cleaner} module and orchestrated the workflow through \pyfunction{old\_table\_1\_runner} and \pyfunction{old\_table\_2\_runner} functions. The pipeline involved:
 %
-\begin{enumerate}  
-    \item Further data cleaning and validation.  
-    \item Concatenation of target-event datasets across vintages.  
-    \item Merging of sector-level datasets across vintages.  
-    \item Storage of structured vintages in SQL for the pre-2013 sample.  
+\begin{enumerate}
+    \item Data cleaning and validation using 70+ specialized transformation functions.
+    \item Vintage-format conversion with target-event column structure.
+    \item Concatenation across vintages to form complete RTD.
+    \item Storage in both CSV and Parquet formats for accessibility.
 \end{enumerate}
 
 The combination of automated routines and manual oversight was essential for ensuring the reliability of the early vintages.
@@ -140,20 +166,20 @@ The combination of automated routines and manual oversight was essential for ens
 
 \subsection{Digital Data (post-2013)}
 
-Since 2013, WRs have been published online as digital PDFs (semi-structured data), greatly facilitating automated extraction. We developed \texttt{Python} routines to handle heterogeneous table structures across reports. Although digital sources were more consistent than scanned volumes, irregular formatting still required flexible parsing scripts. The primary extraction library was \texttt{tabula}, selected for its robustness in dealing with complex table layouts.
+Since 2013, WRs have been published online as digital PDFs (semi-structured data), greatly facilitating automated extraction. We developed modular \texttt{Python} routines to handle heterogeneous table structures across reports. The primary extraction library was \texttt{tabula}, selected for its robustness in dealing with complex table layouts. All processing is implemented in the \pymodule{peru\_gdp\_rtd.cleaners.new\_table\_cleaner} module, with workflow orchestration through \pyfunction{new\_table\_1\_runner} and \pyfunction{new\_table\_2\_runner} functions.
 
 \newpage
-Despite their advantages, digital sources also presented several recurring issues:  
+Despite their advantages, digital sources also presented several recurring issues:
 %
 \begin{itemize}
-    \item Encoded characters replacing numerical values (e.g., \texttt{(cid:101)(cid:115)}).  
-    \item Incomplete vertical lines separating columns, creating ambiguous parsing.  
-    \item Duplicate documents (e.g., \texttt{ns-21-2015} and \texttt{ns-45-2015}), disrupting scraping routines.  
-    \item Empty table cells misinterpreted as headers (e.g., \texttt{ns-25-2014}, \texttt{ns-14-2020}).  
-    \item Missing target-period labels, complicating the assignment of growth rates (e.g., \texttt{ns-28-2013}).  
-    \item Missing year labels, complicating the chronological alignment of data (e.g., \texttt{ns-28-2013}).  
-    \item Duplicated or misaligned headers generating spurious columns.  
-    \item Double or fragmented border lines, complicating table parsing.  
+    \item Encoded characters replacing numerical values (e.g., \texttt{(cid:101)(cid:115)}).
+    \item Incomplete vertical lines separating columns, creating ambiguous parsing.
+    \item Duplicate documents (e.g., \texttt{ns-21-2015} and \texttt{ns-45-2015}), disrupting scraping routines.
+    \item Empty table cells misinterpreted as headers (e.g., \texttt{ns-25-2014}, \texttt{ns-14-2020}).
+    \item Missing target-period labels, complicating the assignment of growth rates (e.g., \texttt{ns-28-2013}).
+    \item Missing year labels, complicating the chronological alignment of data (e.g., \texttt{ns-28-2013}).
+    \item Duplicated or misaligned headers generating spurious columns.
+    \item Double or fragmented border lines, complicating table parsing.
 \end{itemize}
 
 Figure~\ref{fig:wr_28_2013_table_1} shows an example of a monthly table in digital format, where the fifth issue above is apparent: missing year labels (from May to December). While it is obvious to a human reader that the missing label corresponds to year \texttt{2012}, automated scripts must explicitly account for such cases. On the other hand, Figure~\ref{fig:wr_48_2016_table_2} illustrates additional issues such as incomplete borders and duplicated headers.
@@ -161,50 +187,46 @@ Figure~\ref{fig:wr_28_2013_table_1} shows an example of a monthly table in digit
 
 \begin{figure}[t!]
 \caption{Table 62, WR 28 (July 2013): monthly growth rates}\label{fig:wr_28_2013_table_1}
-\includegraphics[width=1\textwidth]{pictures/wr_28_2013_table_1.pdf}\\       
+\includegraphics[width=1\textwidth]{pictures/wr_28_2013_table_1.pdf}\\
 \footnotesize \textbf{Notes:} Although OCR accuracy is much higher than for scanned sources, gaps remain in the archive. For instance, the year 2012 is missing. Such discontinuities complicate the construction of a complete real-time dataset and require cross-checking against alternative sources.
 \end{figure}
 
 \begin{figure}[t!]
 \caption{Table 82, WR 48 (December 2016): quarterly and annual growth rates}\label{fig:wr_48_2016_table_2}
-\includegraphics[width=1\textwidth]{pictures/wr_48_2016_table_2.pdf}\\        
+\includegraphics[width=1\textwidth]{pictures/wr_48_2016_table_2.pdf}\\
 \footnotesize \textbf{Notes:} While free of resolution problems, this table illustrates other challenges for automated extraction, such as irregular table borders, as the border to the right of ``I'' in year 2016. These features can disrupt parsing routines and require additional cleaning before integration into the RTD.
 \end{figure}
 
 \newpage
-The replication codes were designed to systematically address these problems without resorting to \textit{hardcoding}. This ensured adaptability to changes in table formats and preserved consistency across vintages. 
-%
-All functions are modular and documented in \texttt{new\_gdp\_dataset\_functions.py}. The routines were specifically designed to handle formatting inconsistencies, providing flexibility for future WR formats. In particular, the workflow generates two logs: one storing the raw tables (as extracted by \texttt{tabula}), and another containing the fully cleaned versions. This structure allows researchers to compare original data with processed results, offering a transparent view of both challenges and solutions.  
+The replication codes were designed to systematically address these problems through modular, configuration-driven architecture. All cleaning operations avoid hardcoding, ensuring adaptability to format changes and preserving consistency across vintages. The modular design consists of 70+ specialized functions organized into seven categories: text normalization (4 functions), general table cleaning (22 operations), column handling (14 functions), and table-specific transformations (13 functions each for Tables 1 and 2).
 
-The extraction workflow, implemented in \texttt{new\_gdp\_dataset.ipynb}, followed these steps:  
+The automated extraction workflow, implemented through the \bashcmd{python scripts/update\_rtd.py} command, executes the following steps:
 %
 \begin{enumerate}
-    \item Automated downloading of WR PDFs from the BCRP website via a scraper.  
-    \item Identification of relevant tables (monthly, quarterly, and annual) using keyword searches.  
-    \item Extraction of tables with \texttt{tabula}.  
-    \item Cleaning and restructuring into standardized \texttt{Python} dictionaries.  
-    \item Concatenation of target-event datasets across vintages.  
-
-   % \item Merging of sector-level datasets across vintages.  
-    \item Export of structured vintages in SQL for the post-2013 sample.  
+    \item Automated downloading of WR PDFs from the BCRP website via Selenium-based web scraper (\pymodule{peru\_gdp\_rtd.scrapers.bcrp\_scraper}).
+    \item Identification of relevant tables using keyword searches (\pymodule{peru\_gdp\_rtd.processors.pdf\_processor}).
+    \item Extraction of tables with \texttt{tabula} and cleaning using specialized functions.
+    \item Restructuring into standardized vintage format with type-safe configuration management.
+    \item Concatenation across vintages using union-based column alignment.
+    \item Export to multiple formats (CSV, Parquet) with comprehensive metadata.
 \end{enumerate}
 
 \newpage
-Once both scanned and digital vintages were processed, they were integrated into a continuous RTD spanning 2000–2024. The integration, implemented in \texttt{gdp\_revisions\_datasets.ipynb}, involved:  
+Once both scanned and digital vintages were processed, they were integrated into a continuous RTD spanning 2000–2024. The integration workflow includes:
 %
 \begin{enumerate}
-    \item Concatenating vintages from pre- and post-2013 samples.  
-    \item Generating datasets excluding observations affected by base-year changes.  
-    \item Producing benchmarking dummies to flag revisions from rebasing.  
-    %\item Merging vintages into release-based datasets.  
-    %\item Computing revisions ($r$)
-    \item Storage of structured vintages in SQL for the whole sample.   
+    \item Concatenating vintages from pre- and post-2013 samples (\pymodule{peru\_gdp\_rtd.transformers.concatenator}).
+    \item Extracting revision metadata from PDF sources (\pymodule{peru\_gdp\_rtd.transformers.metadata\_handler}).
+    \item Applying base-year mapping to identify structural breaks in GDP series.
+    \item Generating sentinel-adjusted datasets to mark invalid comparisons due to base-year changes.
+    \item Producing benchmark indicator datasets to flag methodological revisions.
+    \item Converting vintage format to release format for econometric analysis (\pymodule{peru\_gdp\_rtd.transformers.releases\_converter}).
+    \item Storage of all dataset variants with comprehensive documentation.
 \end{enumerate}
 
 
 
 
- 
 
 
 %-----------------------------------------------------------------------
@@ -213,18 +235,18 @@ Once both scanned and digital vintages were processed, they were integrated into
 
 \section{The Real-Time Dataset (RTD)}
 \label{section:rtd}
-We emphasize the distinction between two key products:  
+We emphasize the distinction between two key products:
 
 \begin{itemize}
-    \item \textbf{Vintages dataset:} contains all successive records as originally extracted. This constitutes the real-time dataset (RTD). 
-    \item \textbf{Releases dataset:} derived from vintages, reorganized for revision analysis, and serving as the main input for our empirical tests.  
+    \item \textbf{Vintages dataset:} contains all successive records as originally extracted. This constitutes the real-time dataset (RTD).
+    \item \textbf{Releases dataset:} derived from vintages, reorganized for revision analysis, and serving as the main input for our empirical tests.
 \end{itemize}
 
 The vintages dataset is the direct output of the extraction process and preserves the chronology of publications exactly as they appeared. By contrast, the releases dataset is a research-oriented transformation of the RTD, specifically designed to facilitate the study of revisions. Both formats are complementary: the vintages dataset ensures transparency and replicability, while the releases dataset provides the structure needed for econometric testing.
 
 To illustrate the difference, we focus on a window that captures the lockdown effects of the COVID-19 pandemic. This period registers unusually negative monthly growth rates that are easy to track visually. Table~\ref{tab:vintages} illustrates the structure of the RTD: columns represent vintages, while rows correspond to target periods or events. For instance, the July 2020 vintage contained growth figures for May 2019 through May 2020. That WR included the third estimate for March 2020 (-16.30) and the first estimate for May 2020 (-32.80). To guide interpretation, first releases in each row are highlighted in blue, second releases in red, third releases in green, and fourth releases in yellow.
 
-The releases dataset reorganizes the same information so that each column groups all publications corresponding to the same release sequence (first, second, third, etc.) across target periods. Table~\ref{tab:releases} provides a visual representation of this reorganization. The first release of each target period is gathered in the $y^1_t$ column, the second in the $y^2_t$ column, and so forth. For example, the figures for February and April 2020 highlighted in blue in Table~\ref{tab:vintages} appear in different columns within the RTD but are grouped together in the $y^1_t$ column of Table~\ref{tab:releases}, since both correspond to first estimates. Similarly, the red-highlighted figures in Table~\ref{tab:vintages} are grouped under the $y^2_t$ column in Table~\ref{tab:releases}, and so on. 
+The releases dataset reorganizes the same information so that each column groups all publications corresponding to the same release sequence (first, second, third, etc.) across target periods. Table~\ref{tab:releases} provides a visual representation of this reorganization. The first release of each target period is gathered in the $y^1_t$ column, the second in the $y^2_t$ column, and so forth. For example, the figures for February and April 2020 highlighted in blue in Table~\ref{tab:vintages} appear in different columns within the RTD but are grouped together in the $y^1_t$ column of Table~\ref{tab:releases}, since both correspond to first estimates. Similarly, the red-highlighted figures in Table~\ref{tab:vintages} are grouped under the $y^2_t$ column in Table~\ref{tab:releases}, and so on.
 
 This procedure, widely adopted in the literature, facilitates the computation of revisions as differences between consecutive release columns. In particular, the ``Last release'' column ($H$) contains the definitive values for each period, after which no further significant revisions are recorded. This structure makes explicit the sequence of information updates and provides a clear framework for the rationality and benchmarking tests presented in the main paper.
 
@@ -234,7 +256,7 @@ This procedure, widely adopted in the literature, facilitates the computation of
 \resizebox{\textwidth}{!}{%
 \input{tables/Tab_Vintages}
 }\\[2mm]
-\footnotesize \textbf{Notes:} This table illustrates the vintage format of a real-time database. Each column corresponds to a specific data vintage — that is, the set of estimates available in the WR at the end of a given month. Each row corresponds to a target period (e.g., a specific month for which GDP growth is estimated). The publication lag of the first release is two months. 
+\footnotesize \textbf{Notes:} This table illustrates the vintage format of a real-time database. Each column corresponds to a specific data vintage — that is, the set of estimates available in the WR at the end of a given month. Each row corresponds to a target period (e.g., a specific month for which GDP growth is estimated). The publication lag of the first release is two months.
 \end{table}
 
 
@@ -246,7 +268,7 @@ This procedure, widely adopted in the literature, facilitates the computation of
 }
 %
 }\\[2mm]
-\footnotesize \textbf{Notes:} This table presents the release format of the  data in Table \ref{tab:vintages}, reorganized by target period to track successive estimates over time. Each row corresponds to a given target period (e.g., a specific month of GDP growth), and each column captures $y^h_t$, i.e. the $h$-th release of that estimate. 
+\footnotesize \textbf{Notes:} This table presents the release format of the  data in Table \ref{tab:vintages}, reorganized by target period to track successive estimates over time. Each row corresponds to a given target period (e.g., a specific month of GDP growth), and each column captures $y^h_t$, i.e. the $h$-th release of that estimate.
 \end{table}
 
 %-----------------------------------------------------------------------
@@ -256,10 +278,9 @@ This procedure, widely adopted in the literature, facilitates the computation of
 \section{Coverage of the RTD}
 \label{section:gdp_rtd_indicators}
 
-We now summarize the coverage and structure of the RTD, which supports a comprehensive analysis of GDP as a real-time indicator of economic activity. 
+We now summarize the coverage and structure of the RTD, which supports a comprehensive analysis of GDP as a real-time indicator of economic activity.
 
-The dataset includes monthly, quarterly, and annual GDP growth series, with temporal and horizon coverage detailed in Table~\ref{tab:rt_sum}. Sectoral disaggregation follows INEI’s level-9 classification—the most detailed level available—which distinguishes sectors such as manufacturing, commerce, agriculture, mining, and a wide range of services. The category “other services” includes real estate, education, and health.
-
+The dataset includes monthly, quarterly, and annual GDP growth series, with temporal and horizon coverage detailed in Table~\ref{tab:rt_sum}. Sectoral disaggregation follows INEI's level-9 classification—the most detailed level available—which distinguishes sectors such as manufacturing, commerce, agriculture, mining, and a wide range of services. The category ``other service'' includes real estate, education, and health.
 
 \begin{table}[b!]
 \caption{Sectoral GDP as a real-time indicator}
@@ -268,26 +289,432 @@ The dataset includes monthly, quarterly, and annual GDP growth series, with temp
 \input{tables/Tab_RT_Summarize}
 %
 }\\[2mm]
-\footnotesize \textbf{Notes:} The disaggregation of economic activities follows level 9 of INEI’s official classification. Under this classification, the “other services” sector includes a diverse set of activities, such as real estate and personal services, including education and health (14.89\%). The following categories are also identified: transportation, storage, postal and courier services (4.97\%); accommodation and food services (2.86\%); telecommunications and other information services (2.66\%); financial and insurance services (3.22\%); business services (4.24\%); product taxes (8.29\%); and public administration and defense (4.29\%).
+\footnotesize \textbf{Notes:} The disaggregation of economic activities follows level 9 of INEI's official classification. Under this classification, the ``other services'' sector includes a diverse set of activities, such as real estate and personal services, including education and health (14.89\%). The following categories are also identified: transportation, storage, postal and courier services (4.97\%); accommodation and food services (2.86\%); telecommunications and other information services (2.66\%); financial and insurance services (3.22\%); business services (4.24\%); product taxes (8.29\%); and public administration and defense (4.29\%).
 \end{table}
 
 \clearpage
+
 %-----------------------------------------------------------------------
 % 5. Replication and Availability
 %-----------------------------------------------------------------------
 
-\section{Replication and Availability}
+\section{Computational Implementation and Replication}
 \label{section:replication}
 
-All scripts used in this supplementary material were developed following good programming practices and include complete documentation to ensure the reproducibility of results. Replication codes will be available upon request and will be made publicly accessible through an open GitHub repository once the article is accepted.
+We provide a production-ready, open-source pipeline for constructing and updating the Peruvian GDP Real-Time Dataset. The codebase comprises over 4,000 lines of professionally documented Python code, organized into 14 specialized modules following software engineering best practices. All code is publicly available on GitHub (\url{https://github.com/JasonCruz18/peruvian_gdp_revisions}) under an MIT license, ensuring full transparency and reproducibility.
 
-The repository will include, among other resources:
+The pipeline architecture ensures complete reproducibility through configuration-driven execution, idempotent operations, and comprehensive error handling. A single command (\bashcmd{python scripts/update\_rtd.py}) executes the entire 6-step workflow from raw PDF download to final dataset generation, producing 10+ dataset variants suitable for econometric analysis. The modular design facilitates future extensions and adaptations to changes in data source formats while maintaining code maintainability and testability.
 
-\begin{itemize}  
-    \item \texttt{Python} scripts and functions for the construction of vintage and release datasets, particularly for updating new publications (2013--present). These routines cover automated downloading, extraction, cleaning, and data processing.  
-    \item Documentation detailing how to access both vintage and release data from any software or programming language, with ready-to-use formats suitable for future research.  
+\subsection{Software Architecture}
+
+The codebase follows a modular architecture with clear separation of concerns, organized into seven primary modules:
+
+\paragraph{Configuration Module (\pymodule{peru\_gdp\_rtd.config}):} Manages all pipeline settings through a 231-line YAML configuration file (\filepath{config/config.yaml}) and type-safe Python dataclasses. This design eliminates hardcoding entirely, enabling users to customize paths, scraping parameters, cleaning tolerances, and output formats without modifying source code. The configuration system uses Pydantic-style validation to ensure type safety and catch errors early.
+
+\paragraph{Scrapers Module (\pymodule{peru\_gdp\_rtd.scrapers}):} Implements automated web scraping from the BCRP website using Selenium WebDriver. The \pyfunction{pdf\_downloader} function handles authentication, rate limiting, retry logic with exponential backoff, and concurrent downloads while respecting server policies. The scraper automatically organizes PDFs by year and maintains download records for idempotent execution.
+
+\paragraph{Processors Module (\pymodule{peru\_gdp\_rtd.processors}):} Handles PDF processing tasks including keyword-based page extraction (\pyfunction{pdf\_input\_generator}), file organization (\pymodule{file\_organizer}), and metadata parsing (\pymodule{metadata}). These functions reduce raw 4-page Weekly Reports to 2-page inputs containing only GDP tables, significantly improving downstream processing efficiency.
+
+\paragraph{Cleaners Module (\pymodule{peru\_gdp\_rtd.cleaners}):} Contains 70+ specialized data cleaning functions organized into seven sub-modules:
+\begin{itemize}
+    \item \pymodule{text\_cleaners} (4 functions): Text normalization, whitespace handling, special character removal
+    \item \pymodule{table\_cleaners} (22 functions): General DataFrame operations, noise removal, validation
+    \item \pymodule{column\_handlers} (14 functions): Column renaming, type conversion, standardization
+    \item \pymodule{table1\_cleaners} (13 functions): Monthly table-specific transformations
+    \item \pymodule{table2\_cleaners} (13 functions): Quarterly/annual table-specific transformations
+    \item \pymodule{old\_table\_cleaner} (1 class): Orchestrates cleaning for scanned CSV data (pre-2013)
+    \item \pymodule{new\_table\_cleaner} (1 class): Orchestrates cleaning for digital PDF data (post-2013)
 \end{itemize}
 
-The repository structure is designed to ensure full replicability while facilitating future extensions. All functions are programmed to handle heterogeneous formats robustly, allowing for adaptability to changes in the official release process.
+Each function is documented with type hints, docstrings, and example usage, ensuring transparency in data transformations.
+
+\paragraph{Transformers Module (\pymodule{peru\_gdp\_rtd.transformers}):} Implements data transformation and RTD construction through four specialized modules:
+\begin{itemize}
+    \item \pymodule{vintage\_preparator}: Reshapes cleaned tables into vintage format with target-period columns
+    \item \pymodule{concatenator}: Merges vintages across years using union-based column alignment (372 lines)
+    \item \pymodule{metadata\_handler}: Extracts revision metadata, applies base-year mappings, generates benchmark indicators (655 lines)
+    \item \pymodule{releases\_converter}: Transforms vintage format to release format using NumPy-based vertical alignment (241 lines)
+\end{itemize}
+
+\paragraph{Orchestration Module (\pymodule{peru\_gdp\_rtd.orchestration}):} Provides high-level workflow coordination through four runner functions (\pyfunction{old\_table\_1\_runner}, \pyfunction{old\_table\_2\_runner}, \pyfunction{new\_table\_1\_runner}, \pyfunction{new\_table\_2\_runner}) that orchestrate complete processing pipelines from raw data to structured vintages.
+
+\paragraph{Utilities Module (\pymodule{peru\_gdp\_rtd.utils}):} Contains shared infrastructure including \pymodule{RecordManager} for idempotent operations and \pymodule{alerts} for user notifications.
+
+\subsection{Installation and Setup}
+
+The pipeline requires Python 3.10 or higher and Java Runtime Environment (JRE) for PDF processing. Installation follows standard Python packaging conventions:
+
+\begin{lstlisting}[language=bash, caption={Installation procedure}]
+# Clone repository
+git clone https://github.com/JasonCruz18/peruvian_gdp_revisions.git
+cd peru_gdp_revisions/gdp_revisions_datasets
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Verify installation
+python -c "from peru_gdp_rtd.config import get_settings; print('OK')"
+\end{lstlisting}
+
+Dependencies include:
+\begin{itemize}
+    \item \texttt{pandas} (2.0+): DataFrame operations
+    \item \texttt{numpy} (1.24+): Numerical computations
+    \item \texttt{selenium} (4.0+): Web scraping
+    \item \texttt{tabula-py} (2.5+): PDF table extraction
+    \item \texttt{PyMuPDF} (1.23+): PDF metadata extraction
+    \item \texttt{tqdm} (4.65+): Progress tracking
+    \item \texttt{pyyaml} (6.0+): Configuration parsing
+\end{itemize}
+
+The \filepath{requirements.txt} file pins exact versions for reproducibility.
+
+\subsection{Pipeline Execution}
+
+The pipeline supports both complete workflow execution and selective step execution through a command-line interface:
+
+\begin{lstlisting}[language=bash, caption={Pipeline execution examples}]
+# Execute complete pipeline (Steps 1-6)
+python scripts/update_rtd.py
+
+# Execute specific steps only
+python scripts/update_rtd.py --steps 3,4,5,6  # Skip download/extraction
+
+# Skip PDF download (useful for testing)
+python scripts/update_rtd.py --skip-download
+
+# Verbose output for debugging
+python scripts/update_rtd.py --verbose
+
+# Dry run (show execution plan without running)
+python scripts/update_rtd.py --dry-run
+
+# Use custom configuration file
+python scripts/update_rtd.py --config path/to/custom_config.yaml
+\end{lstlisting}
+
+The six pipeline steps are:
+
+\begin{enumerate}
+    \item \textbf{Download PDFs}: Automated scraping from BCRP website (2013--present)
+    \item \textbf{Generate Inputs}: Extract GDP table pages from full PDFs
+    \item \textbf{Clean \& Build RTD}: Process both OLD (CSV) and NEW (PDF) sources into vintage format
+    \item \textbf{Concatenate}: Merge vintages across all years into unified RTD
+    \item \textbf{Metadata}: Extract revision information, apply base-year mappings, generate benchmarks
+    \item \textbf{Convert to Releases}: Transform vintage format to release format for analysis
+\end{enumerate}
+
+Each step maintains processing records to enable idempotent execution—rerunning the pipeline only processes new or modified data, not previously completed work.
+
+\subsection{Data Cleaning Pipeline}
+
+The data cleaning workflow applies 70+ specialized transformations to handle the formatting irregularities described in Section~\ref{section:raw_data}. Key cleaning operations include:
+
+\paragraph{Text Normalization:}
+\begin{itemize}
+    \item Unicode normalization (NFC form)
+    \item Whitespace standardization (tabs → spaces, multiple spaces → single)
+    \item Special character handling (accented characters, punctuation)
+    \item Case normalization for sector names
+\end{itemize}
+
+\paragraph{Table Structure Cleaning:}
+\begin{itemize}
+    \item Empty row removal (fully NA or whitespace-only)
+    \item Duplicate row detection and removal
+    \item Header row identification and extraction
+    \item Column alignment correction (handling irregular borders)
+    \item Numeric column identification (distinguishing from text columns)
+\end{itemize}
+
+\paragraph{Numerical Data Cleaning:}
+\begin{itemize}
+    \item Encoded character replacement (e.g., \texttt{(cid:101)} → valid numbers)
+    \item Decimal separator normalization (comma → period)
+    \item Thousands separator removal
+    \item Type conversion with error handling (string → float)
+    \item Missing value handling (empty strings, dashes, ``n.d.'' → NA)
+\end{itemize}
+
+\paragraph{Temporal Data Handling:}
+\begin{itemize}
+    \item Missing year label inference (forward-filling from previous columns)
+    \item Month abbreviation parsing (Spanish: ``ene'', ``feb'', etc.)
+    \item Quarter identification (I, II, III, IV → 1, 2, 3, 4)
+    \item Target period construction (year + month/quarter → ``2020m5'', ``2020q2'')
+\end{itemize}
+
+\paragraph{Sector Name Standardization:}
+The pipeline maintains comprehensive mappings for sector name variations, handling both Spanish and English terminology:
+
+\begin{lstlisting}[language=Python, caption={Example: Sector name standardization}, label={lst:sector}]
+SECTOR_MAP = {
+    "agriculture and livestock": "agriculture",
+    "agropecuario": "agropecuario",
+    "mining and fuel": "mining",
+    "mineria e hidrocarburos": "mineria e hidrocarburos",
+    "manufacturing": "manufacturing",
+    "manufactura": "manufactura",
+    # ... 15+ additional mappings
+}
+\end{lstlisting}
+
+These mappings ensure consistency across vintages despite variations in source formatting.
+
+\subsection{Configuration Management}
+
+All pipeline behavior is controlled through \filepath{config/config.yaml}, a human-readable configuration file with no hardcoded values in source code. Key configuration categories include:
+
+\begin{lstlisting}[language=yaml, caption={Configuration file excerpt (config/config.yaml)}]
+# Scraper configuration
+scraper:
+  browser: "chrome"
+  headless: false
+  max_downloads: 60
+  min_wait: 5.0
+  max_wait: 10.0
+  css_selectors:
+    report_list: "#rightside ul.listado-bot-std-claros"
+
+# PDF processing configuration
+pdf_processing:
+  keywords:
+    - "ECONOMIC SECTORS"
+    - "SECTORES ECONOMICOS"
+
+# Data cleaning configuration
+cleaning:
+  decimal_places: 1
+  pipeline_version: "1.0.0"
+  sector_mappings_english:
+    "agriculture and livestock": "agriculture"
+    "fishing": "fishing"
+    # ...
+
+# Metadata configuration
+metadata:
+  base_years:
+    - year: 2000
+      wr: 28
+      base_year: 1994
+    - year: 2014
+      wr: 11
+      base_year: 2007
+    - year: 2022
+      wr: 20
+      base_year: 2019
+
+# Output configuration
+features:
+  persist_format: "csv"  # or "parquet"
+  validate_data: true
+\end{lstlisting}
+
+This design allows researchers to adapt the pipeline to new data sources or methodological requirements without modifying Python code.
+
+\subsection{Quality Assurance Features}
+
+The pipeline implements several quality assurance mechanisms to ensure reliability and reproducibility:
+
+\paragraph{Idempotent Operations:} The \pymodule{RecordManager} class tracks all processed files using text-based record files. Rerunning the pipeline automatically skips previously processed data, enabling incremental updates. Record files are human-readable and version-controlled for transparency.
+
+\paragraph{Progress Tracking:} All long-running operations display \texttt{tqdm} progress bars with estimated completion times, colored output for status indicators, and summary statistics upon completion. This provides real-time feedback during execution and helps identify performance bottlenecks.
+
+\paragraph{Error Resilience:} The pipeline implements graceful error handling with three-tier recovery:
+\begin{enumerate}
+    \item \textbf{Skip \& Continue}: Individual file failures don't halt entire workflow
+    \item \textbf{Error Logging}: Failed operations are logged with full context for debugging
+    \item \textbf{Summary Reports}: End-of-step summaries report success/failure counts
+\end{enumerate}
+
+\paragraph{Data Validation:} Built-in validation checks include:
+\begin{itemize}
+    \item Schema validation (expected columns present, correct types)
+    \item Range validation (growth rates within plausible bounds)
+    \item Consistency checks (monotonicity of vintage dates)
+    \item Completeness checks (missing value patterns)
+\end{itemize}
+
+\paragraph{Dual Persistence:} The pipeline supports both CSV (human-readable, universally compatible) and Parquet (compressed, type-preserving) formats. Output datasets include both formats by default, with CSV for inspection and Parquet for analysis.
+
+\subsection{Output Datasets}
+
+The pipeline generates 10+ dataset variants optimized for different analytical purposes:
+
+\begin{table}[b!]
+\caption{Output dataset specifications}
+\label{tab:output_dataset}
+\resizebox{\columnwidth}{!}{
+\input{tables/Tab_Output_Data}
+%
+}\\[2mm]
+%\footnotesize \textbf{Notes:}
+\end{table}
+
+\paragraph{Vintage Format Schema:}
+\begin{itemize}
+    \item \texttt{industry} (string): Sector name (standardized)
+    \item \texttt{vintage} (string): Publication month in ``YYYYmM'' format
+    \item \texttt{tp\_YYYYmM} or \texttt{tp\_YYYYqN} or \texttt{tp\_YYYY} (float): Growth rate columns for each target period
+\end{itemize}
+
+\paragraph{Release Format Schema:}
+\begin{itemize}
+    \item \texttt{target\_period} (string): Reference period in ``YYYYmM''/``YYYYqN''/``YYYY'' format
+    \item \texttt{industry\_h} (float): $h$-th release for each industry (e.g., \texttt{agriculture\_1}, \texttt{agriculture\_2}, etc.)
+\end{itemize}
+
+\paragraph{Benchmark Datasets:}
+Replace growth rates with binary indicators where 1.0 denotes a benchmark revision (simultaneous update of monthly and quarterly/annual tables) and 0.0 otherwise. These datasets enable isolation of methodological revisions from routine data updates.
+
+\paragraph{Base-Year Adjusted Datasets:}
+Apply sentinel value (-999999.0) to growth rates that become incomparable due to base-year changes. This marks invalid observations without removing them, preserving the complete revision history while flagging structural breaks.
+
+\subsection{Computational Requirements}
+
+\paragraph{Estimated Runtime:}
+\begin{itemize}
+    \item Complete pipeline (Steps 1--6): Approximately 45--60 minutes on standard hardware
+    \item Steps 3--6 only (processing existing PDFs): Approximately 25--35 minutes
+    \item Incremental updates (new vintages only): Approximately 5--10 minutes
+\end{itemize}
+
+Actual runtime depends on internet connection speed (Step 1), CPU performance (Steps 3--5), and disk I/O (Step 6).
+
+\paragraph{Hardware Requirements:}
+\begin{itemize}
+    \item CPU: Multi-core processor recommended (parallel processing support planned)
+    \item RAM: 4 GB minimum, 8 GB recommended for large datasets
+    \item Disk: 2 GB for code and dependencies, 5 GB for full dataset archive
+    \item Internet: Stable connection required for Step 1 (PDF download)
+\end{itemize}
+
+\paragraph{Software Requirements:}
+\begin{itemize}
+    \item Operating System: Windows, macOS, or Linux (tested on all three)
+    \item Python: 3.10+ (3.11 recommended)
+    \item Java: JRE 8+ for \texttt{tabula-py}
+    \item Browser: Chrome, Firefox, or Edge for Selenium (Chrome recommended)
+\end{itemize}
+
+\subsection{Repository Structure}
+
+The complete repository structure follows modern Python packaging conventions:
+
+\begin{lstlisting}[caption={Repository directory structure}]
+peru_gdp_revisions/gdp_revisions_datasets/
+|-- peru_gdp_rtd/                 # Main Python package
+|   |-- config/                   # Configuration management
+|   |   |-- config.yaml           # YAML configuration (231 lines)
+|   |   `-- settings.py           # Type-safe Settings classes
+|   |-- scrapers/                 # Web scraping
+|   |   `-- bcrp_scraper.py       # Selenium-based PDF downloader
+|   |-- processors/               # PDF processing
+|   |   |-- pdf_processor.py      # Keyword-based extraction
+|   |   |-- file_organizer.py     # File organization
+|   |   `-- metadata.py           # Metadata parsing
+|   |-- cleaners/                 # Data cleaning (70+ functions)
+|   |   |-- text_cleaners.py
+|   |   |-- table_cleaners.py
+|   |   |-- column_handlers.py
+|   |   |-- table1_cleaners.py
+|   |   |-- table2_cleaners.py
+|   |   |-- old_table_cleaner.py
+|   |   `-- new_table_cleaner.py
+|   |-- transformers/             # Data transformation
+|   |   |-- vintage_preparator.py
+|   |   |-- concatenator.py       # RTD merging (372 lines)
+|   |   |-- metadata_handler.py   # Metadata extraction (655 lines)
+|   |   `-- releases_converter.py # Format conversion (241 lines)
+|   |-- orchestration/            # Workflow coordination
+|   |   `-- runners.py            # High-level orchestrators
+|   `-- utils/                    # Shared utilities
+|       |-- data_manager.py       # RecordManager class
+|       `-- alerts.py             # User notifications
+|-- scripts/
+|   `-- update_rtd.py             # One-button execution script
+|-- config/
+|   |-- config.yaml               # User configuration
+|   `-- config.example.yaml       # Configuration template
+|-- data/                         # Generated datasets (gitignored)
+|   |-- input/                    # Intermediate data
+|   |-- output/                   # Final RTD datasets
+|   `-- records/                  # Processing records
+|-- metadata/
+|   `-- wr_metadata.csv           # Revision metadata (tracked)
+|-- tests/                        # Test suite (optional)
+|-- docs/                         # Documentation
+|-- pyproject.toml                # Modern Python packaging
+|-- requirements.txt              # Dependency specifications
+`-- README.md                     # Usage documentation
+\end{lstlisting}
+
+\subsection{Future Extensions}
+
+The modular architecture facilitates several planned enhancements:
+
+\paragraph{Automated Updates:} Implementation of scheduled execution (e.g., monthly cron jobs) to automatically incorporate new Weekly Report publications.
+
+\paragraph{Alternative Data Sources:} Extension to INEI's direct publications or other statistical agencies with minimal code modifications due to configuration-driven design.
+
+\paragraph{Additional Frequencies:} Support for weekly or daily economic indicators using the same pipeline architecture.
+
+\paragraph{Statistical Validation:} Integration of automated rationality tests and revision analysis directly in the pipeline.
+
+\paragraph{Interactive Dashboard:} Development of web-based visualization tools for exploring revision patterns and data quality metrics.
+
+\paragraph{API Development:} Creation of RESTful API for programmatic access to RTD without local installation.
+
+The codebase design explicitly supports these extensions through:
+\begin{itemize}
+    \item Modular separation of concerns (scrapers, processors, cleaners, transformers)
+    \item Configuration-driven execution (new sources via YAML, not code changes)
+    \item Comprehensive type hints (enables IDE support and type checking)
+    \item Extensive documentation (docstrings, README, technical supplement)
+    \item Version control (Git, semantic versioning)
+\end{itemize}
+
+\subsection{Code Availability and Support}
+
+\paragraph{Public Repository:} \url{https://github.com/JasonCruz18/peruvian_gdp_revisions}
+
+\paragraph{License:} MIT License (permits commercial and academic use, modification, and redistribution)
+
+\paragraph{Documentation:}
+\begin{itemize}
+    \item Repository README with installation and usage instructions
+    \item Inline docstrings for all functions and classes
+    \item Complete type hints throughout codebase
+    \item Configuration file comments
+    \item This technical supplement
+\end{itemize}
+
+\paragraph{Support Channels:}
+\begin{itemize}
+    \item GitHub Issues: Bug reports and feature requests
+    \item GitHub Discussions: General questions and usage help
+    \item Email: \href{mailto:jj.cruza@up.edu.pe}{jj.cruza@up.edu.pe} for research collaboration
+\end{itemize}
+
+\paragraph{Citation:} Researchers using this code or dataset should cite both the paper and the repository:
+
+\begin{lstlisting}[language=tex, caption={Suggested citation}]
+@article{CruzWinkelriedTorres2025gdp,
+  title={Nowcasting GDP using data revisions in an emerging economy},
+  author={Cruz, Jason and Winkelried, Diego and Torres, Javier},
+  year={2025},
+  institution={Universidad del Pacifico - CIUP}
+}
+
+@software{CruzWinkelriedTorres2025gdp_code,
+  title={Peru GDP Real-Time Dataset Construction Pipeline},
+  author={Cruz, Jason},
+  year={2025},
+  url={https://github.com/JasonCruz18/peruvian_gdp_revisions},
+  version={1.0.0}
+}
+\end{lstlisting}
+
+The combination of comprehensive documentation, modular design, and public availability ensures that this computational work meets the highest standards of reproducibility. All materials necessary for complete replication are freely available, and the codebase is designed to facilitate both exact replication and extensions for future research.
 
 \end{document}
