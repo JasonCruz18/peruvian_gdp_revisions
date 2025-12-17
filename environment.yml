@@ -1,0 +1,50 @@
+name: peru_gdp_rtd
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Python version
+  - python>=3.10,<3.13
+
+  # Core data processing
+  - pandas>=2.0.0
+  - numpy>=1.24.0
+
+  # Configuration
+  - pyyaml>=6.0
+
+  # HTTP and web scraping
+  - requests>=2.31.0
+  - urllib3>=2.0.0
+  - selenium>=4.0.0
+
+  # PDF processing
+  - pymupdf>=1.23.0
+  - pypdf2>=3.0.0
+
+  # Utilities
+  - pygame>=2.5.0
+  - tqdm>=4.65.0
+  - colorama>=0.4.6
+
+  # Jupyter support (optional for notebooks)
+  - ipywidgets>=8.0.0
+  - jupyter>=1.0.0
+  - notebook>=7.0.0
+
+  # Development tools (optional)
+  - black>=23.0.0
+  - flake8>=6.0.0
+  - isort>=5.12.0
+  - pytest>=7.4.0
+  - pytest-cov>=4.1.0
+
+  # Java for tabula-py
+  - openjdk>=11
+
+  # Pip packages (not available or better via pip)
+  - pip
+  - pip:
+    - webdriver-manager>=4.0.0
+    - tabula-py>=2.8.0
+    - roman>=4.0

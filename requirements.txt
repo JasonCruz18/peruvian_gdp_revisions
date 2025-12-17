@@ -22,7 +22,7 @@ tabula-py>=2.8.0
 
 # Utilities
 pygame>=2.5.0
-python-roman>=4.0
+roman>=4.0
 tqdm>=4.65.0
 
 # Jupyter support (optional for notebooks)

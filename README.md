@@ -29,7 +29,7 @@ This project provides a comprehensive, production-ready pipeline for building Re
 ```bash
 # Clone the repository
 git clone https://github.com/JasonCruz18/peru_gdp_revisions.git
-cd peru_gdp_revisions/gdp_revisions_datasets
+cd peru_gdp_revisions
 
 # Install dependencies
 pip install -r requirements.txt
@@ -71,11 +71,11 @@ That's it! The complete GDP RTD will be generated in `data/output/`.
 ## Project Structure
 
 ```
-gdp_revisions_datasets/
+peru_gdp_revisions/            # Root directory
 ├── peru_gdp_rtd/              # Main Python package
 │   ├── config/
-│   │   ├── config.yaml        # YAML configuration (231 lines)
-│   │   └── settings.py        # Type-safe Settings classes
+│   │   ├── settings.py        # Type-safe Settings classes
+│   │   └── __init__.py
 │   │
 │   ├── scrapers/
 │   │   └── bcrp_scraper.py    # PDF downloader with Selenium
@@ -107,16 +107,17 @@ gdp_revisions_datasets/
 │       ├── data_manager.py    # RecordManager for idempotency
 │       └── alerts.py          # Audio alert utilities
 │
+├── config/
+│   ├── config.yaml            # YAML configuration (231 lines)
+│   └── config.example.yaml    # Configuration template
+│
 ├── scripts/
 │   └── update_rtd.py          # One-button update script ⭐
 │
 ├── notebooks/                 # Educational Jupyter notebooks
-│   ├── new_gdp_rtd.ipynb      # Complete pipeline walkthrough
-│   └── [Step-by-step guides]  # Individual step tutorials
-│
-├── config/
-│   ├── config.yaml            # User configuration
-│   └── config.example.yaml    # Configuration template
+│   ├── new_gdp_rtd.ipynb      # Complete pipeline walkthrough (updated)
+│   ├── old_gdp_rtd.ipynb      # Legacy reference
+│   └── README.md              # Comprehensive notebook guide
 │
 ├── data/                      # Generated datasets (gitignored)
 │   ├── input/                 # Intermediate data
@@ -124,17 +125,27 @@ gdp_revisions_datasets/
 │   │   ├── vintages/          # Vintage-format intermediate files
 │   │   ├── monthly_gdp_rtd.csv
 │   │   ├── quarterly_annual_gdp_rtd.csv
-│   │   ├── [10+ dataset variants]
-│   │   └── ...
+│   │   └── [10+ dataset variants]
 │   └── records/               # Processing records for idempotency
 │
 ├── metadata/
 │   └── wr_metadata.csv        # Revision metadata (tracked in git)
 │
-├── tests/                     # Test suite (optional)
+├── new_weekly_reports/        # Downloaded PDF files (gitignored)
+├── old_weekly_reports/        # Historical CSV files (gitignored)
+├── record/                    # Legacy progress tracking (gitignored)
+├── alert_track/               # Audio alerts (Beethoven.mp3)
+│
+├── tests/                     # Test suite
+│   └── test_smoke.py          # Smoke tests
+│
 ├── docs/                      # Documentation
+│
+├── _Supplement.tex            # Publication-ready supplement (35 pages)
 ├── pyproject.toml             # Modern Python packaging
 ├── requirements.txt           # Dependencies
+├── requirements-dev.txt       # Development dependencies
+├── .gitignore                 # Ignore patterns
 └── README.md                  # This file
 ```
 
