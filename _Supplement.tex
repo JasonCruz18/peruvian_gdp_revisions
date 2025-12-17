@@ -347,10 +347,14 @@ The pipeline requires Python 3.10 or higher and Java Runtime Environment (JRE) f
 \begin{lstlisting}[language=bash, caption={Installation procedure}]
 # Clone repository
 git clone https://github.com/JasonCruz18/peruvian_gdp_revisions.git
-cd peru_gdp_revisions/gdp_revisions_datasets
+cd peru_gdp_revisions
 
-# Install Python dependencies
+# Install Python dependencies (pip)
 pip install -r requirements.txt
+
+# Alternative: Install with Conda
+conda env create -f environment.yml
+conda activate gdp_revisions
 
 # Verify installation
 python -c "from peru_gdp_rtd.config import get_settings; print('OK')"
@@ -602,7 +606,7 @@ Actual runtime depends on internet connection speed (Step 1), CPU performance (S
 The complete repository structure follows modern Python packaging conventions:
 
 \begin{lstlisting}[caption={Repository directory structure}]
-peru_gdp_revisions/gdp_revisions_datasets/
+peru_gdp_revisions/
 |-- peru_gdp_rtd/                 # Main Python package
 |   |-- config/                   # Configuration management
 |   |   |-- config.yaml           # YAML configuration (231 lines)
@@ -632,7 +636,35 @@ peru_gdp_revisions/gdp_revisions_datasets/
 |       |-- data_manager.py       # RecordManager class
 |       `-- alerts.py             # User notifications
 |-- scripts/
-|   `-- update_rtd.py             # One-button execution script
+|   |-- update_rtd.py             # One-button execution script
+|   `-- validate_rtd.py           # Data quality validation
+|-- notebooks/                    # Tutorial Jupyter notebooks
+|   |-- 01_web_scraping.ipynb     # BCRP scraping tutorial
+|   |-- 02_pdf_processing.ipynb   # PDF extraction tutorial
+|   |-- 03_data_cleaning.ipynb    # Cleaning pipeline tutorial
+|   |-- 04_rtd_construction.ipynb # RTD building tutorial
+|   |-- 05_metadata_management.ipynb # Metadata handling
+|   |-- 06_releases_datasets.ipynb    # Release conversion
+|   |-- new_gdp_rtd.ipynb         # Newer vintage processing
+|   |-- old_gdp_rtd.ipynb         # Older vintage processing
+|   `-- README.md                 # Notebooks documentation
+|-- dashboard/                    # Interactive Streamlit dashboard
+|   |-- app.py                    # Main dashboard application
+|   |-- config.py                 # Dashboard configuration
+|   |-- requirements.txt          # Dashboard dependencies
+|   |-- assets/                   # Dashboard assets
+|   `-- README.md                 # Dashboard documentation
+|-- docs/                         # Comprehensive documentation
+|   |-- INSTALLATION.md           # Installation guide
+|   |-- USAGE.md                  # Usage guide with examples
+|   |-- ARCHITECTURE.md           # Software architecture
+|   |-- CONTRIBUTING.md           # Contribution guidelines
+|   |-- DATA_AVAILABILITY.md      # Data availability statement
+|   `-- DOI_ASSIGNMENT.md         # Zenodo DOI guide
+|-- .github/                      # GitHub configuration
+|   `-- workflows/                # CI/CD pipelines
+|       |-- tests.yml             # Comprehensive test suite
+|       `-- quick-test.yml        # Fast smoke tests
 |-- config/
 |   |-- config.yaml               # User configuration
 |   `-- config.example.yaml       # Configuration template
@@ -642,12 +674,150 @@ peru_gdp_revisions/gdp_revisions_datasets/
 |   `-- records/                  # Processing records
 |-- metadata/
 |   `-- wr_metadata.csv           # Revision metadata (tracked)
-|-- tests/                        # Test suite (optional)
-|-- docs/                         # Documentation
+|-- tests/                        # Test suite
+|   `-- test_smoke.py             # Smoke tests for all modules
+|-- assets/                       # Project assets
+|   `-- README.md                 # Asset documentation
+|-- CITATION.cff                  # Citation metadata (CFF format)
+|-- FAQ.md                        # Frequently Asked Questions
+|-- LICENSE                       # MIT License
+|-- environment.yml               # Conda environment specification
 |-- pyproject.toml                # Modern Python packaging
 |-- requirements.txt              # Dependency specifications
-`-- README.md                     # Usage documentation
+|-- requirements-frozen.txt       # Pinned versions for reproducibility
+`-- README.md                     # Project documentation
 \end{lstlisting}
+
+\subsection{Interactive Dashboard and Visualization}
+
+To facilitate exploration of the RTD, we developed an interactive web-based dashboard using Streamlit. The dashboard provides real-time data visualization, filtering, and export capabilities without requiring programming knowledge. Key features include:
+
+\paragraph{Data Exploration:}
+\begin{itemize}
+    \item Interactive selection of datasets (monthly, quarterly, annual)
+    \item Sector-level filtering with multi-select capabilities
+    \item Vintage-based temporal navigation
+    \item Search functionality across all available data
+\end{itemize}
+
+\paragraph{Visualizations:}
+\begin{itemize}
+    \item \textbf{Heatmaps}: Real-time dataset visualization showing revision patterns across vintages
+    \item \textbf{Time series}: Growth rate evolution with vintage overlays
+    \item \textbf{Revision analysis}: Histogram and box-plot distributions of revisions
+    \item \textbf{Summary statistics}: Descriptive tables and metrics by sector
+\end{itemize}
+
+\paragraph{Export Capabilities:}
+\begin{itemize}
+    \item CSV export for spreadsheet analysis
+    \item Excel export with multiple sheets
+    \item JSON export for programmatic access
+    \item Filtered dataset downloads based on user selections
+\end{itemize}
+
+\paragraph{Customization:}
+\begin{itemize}
+    \item Six pre-configured color themes (default, plotly, seaborn, ggplot2, dark, light)
+    \item Adjustable chart heights and plot configurations
+    \item Responsive design for desktop and mobile viewing
+\end{itemize}
+
+The dashboard is launched via \bashcmd{streamlit run dashboard/app.py} and automatically opens in the default web browser. All dashboard configuration is managed through \filepath{dashboard/config.py}, enabling customization without modifying the application code.
+
+\subsection{Tutorial Notebooks and Documentation}
+
+The repository includes six comprehensive Jupyter notebooks that provide step-by-step tutorials for each stage of the RTD construction pipeline:
+
+\begin{enumerate}
+    \item \filepath{01\_web\_scraping.ipynb}: Demonstrates automated downloading of Weekly Reports from the BCRP website using Selenium, including authentication handling and rate limiting.
+
+    \item \filepath{02\_pdf\_processing.ipynb}: Shows PDF table extraction using \texttt{tabula-py}, keyword-based page filtering, and metadata parsing.
+
+    \item \filepath{03\_data\_cleaning.ipynb}: Illustrates the 70+ cleaning functions with before/after examples, handling of encoded characters, and validation checks.
+
+    \item \filepath{04\_rtd\_construction.ipynb}: Guides through vintage preparation, concatenation logic, and RTD assembly from individual vintages.
+
+    \item \filepath{05\_metadata\_management.ipynb}: Explains base-year mapping, benchmark indicator generation, and sentinel value application for structural breaks.
+
+    \item \filepath{06\_releases\_datasets.ipynb}: Demonstrates conversion from vintage to release format, including the NumPy-based vertical alignment algorithm.
+\end{enumerate}
+
+Each notebook contains:
+\begin{itemize}
+    \item Executable code cells with complete examples
+    \item Markdown explanations of methodology
+    \item Visual outputs (tables, charts) showing intermediate results
+    \item Links to relevant code modules and functions
+    \item Tips for troubleshooting common issues
+\end{itemize}
+
+Additionally, the \filepath{docs/} directory provides comprehensive markdown documentation:
+\begin{itemize}
+    \item \filepath{INSTALLATION.md}: Detailed installation instructions for Windows, macOS, and Linux
+    \item \filepath{USAGE.md}: Complete usage guide with examples and command-line reference
+    \item \filepath{ARCHITECTURE.md}: Software architecture documentation with module descriptions
+    \item \filepath{CONTRIBUTING.md}: Guidelines for contributing to the project
+    \item \filepath{DATA\_AVAILABILITY.md}: Data availability statement for journal submission
+    \item \filepath{DOI\_ASSIGNMENT.md}: Step-by-step guide for obtaining Zenodo DOI
+\end{itemize}
+
+\subsection{Continuous Integration and Testing}
+
+The repository implements a comprehensive CI/CD pipeline using GitHub Actions, ensuring code quality and cross-platform compatibility:
+
+\paragraph{Test Suite:}
+Automated smoke tests (\filepath{tests/test\_smoke.py}) verify:
+\begin{itemize}
+    \item Package importability across all modules
+    \item Configuration file validity and type safety
+    \item Path resolution across different repository names
+    \item Sector and month mapping completeness
+    \item Base-year configuration consistency
+\end{itemize}
+
+\paragraph{Cross-Platform Testing:}
+The CI pipeline (\ filepath{.github/workflows/tests.yml}) executes tests on:
+\begin{itemize}
+    \item \textbf{Operating Systems}: Ubuntu (latest), Windows (latest), macOS (latest)
+    \item \textbf{Python Versions}: 3.10, 3.11, 3.12
+    \item \textbf{Test Matrix}: 9 combinations (3 OS $\times$ 3 Python versions)
+\end{itemize}
+
+\paragraph{Quick Validation:}
+A fast smoke test workflow (\filepath{.github/workflows/quick-test.yml}) runs on every commit to provide rapid feedback during development, using Ubuntu with Python 3.11 for minimal latency.
+
+\paragraph{Code Coverage:}
+Test coverage is tracked using \texttt{pytest-cov}, with HTML reports generated for detailed inspection of tested code paths.
+
+All tests must pass before pull requests are merged, ensuring the pipeline remains stable across platforms and Python versions. The current test suite achieves complete coverage of critical configuration and import paths, with plans to expand coverage to include data processing functions.
+
+\subsection{Reproducibility and Version Control}
+
+To ensure full reproducibility, the repository provides:
+
+\paragraph{Dependency Management:}
+\begin{itemize}
+    \item \filepath{requirements.txt}: Flexible dependency specifications for active development
+    \item \filepath{requirements-frozen.txt}: Exact pinned versions for bit-for-bit reproduction
+    \item \filepath{environment.yml}: Conda environment specification with channel information
+\end{itemize}
+
+\paragraph{Citation Metadata:}
+\begin{itemize}
+    \item \filepath{CITATION.cff}: Machine-readable citation file following Citation File Format standard
+    \item Includes DOI placeholders for both code and paper
+    \item Compatible with GitHub's built-in citation feature
+    \item Provides BibTeX export automatically
+\end{itemize}
+
+\paragraph{Version Control:}
+\begin{itemize}
+    \item Semantic versioning (v1.0.0 format)
+    \item Tagged releases on GitHub
+    \item Comprehensive commit history with descriptive messages
+    \item Protected main branch requiring review before merging
+\end{itemize}
 
 \subsection{Future Extensions}
 
@@ -659,11 +829,11 @@ The modular architecture facilitates several planned enhancements:
 
 \paragraph{Additional Frequencies:} Support for weekly or daily economic indicators using the same pipeline architecture.
 
-\paragraph{Statistical Validation:} Integration of automated rationality tests and revision analysis directly in the pipeline.
+\paragraph{Statistical Validation:} Integration of automated rationality tests and revision analysis directly in the pipeline, beyond the current smoke tests.
 
-\paragraph{Interactive Dashboard:} Development of web-based visualization tools for exploring revision patterns and data quality metrics.
+\paragraph{API Development:} Creation of RESTful API for programmatic access to RTD without local installation, enabling integration with other systems.
 
-\paragraph{API Development:} Creation of RESTful API for programmatic access to RTD without local installation.
+\paragraph{Real-Time Updates:} Deployment of the dashboard as a public web service with automatic monthly updates as new Weekly Reports are published.
 
 The codebase design explicitly supports these extensions through:
 \begin{itemize}
@@ -683,9 +853,12 @@ The codebase design explicitly supports these extensions through:
 \paragraph{Documentation:}
 \begin{itemize}
     \item Repository README with installation and usage instructions
+    \item Comprehensive \filepath{docs/} directory with guides for installation, usage, architecture, and contribution
+    \item Six tutorial Jupyter notebooks covering all pipeline stages
+    \item FAQ document addressing common questions and troubleshooting
     \item Inline docstrings for all functions and classes
     \item Complete type hints throughout codebase
-    \item Configuration file comments
+    \item Configuration file comments and examples
     \item This technical supplement
 \end{itemize}
 
