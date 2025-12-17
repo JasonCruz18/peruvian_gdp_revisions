@@ -19,7 +19,9 @@
       "Bash(ls:*)",
       "Bash(streamlit run:*)",
       "Bash(pip freeze:*)",
-      "Bash(pip index:*)"
+      "Bash(pip index:*)",
+      "Bash(git checkout:*)",
+      "WebFetch(domain:www.sciencedirect.com)"
     ],
     "deny": [],
     "ask": []
