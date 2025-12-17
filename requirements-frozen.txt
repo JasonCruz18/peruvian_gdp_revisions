@@ -4,9 +4,10 @@
 # Use this file for exact reproducibility across environments
 # Install with: pip install -r requirements-frozen.txt
 
-# SECURITY UPDATE: Fixed 8 Dependabot vulnerabilities
+# SECURITY UPDATE: Fixed 9 Dependabot vulnerabilities
 # - urllib3: 2.5.0 → 2.6.2 (High severity)
 # - notebook: 7.0.6 → 7.5.1 (High severity)
+# - PyPDF2 → pypdf: 3.0.1 → 6.4.2 (Moderate severity - infinite loop fix)
 # - requests: 2.31.0 → 2.32.5 (Moderate severity)
 # - selenium: 4.35.0 → 4.39.0 (Moderate severity)
 # - PyMuPDF: 1.23.26 → 1.26.7 (Moderate severity)
@@ -27,9 +28,10 @@ webdriver-manager==4.0.2
 
 # PDF processing
 PyMuPDF==1.26.7
-PyPDF2==3.0.1
+pypdf==6.4.2
 tabula-py==2.9.0
 # Note: tabula-py requires Java Runtime Environment (JRE) to be installed
+# Note: pypdf replaces the deprecated PyPDF2 package
 
 # Utilities
 pygame==2.5.2

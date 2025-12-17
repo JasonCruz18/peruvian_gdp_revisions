@@ -12,7 +12,7 @@ import time
 from typing import List, Optional, Set
 
 import fitz  # PyMuPDF
-from PyPDF2 import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter
 from tqdm import tqdm
 
 from peru_gdp_rtd.config.settings import Settings

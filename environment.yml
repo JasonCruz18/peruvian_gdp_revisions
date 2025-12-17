@@ -20,7 +20,7 @@ dependencies:
 
   # PDF processing (Security Update 2025-12-17)
   - pymupdf>=1.26.7
-  - pypdf2>=3.0.1
+  - pypdf>=6.4.2
 
   # Utilities
   - pygame>=2.5.2
