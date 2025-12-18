@@ -225,7 +225,7 @@ class RecordManager:
 BCRP Website
     │
     ▼
-[1. Web Scraping] → PDFs downloaded to new_weekly_reports/
+[1. Web Scraping] → PDFs downloaded to data/raw/new_weekly_reports/
     │
     ▼
 [2. PDF Processing] → Extract relevant pages → data/input/
@@ -504,12 +504,15 @@ Raw PDF from BCRP website
 #### Step 1: Web Scraping
 ```python
 # Input: BCRP website
-# Output: PDFs in new_weekly_reports/
+# Output: PDFs in data/raw/new_weekly_reports/
 
-new_weekly_reports/
-├── NS_01_enero_2020.pdf
-├── NS_02_enero_2020.pdf
-└── ...
+data/raw/new_weekly_reports/
+├── 2020/
+│   ├── NS_01_enero_2020.pdf
+│   ├── NS_02_enero_2020.pdf
+│   └── ...
+├── shortened_pdfs/
+└── _quarantine/
 ```
 
 #### Step 2: PDF Processing

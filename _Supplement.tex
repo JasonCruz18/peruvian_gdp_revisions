@@ -668,12 +668,23 @@ peru_gdp_revisions/
 |-- config/
 |   |-- config.yaml               # User configuration
 |   `-- config.example.yaml       # Configuration template
-|-- data/                         # Generated datasets (gitignored)
-|   |-- input/                    # Intermediate data
-|   |-- output/                   # Final RTD datasets
-|   `-- records/                  # Processing records
+|-- data/                         # Data directory
+|   |-- input/                    # Intermediate processing data (gitignored)
+|   |-- output/                   # Final RTD datasets (gitignored)
+|   `-- raw/                      # Raw data files
+|       |-- new_weekly_reports/   # BCRP PDFs (2013-present)
+|       |   |-- 2013/, 2014/, ... 2025/ # Organized by year
+|       |   |-- shortened_pdfs/   # Trimmed PDFs (key tables only)
+|       |   `-- _quarantine/      # Defective PDFs
+|       `-- old_weekly_reports/   # Pre-2013 scanned data (CSV)
+|           |-- table_1/          # Monthly GDP tables
+|           `-- table_2/          # Quarterly/annual GDP tables
 |-- metadata/
 |   `-- wr_metadata.csv           # Revision metadata (tracked)
+|-- OCR/                          # OCR proof-of-concept
+|   `-- raw/                      # Sample scanned PDFs
+|-- record/                       # Progress tracking (gitignored)
+|-- alert_track/                  # Audio alerts (Beethoven.mp3)
 |-- tests/                        # Test suite
 |   `-- test_smoke.py             # Smoke tests for all modules
 |-- assets/                       # Project assets

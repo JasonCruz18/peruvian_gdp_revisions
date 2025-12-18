@@ -119,21 +119,29 @@ peru_gdp_revisions/            # Root directory
 │   ├── old_gdp_rtd.ipynb      # Legacy reference
 │   └── README.md              # Comprehensive notebook guide
 │
-├── data/                      # Generated datasets (gitignored)
-│   ├── input/                 # Intermediate data
-│   ├── output/                # Final RTD datasets ⭐
+├── data/                      # Data directory
+│   ├── input/                 # Intermediate processing data (gitignored)
+│   ├── output/                # Final RTD datasets (gitignored) ⭐
 │   │   ├── vintages/          # Vintage-format intermediate files
 │   │   ├── monthly_gdp_rtd.csv
 │   │   ├── quarterly_annual_gdp_rtd.csv
 │   │   └── [10+ dataset variants]
-│   └── records/               # Processing records for idempotency
+│   └── raw/                   # Raw data files ⭐
+│       ├── new_weekly_reports/    # BCRP PDFs (2013-present)
+│       │   ├── 2013/, 2014/, ... 2025/  # Organized by year
+│       │   ├── shortened_pdfs/   # Trimmed PDFs (key tables only)
+│       │   └── _quarantine/      # Defective PDFs
+│       └── old_weekly_reports/   # Pre-2013 scanned data (CSV)
+│           ├── table_1/          # Monthly GDP tables
+│           └── table_2/          # Quarterly/annual GDP tables
 │
 ├── metadata/
 │   └── wr_metadata.csv        # Revision metadata (tracked in git)
 │
-├── new_weekly_reports/        # Downloaded PDF files (gitignored)
-├── old_weekly_reports/        # Historical CSV files (gitignored)
-├── record/                    # Legacy progress tracking (gitignored)
+├── OCR/                       # OCR proof-of-concept ⭐
+│   └── raw/                   # Sample scanned PDFs
+│
+├── record/                    # Progress tracking (gitignored)
 ├── alert_track/               # Audio alerts (Beethoven.mp3)
 │
 ├── tests/                     # Test suite

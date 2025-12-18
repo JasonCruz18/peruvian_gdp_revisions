@@ -16,13 +16,13 @@ paths:
   data_input: "data/input"
   data_output: "data/output"
 
-  # PDF directories
-  pdf_root: "new_weekly_reports"
-  pdf_raw: "new_weekly_reports/raw"
-  pdf_input: "new_weekly_reports/input"
+  # PDF directories (raw data)
+  pdf_root: "data/raw/new_weekly_reports"
+  pdf_raw: "data/raw/new_weekly_reports"  # Deprecated: kept for backward compatibility
+  pdf_input: "data/raw/new_weekly_reports/shortened_pdfs"
 
-  # Old weekly reports (legacy data)
-  old_weekly_reports: "old_weekly_reports"
+  # Old weekly reports (pre-2013 scanned PDFs)
+  old_weekly_reports: "data/raw/old_weekly_reports"
 
   # Metadata and tracking
   metadata: "metadata"
