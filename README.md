@@ -26,17 +26,40 @@ This project provides a comprehensive, production-ready pipeline for building Re
 
 ### Installation
 
+Choose your preferred method (both are one-line simple):
+
+#### Option A: Conda (Recommended - Includes Java)
+
 ```bash
 # Clone the repository
 git clone https://github.com/JasonCruz18/peru_gdp_revisions.git
 cd peru_gdp_revisions
 
+# Create environment with ALL dependencies (one command!)
+conda env create -f environment.yml
+
+# Activate environment
+conda activate peru_gdp_rtd
+```
+
+**Benefits**: Includes Java (OpenJDK), all dependencies, cross-platform tested.
+
+#### Option B: Pip + Virtual Environment
+
+```bash
+# Clone the repository
+git clone https://github.com/JasonCruz18/peru_gdp_revisions.git
+cd peru_gdp_revisions
+
+# Create and activate virtual environment
+python -m venv peru_gdp_rtd
+source peru_gdp_rtd/bin/activate  # On Windows: peru_gdp_rtd\Scripts\activate
+
 # Install dependencies
 pip install -r requirements.txt
-
-# Or install in development mode
-pip install -e .
 ```
+
+**Note**: Java (JRE) must be installed separately for PDF processing.
 
 ### Configuration
 
