@@ -18,11 +18,14 @@ paths:
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   # PDF directories
   pdf_root: "new_weekly_reports"
   pdf_raw: "new_weekly_reports/raw"
   pdf_input: "new_weekly_reports/input"
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   # Output subdirectories (new v1.0.0 structure)
