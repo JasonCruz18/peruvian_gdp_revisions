@@ -156,9 +156,11 @@ def print_completion_summary() -> None:
     print("=" * 70)
     print()
     print("Next steps:")
-    print("  - Check data/output/ for generated datasets")
-    print("  - Review logs/ for execution details")
-    print("  - Use notebooks/ for data exploration")
+    print("  - To shorten PDFs with key tables, run step 2: python scripts/update_rtd.py --steps 2")
+    print("  - To build vintages (steps 3-4): python scripts/update_rtd.py --steps 3,4")
+    print("  - To apply metadata and releases (steps 5-6): python scripts/update_rtd.py --steps 5,6")
+    print("  - Review console output or record/ files for execution details")
+    print("  - Explore outputs in notebooks/new_gdp_rtd.ipynb once generated")
     print()
 
 

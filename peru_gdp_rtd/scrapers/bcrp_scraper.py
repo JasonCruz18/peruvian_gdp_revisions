@@ -11,13 +11,10 @@ The scraper:
 - Provides audio alerts for long-running downloads
 """
 
-import hashlib
-import json
 import os
 import re
 import time
-from pathlib import Path
-from typing import Optional, Set, List, Tuple, Dict
+from typing import Optional, Set, List, Tuple
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -47,77 +44,6 @@ from peru_gdp_rtd.utils.alerts import (
     stop_alert_track,
 )
 from peru_gdp_rtd.config import Settings
-
-
-def _load_download_cache(record_folder: str) -> Dict[str, Dict[str, str]]:
-    """Load download metadata cache (size, last-modified, sha256) if present."""
-    cache_path = Path(record_folder) / "download_cache.json"
-    if not cache_path.exists():
-        return {}
-    try:
-        with open(cache_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {}
-
-
-def _save_download_cache(record_folder: str, cache: Dict[str, Dict[str, str]]) -> None:
-    """Persist download metadata cache."""
-    cache_path = Path(record_folder) / "download_cache.json"
-    cache_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(cache_path, "w", encoding="utf-8") as f:
-        json.dump(cache, f, ensure_ascii=False, indent=2)
-
-
-def _should_skip_download(file_url: str, file_name: str, raw_pdf_folder: str, cache: Dict[str, Dict[str, str]]) -> bool:
-    """
-    Decide whether to skip downloading based on HEAD metadata and local file.
-
-    Returns True if a local file exists and matches server content-length/last-modified.
-    """
-    local_path = Path(raw_pdf_folder) / file_name
-    if not local_path.exists():
-        return False
-
-    session = get_http_session()
-    try:
-        head_resp = session.head(file_url, allow_redirects=True, timeout=10)
-        content_length_hdr = head_resp.headers.get("Content-Length")
-        last_modified_hdr = head_resp.headers.get("Last-Modified")
-    except Exception:
-        return False
-
-    try:
-        server_len = int(content_length_hdr) if content_length_hdr is not None else None
-    except ValueError:
-        server_len = None
-
-    local_size = local_path.stat().st_size
-    cache_entry = cache.get(file_name, {})
-
-    # Mismatch in size -> re-download
-    if server_len is not None and server_len != local_size:
-        return False
-
-    # If server provides last-modified, ensure it matches cached value; otherwise re-download
-    if last_modified_hdr is not None:
-        cached_lm = cache_entry.get("last_modified")
-        if cached_lm and cached_lm == last_modified_hdr:
-            return True
-        # If we don't have it cached, treat as needing refresh
-        return False
-
-    # If no last-modified header, but sizes match, trust the existing file
-    return True
-
-
-def _hash_file(path: Path) -> str:
-    """Compute SHA256 for a file."""
-    h = hashlib.sha256()
-    with open(path, "rb") as fh:
-        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
-            h.update(chunk)
-    return h.hexdigest()
 
 
 def init_driver(browser: str = "chrome", headless: bool = False, page_load_timeout: int = 30):
@@ -189,7 +115,6 @@ def download_pdf(
     raw_pdf_folder: str,
     download_record_folder: str,
     download_record_txt: str,
-    download_cache: Dict[str, Dict[str, str]],
     chunk_size: int = 128,
     timeout: int = 60,
 ) -> bool:
@@ -203,7 +128,6 @@ def download_pdf(
         raw_pdf_folder: Destination directory for the downloaded PDF
         download_record_folder: Folder containing the record text file
         download_record_txt: Record filename (e.g., 'downloaded_pdfs.txt')
-        download_cache: In-memory download metadata cache to update
         chunk_size: Bytes per chunk when streaming downloads
         timeout: Seconds for connect + read timeouts
 
@@ -228,7 +152,6 @@ def download_pdf(
     new_url = driver.current_url
     file_name = os.path.basename(new_url)  # Use server-provided filename
     destination_path = os.path.join(raw_pdf_folder, file_name)
-    temp_path = destination_path + ".tmp"
 
     # Download with retry logic
     session = get_http_session()
@@ -238,7 +161,7 @@ def download_pdf(
 
         if response.status_code == 200:
             os.makedirs(raw_pdf_folder, exist_ok=True)
-            with open(temp_path, "wb") as fh:
+            with open(destination_path, "wb") as fh:
                 for chunk in response.iter_content(chunk_size=chunk_size):
                     if chunk:  # Skip keep-alive chunks
                         fh.write(chunk)
@@ -282,15 +205,6 @@ def download_pdf(
     os.makedirs(download_record_folder, exist_ok=True)
     with open(record_path, "w", encoding="utf-8") as f:
         f.write("\n".join(records) + ("\n" if records else ""))
-
-    # Finalize temp file -> destination and cache metadata
-    os.replace(temp_path, destination_path)
-    cache_entry = {
-        "content_length": str(Path(destination_path).stat().st_size),
-        "last_modified": response.headers.get("Last-Modified", ""),
-        "sha256": _hash_file(Path(destination_path)),
-    }
-    download_cache[file_name] = cache_entry
 
     print(f"{download_counter}. Downloaded: {file_name}")
 
@@ -366,8 +280,6 @@ def pdf_downloader(
 
     print("\n>> Starting PDF downloader for BCRP WR...\n")
 
-    download_cache = _load_download_cache(record_folder)
-
     # Initialize audio if enabled
     _last_alert = None
     if enable_alerts:
@@ -424,11 +336,6 @@ def pdf_downloader(
             except Exception:
                 continue  # Defensive skip if attributes are momentarily unavailable
 
-            # HEAD-based skip if local copy matches server
-            if _should_skip_download(file_url, file_name, raw_pdf_folder, download_cache):
-                skipped_files.append(file_name)
-                continue
-
             if file_name in downloaded_files:
                 skipped_files.append(file_name)
             else:
@@ -441,18 +348,17 @@ def pdf_downloader(
                 alert_track_path = load_alert_track(alert_folder, _last_alert)
                 _last_alert = alert_track_path
 
-                ok = download_pdf(
-                    driver=driver,
-                    pdf_link=link,
-                    wait=wait,
-                    download_counter=i,
-                    raw_pdf_folder=raw_pdf_folder,
-                    download_record_folder=record_folder,
-                    download_record_txt=record_txt,
-                    download_cache=download_cache,
-                    chunk_size=chunk_size,
-                    timeout=http_timeout,
-                )
+            ok = download_pdf(
+                driver=driver,
+                pdf_link=link,
+                wait=wait,
+                download_counter=i,
+                raw_pdf_folder=raw_pdf_folder,
+                download_record_folder=record_folder,
+                download_record_txt=record_txt,
+                chunk_size=chunk_size,
+                timeout=http_timeout,
+            )
 
             if ok:
                 downloaded_files.add(file_name)
@@ -501,8 +407,6 @@ def pdf_downloader(
             os.makedirs(record_folder, exist_ok=True)
             with open(record_path, "w", encoding="utf-8") as f:
                 f.write("\n".join(records) + ("\n" if records else ""))
-
-        _save_download_cache(record_folder, download_cache)
 
     except Exception as e:
         print(f"WARNING: Unable to re-sort record file: {e}")
