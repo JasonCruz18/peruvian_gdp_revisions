@@ -1,7 +1,7 @@
 """
-PDF input generation for BCRP Weekly Reports.
+PDF shortening for BCRP Weekly Reports.
 
-This module provides functionality to generate shortened "input" PDFs from raw WR PDFs
+This module provides functionality to generate shortened PDFs from raw WR PDFs
 by extracting only pages containing relevant keywords (e.g., GDP tables). For 4-page
 outputs, it retains only pages 1 and 3 where key tables typically appear.
 """
@@ -148,7 +148,7 @@ def pdf_input_generator(
     force: bool = False,
 ) -> None:
     """
-    Generate input PDFs from raw WR PDFs by extracting pages matching keywords.
+    Generate shortened PDFs from raw WR PDFs by extracting pages matching keywords.
 
     Processes raw PDFs organized in yearly subfolders, extracting only pages that
     contain specified keywords. For 4-page outputs (typical when searching for
@@ -206,14 +206,16 @@ def pdf_input_generator(
         # Process PDFs in this year with progress bar
         pbar = tqdm(
             pdf_files,
-            desc=f"Generating input PDFs in {folder}",
+            desc=f"Shortening PDFs in {folder}",
             unit="PDF",
             disable=not verbose,
         )
 
         for filename in pbar:
             pdf_file = folder_path / filename
-            output_file = input_pdf_folder / filename
+            output_folder_year = input_pdf_folder / folder
+            output_folder_year.mkdir(parents=True, exist_ok=True)
+            output_file = output_folder_year / filename
 
             # Check if processing needed (timestamp-based)
             if not force and output_file.exists():
@@ -247,7 +249,7 @@ def pdf_input_generator(
 
         if verbose:
             print(
-                f"Shortened PDFs saved in '{input_pdf_folder}' "
+                f"Shortened PDFs saved in '{output_folder_year}' "
                 f"({folder_new_count} new, {folder_skipped_count} skipped)"
             )
 
@@ -267,7 +269,7 @@ def pdf_input_generator(
         if skipped_years:
             years_summary = ", ".join(skipped_years.keys())
             total_skipped = sum(skipped_years.values())
-            print(f"\n{total_skipped} input PDFs already generated for years: {years_summary}")
+            print(f"\n{total_skipped} shortened PDFs already generated for years: {years_summary}")
 
         elapsed_time = round(time.time() - start_time)
         print(f"\nSummary:")

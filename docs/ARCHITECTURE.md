@@ -445,7 +445,7 @@ def run_step1_download(settings: Settings) -> None:
     """Step 1: Download PDFs from BCRP."""
 
 def run_step2_generate_inputs(settings: Settings) -> None:
-    """Step 2: Generate input PDFs."""
+    """Step 2: Shorten PDFs (extract key tables)."""
 
 def run_step3_clean_and_build(settings: Settings) -> None:
     """Step 3: Clean tables and build RTD."""
@@ -512,7 +512,7 @@ new_weekly_reports/
 └── ...
 ```
 
-#### Step 2: PDF Processing
+#### Step 2: PDF Shortening
 ```python
 # Input: Downloaded PDFs
 # Output: Extracted tables in data/input/

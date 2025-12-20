@@ -72,7 +72,7 @@ python scripts/update_rtd.py --steps 3
 
 **Pipeline Steps:**
 - **Step 1**: Download PDFs from BCRP
-- **Step 2**: Generate input PDFs (extract relevant pages)
+- **Step 2**: Shorten PDFs (extract key tables)
 - **Step 3**: Clean tables and build RTD
 - **Step 4**: Concatenate RTD across years
 - **Step 5**: Apply metadata and benchmarks

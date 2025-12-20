@@ -100,7 +100,7 @@ Examples:
         "-s",
         type=str,
         help="Comma-separated list of steps to run (e.g., '1,2,3'). "
-        "Steps: 1=Download PDFs, 2=Generate inputs, 3=Clean & build RTD, "
+        "Steps: 1=Download PDFs, 2=Shorten PDFs, 3=Clean & build RTD, "
         "4=Concatenate, 5=Metadata, 6=Releases",
     )
 
@@ -211,7 +211,7 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
         # Define step descriptions
         step_descriptions = {
             1: "Download PDFs from BCRP website",
-            2: "Generate input PDFs (extract key pages)",
+            2: "Shorten PDFs (extract key tables)",
             3: "Clean tables and build RTD",
             4: "Concatenate RTD across years",
             5: "Update metadata and create benchmarks",
@@ -244,7 +244,7 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                 logger.info("Organizing PDFs into year folders...")
                 organize_files_by_year(str(settings.paths.pdf_raw))
 
-            # STEP 2: Generate input PDFs (extract key pages)
+            # STEP 2: Shorten PDFs (extract key tables)
             elif step_num == 2:
                 from peru_gdp_rtd.processors.pdf_processor import pdf_input_generator
 
