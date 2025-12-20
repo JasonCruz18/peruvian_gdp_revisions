@@ -152,7 +152,7 @@ def print_completion_summary() -> None:
     """Print completion banner."""
     print()
     print("=" * 70)
-    print(" " * 20 + "✓ Pipeline Completed Successfully!")
+    print(" " * 20 + ">> Pipeline Completed Successfully!")
     print("=" * 70)
     print()
     print("Next steps:")
@@ -228,82 +228,57 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
             # STEP 1: Download PDFs from BCRP website
             if step_num == 1:
                 from peru_gdp_rtd.scrapers.bcrp_scraper import pdf_downloader
+                from peru_gdp_rtd.processors.file_organizer import organize_files_by_year
 
+                # Download PDFs
                 pdf_downloader(
-                    start_year=2011,  # TODO: Add to config
-                    end_year=2025,  # TODO: Add to config
-                    output_folder=str(settings.paths.pdf_raw),
-                    record_folder=str(settings.paths.record),
-                    record_txt=settings.record_files["downloaded_pdfs"],
-                    max_retries=settings.scraper.http.retries,
-                    retry_delay=settings.scraper.http.backoff_factor,
-                    download_delay=settings.scraper.min_wait,
+                    settings=settings,
+                    max_downloads=settings.scraper.max_downloads,
+                    downloads_per_batch=settings.scraper.downloads_per_batch,
+                    headless=settings.scraper.headless,
                 )
+
+                # Organize downloaded PDFs into year folders
+                logger.info("Organizing PDFs into year folders...")
+                organize_files_by_year(str(settings.paths.pdf_raw))
 
             # STEP 2: Generate input PDFs (extract key pages)
             elif step_num == 2:
                 from peru_gdp_rtd.processors.pdf_processor import pdf_input_generator
 
                 pdf_input_generator(
-                    search_pdf_folder=str(settings.paths.pdf_raw),
-                    output_pdf_folder=str(settings.paths.pdf_input),
+                    settings=settings,
                     keywords=settings.pdf_processing.keywords,
-                    record_folder=str(settings.paths.record),
-                    record_txt=settings.record_files["generated_inputs"],
-                    max_hits=2,  # Extract 2 pages per PDF
+                    interactive=False,  # Non-interactive mode for automation
+                    verbose=args.verbose,
+                    force=False,
                 )
 
             # STEP 3: Clean tables and build vintage-format RTD
             elif step_num == 3:
-                from peru_gdp_rtd.orchestration.runners import (
-                    old_table_1_runner,
-                    old_table_2_runner,
-                    new_table_1_runner,
-                    new_table_2_runner,
+                from peru_gdp_rtd.orchestration.runners_v2 import (
+                    build_table_1_vintages,
+                    build_table_2_vintages,
                 )
 
-                # OLD CSV Tables (2011-2020)
-                logger.info("Processing OLD CSV Table 1 (monthly GDP)...")
-                old_table_1_runner(
-                    input_csv_folder=str(settings.paths.old_weekly_reports),
-                    record_folder=str(settings.paths.record),
-                    record_txt=settings.record_files["created_old_rtd_tab_1"],
-                    persist=True,
-                    persist_folder=str(settings.paths.data_output / "vintages" / "old"),
+                # Process Table 1 (monthly GDP) from both OLD and NEW sources
+                logger.info("Building Table 1 vintages (monthly GDP)...")
+                build_table_1_vintages(
+                    old_csv_folder=str(settings.paths.old_weekly_reports),
+                    new_pdf_folder=str(settings.paths.pdf_input),
+                    output_folder=str(settings.paths.vintages / "table_1"),
                     pipeline_version=settings.project["version"],
-                    sep=";",
+                    force=False,
                 )
 
-                logger.info("Processing OLD CSV Table 2 (quarterly/annual GDP)...")
-                old_table_2_runner(
-                    input_csv_folder=str(settings.paths.old_weekly_reports),
-                    record_folder=str(settings.paths.record),
-                    record_txt=settings.record_files["created_old_rtd_tab_2"],
-                    persist=True,
-                    persist_folder=str(settings.paths.data_output / "vintages" / "old"),
+                # Process Table 2 (quarterly/annual GDP) from both OLD and NEW sources
+                logger.info("Building Table 2 vintages (quarterly/annual GDP)...")
+                build_table_2_vintages(
+                    old_csv_folder=str(settings.paths.old_weekly_reports),
+                    new_pdf_folder=str(settings.paths.pdf_input),
+                    output_folder=str(settings.paths.vintages / "table_2"),
                     pipeline_version=settings.project["version"],
-                    sep=";",
-                )
-
-                # NEW PDF Tables (2021+)
-                logger.info("Processing NEW PDF Table 1 (monthly GDP)...")
-                new_table_1_runner(
-                    input_pdf_folder=str(settings.paths.pdf_input),
-                    record_folder=str(settings.paths.record),
-                    record_txt=settings.record_files["created_new_rtd_tab_1"],
-                    persist=True,
-                    persist_folder=str(settings.paths.data_output / "vintages" / "new"),
-                    pipeline_version=settings.project["version"],
-                )
-
-                logger.info("Processing NEW PDF Table 2 (quarterly/annual GDP)...")
-                new_table_2_runner(
-                    input_pdf_folder=str(settings.paths.pdf_input),
-                    record_folder=str(settings.paths.record),
-                    record_txt=settings.record_files["created_new_rtd_tab_2"],
-                    persist=True,
-                    persist_folder=str(settings.paths.data_output / "vintages" / "new"),
-                    pipeline_version=settings.project["version"],
+                    force=False,
                 )
 
             # STEP 4: Concatenate vintages across all years
@@ -315,24 +290,20 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
 
                 logger.info("Concatenating Table 1 vintages (monthly GDP)...")
                 concatenate_table_1(
-                    input_data_subfolder=str(settings.paths.data_output / "vintages"),
-                    record_folder=str(settings.paths.record),
-                    record_txt=settings.record_files["concatenated_tab_1"],
+                    input_data_subfolder=str(settings.paths.vintages),
                     persist=True,
-                    persist_folder=str(settings.paths.data_output),
-                    csv_file_label=settings.output_files["monthly_rtd"].replace(".csv", ""),
+                    persist_folder=str(settings.paths.vintages),
+                    csv_file_label=settings.output_files["monthly_rtd"],
+                    force=False,
                 )
 
                 logger.info("Concatenating Table 2 vintages (quarterly/annual GDP)...")
                 concatenate_table_2(
-                    input_data_subfolder=str(settings.paths.data_output / "vintages"),
-                    record_folder=str(settings.paths.record),
-                    record_txt=settings.record_files["concatenated_tab_2"],
+                    input_data_subfolder=str(settings.paths.vintages),
                     persist=True,
-                    persist_folder=str(settings.paths.data_output),
-                    csv_file_label=settings.output_files["quarterly_annual_rtd"].replace(
-                        ".csv", ""
-                    ),
+                    persist_folder=str(settings.paths.vintages),
+                    csv_file_label=settings.output_files["quarterly_annual_rtd"],
+                    force=False,
                 )
 
             # STEP 5: Update metadata and create adjusted datasets
@@ -354,10 +325,9 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                 update_metadata(
                     metadata_folder=str(settings.paths.metadata),
                     input_pdf_folder=str(settings.paths.pdf_input),
-                    record_folder=str(settings.paths.record),
-                    record_txt=settings.record_files["metadata_updated"],
                     wr_metadata_csv=settings.metadata.filename,
                     base_year_list=base_year_list,
+                    force=False,
                 )
 
                 # Apply base-year sentinel to mark invalid comparisons
@@ -365,29 +335,29 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                 apply_base_year_sentinel(
                     base_year_vintages=settings.benchmark.base_year_periods,
                     sentinel=settings.benchmark.sentinel_value,
-                    output_data_subfolder=str(settings.paths.data_output),
+                    output_data_subfolder=str(settings.paths.vintages),
                     csv_file_labels=[
                         settings.output_files["monthly_rtd"].replace(".csv", ""),
                         settings.output_files["quarterly_annual_rtd"].replace(".csv", ""),
                     ],
+                    force=False,
                 )
 
                 # Generate benchmark revision indicator datasets
                 logger.info("Converting to benchmark datasets...")
                 convert_to_benchmark_dataset(
-                    output_data_subfolder=str(settings.paths.data_output),
+                    output_data_subfolder=str(settings.paths.vintages),
                     csv_file_labels=[
                         settings.output_files["monthly_rtd"].replace(".csv", ""),
                         settings.output_files["quarterly_annual_rtd"].replace(".csv", ""),
                     ],
                     metadata_folder=str(settings.paths.metadata),
                     wr_metadata_csv=settings.metadata.filename,
-                    record_folder=str(settings.paths.record),
-                    record_txt=settings.record_files["benchmark_converted"],
                     benchmark_dataset_labels=[
                         settings.output_files["monthly_benchmark"].replace(".csv", ""),
                         settings.output_files["quarterly_benchmark"].replace(".csv", ""),
                     ],
+                    force=False,
                 )
 
             # STEP 6: Convert RTD to releases format
@@ -398,21 +368,21 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
 
                 logger.info("Converting RTDs to releases format...")
                 convert_to_releases_dataset(
-                    output_data_subfolder=str(settings.paths.data_output),
+                    input_data_subfolder=str(settings.paths.vintages),
+                    output_data_subfolder=str(settings.paths.releases),
                     csv_file_labels=[
                         settings.output_files["monthly_rtd"].replace(".csv", ""),
                         settings.output_files["quarterly_annual_rtd"].replace(".csv", ""),
                         settings.output_files["by_adjusted_monthly"].replace(".csv", ""),
                         settings.output_files["by_adjusted_quarterly"].replace(".csv", ""),
                     ],
-                    record_folder=str(settings.paths.record),
-                    record_txt=settings.record_files["releases_converted"],
                     releases_dataset_labels=[
                         settings.output_files["monthly_releases"].replace(".csv", ""),
                         settings.output_files["quarterly_releases"].replace(".csv", ""),
                         settings.output_files["by_adjusted_monthly_releases"].replace(".csv", ""),
                         settings.output_files["by_adjusted_quarterly_releases"].replace(".csv", ""),
                     ],
+                    force=False,
                 )
 
             logger.info(f"Step {step_num} completed successfully")

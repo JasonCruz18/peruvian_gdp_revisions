@@ -136,6 +136,7 @@ def pdf_input_generator(
     keywords: Optional[List[str]] = None,
     interactive: bool = True,
     verbose: bool = True,
+    force: bool = False,
 ) -> None:
     """
     Generate input PDFs from raw WR PDFs by extracting pages matching keywords.
@@ -150,10 +151,13 @@ def pdf_input_generator(
         keywords: Keywords to search for. If None, uses default GDP table keywords.
         interactive: If True, prompts user between folders. If False, processes all.
         verbose: If True, prints detailed progress information.
+        force: If True, reprocess all files regardless of timestamps.
 
     Note:
-        Updates record file to avoid re-processing already completed PDFs.
+        Uses timestamp-based processing - only regenerates if source is newer than output.
     """
+    from pathlib import Path
+
     start_time = time.time()
 
     # Use default keywords if none provided
@@ -161,13 +165,12 @@ def pdf_input_generator(
         keywords = ["sectores económicos", "economic sectors"]
 
     # Get paths from configuration
-    raw_pdf_folder = str(settings.paths.raw_pdf_folder)
-    input_pdf_folder = str(settings.paths.input_pdf_folder)
-    record_folder = str(settings.paths.record_folder)
-    record_txt = "input_pdfs.txt"
+    raw_pdf_folder = Path(settings.paths.pdf_raw)
+    input_pdf_folder = Path(settings.paths.pdf_input)
 
-    # Load existing record
-    input_pdf_files = read_input_pdf_files(record_folder, record_txt)
+    # Ensure output folder exists
+    input_pdf_folder.mkdir(parents=True, exist_ok=True)
+
     skipped_years = {}
     new_counter = 0
     skipped_counter = 0
@@ -177,19 +180,12 @@ def pdf_input_generator(
         if folder == "_quarantine":
             continue
 
-        folder_path = os.path.join(raw_pdf_folder, folder)
-        if not os.path.isdir(folder_path):
+        folder_path = raw_pdf_folder / folder
+        if not folder_path.is_dir():
             continue
 
-        pdf_files = [f for f in os.listdir(folder_path) if f.endswith(".pdf")]
+        pdf_files = sorted([f for f in os.listdir(folder_path) if f.endswith(".pdf")])
         if not pdf_files:
-            continue
-
-        # Check if entire year is already processed
-        already_processed = [f for f in pdf_files if f in input_pdf_files]
-        if len(already_processed) == len(pdf_files):
-            skipped_years[folder] = len(already_processed)
-            skipped_counter += len(already_processed)
             continue
 
         if verbose:
@@ -207,23 +203,26 @@ def pdf_input_generator(
         )
 
         for filename in pbar:
-            pdf_file = os.path.join(folder_path, filename)
+            pdf_file = folder_path / filename
+            output_file = input_pdf_folder / filename
 
-            if filename in input_pdf_files:
-                folder_skipped_count += 1
-                continue
+            # Check if processing needed (timestamp-based)
+            if not force and output_file.exists():
+                if pdf_file.stat().st_mtime <= output_file.stat().st_mtime:
+                    folder_skipped_count += 1
+                    continue
 
             # Extract pages with keywords
-            pages_with_keywords = search_keywords(pdf_file, keywords)
-            num_pages = shortened_pdf(pdf_file, pages_with_keywords, output_folder=input_pdf_folder)
+            pages_with_keywords = search_keywords(str(pdf_file), keywords)
+            num_pages = shortened_pdf(str(pdf_file), pages_with_keywords, output_folder=str(input_pdf_folder))
 
             if num_pages == 0:
                 continue
 
             # Special handling for 4-page outputs
             # (contains both levels and percentage variations tables)
-            short_pdf_file = os.path.join(input_pdf_folder, os.path.basename(pdf_file))
-            reader = PdfReader(short_pdf_file)
+            short_pdf_file = input_pdf_folder / filename
+            reader = PdfReader(str(short_pdf_file))
 
             if len(reader.pages) == 4:
                 # Keep only pages 1 and 3 (percentage variation tables)
@@ -233,29 +232,9 @@ def pdf_input_generator(
                 with open(short_pdf_file, "wb") as f_out:
                     writer.write(f_out)
 
-            # Update record
-            input_pdf_files.add(filename)
             folder_new_count += 1
 
         pbar.close()
-
-        # Write updated record in chronological order
-        def _ns_key(s):
-            """Sort key for 'ns-XX-YYYY' filenames."""
-            base = os.path.splitext(os.path.basename(s))[0]
-            m = re.search(r"ns-(\d{2})-(\d{4})", base, re.I)
-            if not m:
-                return (9999, 9999, base)
-            issue = int(m.group(1))
-            year = int(m.group(2))
-            return (year, issue)
-
-        ordered_records = sorted(input_pdf_files, key=_ns_key)
-        os.makedirs(record_folder, exist_ok=True)
-        record_path = os.path.join(record_folder, record_txt)
-        with open(record_path, "w", encoding="utf-8") as f_rec:
-            for name in ordered_records:
-                f_rec.write(name + "\n")
 
         if verbose:
             print(

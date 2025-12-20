@@ -18,6 +18,8 @@ class PathConfig:
     data_root: Path
     data_input: Path
     data_output: Path
+    vintages: Path
+    releases: Path
     pdf_root: Path
     pdf_raw: Path
     pdf_input: Path
@@ -219,6 +221,8 @@ class Settings:
             data_root=root_dir / paths_dict["data_root"],
             data_input=root_dir / paths_dict["data_input"],
             data_output=root_dir / paths_dict["data_output"],
+            vintages=root_dir / paths_dict["vintages"],
+            releases=root_dir / paths_dict["releases"],
             pdf_root=root_dir / paths_dict["pdf_root"],
             pdf_raw=root_dir / paths_dict["pdf_raw"],
             pdf_input=root_dir / paths_dict["pdf_input"],
@@ -286,6 +290,8 @@ class Settings:
             self.paths.data_root,
             self.paths.data_input,
             self.paths.data_output,
+            self.paths.vintages,
+            self.paths.releases,
             self.paths.pdf_root,
             self.paths.pdf_raw,
             self.paths.pdf_input,

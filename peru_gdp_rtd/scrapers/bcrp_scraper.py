@@ -95,7 +95,7 @@ def init_driver(browser: str = "chrome", headless: bool = False, page_load_timeo
 
     elif b == "safari":
         if headless:
-            print("⚠️  Headless mode is not supported for Safari. Running in normal mode.")
+            print("WARNING: Headless mode is not supported for Safari. Running in normal mode.")
         driver = webdriver.Safari()  # Safari driver bundled with macOS
 
     else:
@@ -168,7 +168,7 @@ def download_pdf(
                         fh.write(chunk)
         else:
             print(
-                f"{download_counter}. ❌ Error downloading {file_name}. "
+                f"{download_counter}. ERROR: downloading {file_name}. "
                 f"HTTP {response.status_code}"
             )
             driver.close()
@@ -176,7 +176,7 @@ def download_pdf(
             return False
 
     except Exception as ex:
-        print(f"{download_counter}. ❌ Network error downloading {file_name}: {ex}")
+        print(f"{download_counter}. ERROR: Network error downloading {file_name}: {ex}")
         driver.close()
         driver.switch_to.window(windows[0])
         return False
@@ -207,7 +207,7 @@ def download_pdf(
     with open(record_path, "w", encoding="utf-8") as f:
         f.write("\n".join(records) + ("\n" if records else ""))
 
-    print(f"{download_counter}. ✔️ Downloaded: {file_name}")
+    print(f"{download_counter}. Downloaded: {file_name}")
 
     # Close child tab and go back to main
     driver.close()
@@ -271,15 +271,15 @@ def pdf_downloader(
     min_wait = settings.scraper.min_wait
     max_wait = settings.scraper.max_wait
 
-    page_timeout = settings.scraper.selenium["page_load_timeout"]
-    explicit_timeout = settings.scraper.selenium["explicit_wait_timeout"]
+    page_timeout = settings.scraper.selenium.page_load_timeout
+    explicit_timeout = settings.scraper.selenium.explicit_wait_timeout
 
-    chunk_size = settings.scraper.http["chunk_size"]
-    http_timeout = settings.scraper.http["timeout"]
+    chunk_size = settings.scraper.http.chunk_size
+    http_timeout = settings.scraper.http.timeout
 
-    enable_alerts = settings.features["enable_alerts"]
+    enable_alerts = settings.features.enable_alerts
 
-    print("\n📥 Starting PDF downloader for BCRP WR...\n")
+    print("\n>> Starting PDF downloader for BCRP WR...\n")
 
     # Initialize audio if enabled
     _last_alert = None
@@ -307,13 +307,13 @@ def pdf_downloader(
 
     try:
         driver.get(bcrp_url)
-        print("🌐 BCRP site opened successfully.")
+        print(">> BCRP site opened successfully.")
 
         # Wait for all month containers to appear
         month_ul_elems = wait.until(
             EC.presence_of_all_elements_located((By.CSS_SELECTOR, css_selector))
         )
-        print(f"🔎 Found {len(month_ul_elems)} WR blocks on page (one per month).\n")
+        print(f">> Found {len(month_ul_elems)} WR blocks on page (one per month).\n")
 
         # Select exactly one link per month (business rule: the first anchor inside the block)
         for ul in month_ul_elems:
@@ -368,26 +368,26 @@ def pdf_downloader(
             # Optional checkpoint every N downloads
             if enable_alerts and (i % downloads_per_batch == 0) and alert_track_path:
                 play_alert_track()
-                user_input = input("⏸️ Continue? (y = yes, any other key = stop): ")
+                user_input = input("Continue? (y = yes, any other key = stop): ")
                 stop_alert_track()
 
                 if user_input.lower() != "y":
-                    print("🛑 Download stopped by user.")
+                    print(">> Download stopped by user.")
                     break
 
             # Respect a global cap if provided
             if max_downloads and new_counter >= max_downloads:
-                print(f"🏁 Download limit of {max_downloads} new PDFs reached.")
+                print(f">> Download limit of {max_downloads} new PDFs reached.")
                 break
 
             # Gentle pacing to mimic a human user
             random_wait(min_wait, max_wait)
 
     except StaleElementReferenceException:
-        print("⚠️ StaleElementReferenceException encountered. Consider re-running.")
+        print("WARNING: StaleElementReferenceException encountered. Consider re-running.")
     finally:
         driver.quit()
-        print("\n👋 Browser closed.")
+        print("\n>> Browser closed.")
 
     # Maintain the record file in chronological order (idempotent)
     try:
@@ -410,17 +410,17 @@ def pdf_downloader(
                 f.write("\n".join(records) + ("\n" if records else ""))
 
     except Exception as e:
-        print(f"⚠️ Unable to re-sort record file: {e}")
+        print(f"WARNING: Unable to re-sort record file: {e}")
 
     # Final summary for the session
     elapsed_time = round(time.time() - start_time)
     total_links = len(pdf_links)
 
-    print("\n📊 Summary:")
-    print(f"\n🔗 Total monthly links kept: {total_links}")
+    print("\n>> Summary:")
+    print(f"\n>> Total monthly links kept: {total_links}")
 
     if skipped_files:
-        print(f"🗂️ {len(skipped_files)} already downloaded PDFs were skipped.")
+        print(f">> {len(skipped_files)} already downloaded PDFs were skipped.")
 
-    print(f"➕ Newly downloaded: {new_counter}")
-    print(f"⏱️ {elapsed_time} seconds")
+    print(f">> Newly downloaded: {new_counter}")
+    print(f">> {elapsed_time} seconds")

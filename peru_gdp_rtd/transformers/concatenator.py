@@ -13,8 +13,6 @@ from typing import List, Optional
 
 import pandas as pd
 
-from peru_gdp_rtd.processors.metadata import read_records, write_records
-
 
 def target_period_monthly_sort_key(tp: str) -> tuple:
     """
@@ -83,11 +81,10 @@ def target_period_quarterly_sort_key(col: str) -> tuple:
 
 def concatenate_table_1(
     input_data_subfolder: str,
-    record_folder: str,
-    record_txt: str,
     persist: bool = False,
     persist_folder: Optional[str] = None,
     csv_file_label: Optional[str] = None,
+    force: bool = False,
 ) -> pd.DataFrame:
     """
     Concatenate all Table 1 (monthly GDP) vintage files into unified RTD.
@@ -103,11 +100,10 @@ def concatenate_table_1(
 
     Args:
         input_data_subfolder: Root folder containing table_1/ subfolder with year folders.
-        record_folder: Folder for storing concatenation records.
-        record_txt: Filename for record file (e.g., 'concatenate_table_1.txt').
         persist: If True, save unified RTD to disk.
         persist_folder: Folder for saving output (default: same as input_data_subfolder).
         csv_file_label: Custom filename for output (default: 'gdp_rtd_table_1_unified.csv').
+        force: If True, reprocess all files regardless of timestamps.
 
     Returns:
         Unified RTD DataFrame with columns: industry, vintage, tp_YYYYmM...
@@ -121,21 +117,56 @@ def concatenate_table_1(
         ... )
         >>> print(f"Unified RTD shape: {unified.shape}")
     """
-    start_time = time.time()
-    print("\n⛓️  Starting Table 1 concatenation (row-based)...")
+    from pathlib import Path
 
-    processed_files = read_records(record_folder, record_txt)
+    start_time = time.time()
+    print("\n>> Starting Table 1 concatenation (row-based)...")
+
+    # Look for table_1 data in new unified structure
     table_1_folder = os.path.join(input_data_subfolder, "table_1")
 
     if not os.path.exists(table_1_folder):
-        print(f"⚠️  Table 1 folder not found: {table_1_folder}")
+        print(f"WARNING: Table 1 folder not found: {table_1_folder}")
         return pd.DataFrame()
 
-    year_folders = sorted([f for f in os.listdir(table_1_folder) if f.isdigit()], key=int)
+    print(f">> Found Table 1 data: {table_1_folder}")
+
+    # Determine output path
+    output_folder = persist_folder or input_data_subfolder
+    output_filename = csv_file_label or "monthly_gdp_rtd.csv"
+    output_path = Path(output_folder) / output_filename
+
+    # Check if concatenation needed (timestamp-based)
+    if not force and output_path.exists():
+        # Get all input files
+        all_input_files = []
+        year_folders = sorted([
+            f for f in os.listdir(table_1_folder)
+            if f.isdigit() and os.path.isdir(os.path.join(table_1_folder, f))
+        ], key=int)
+
+        for year in year_folders:
+            year_folder = os.path.join(table_1_folder, year)
+            files = [Path(year_folder) / f for f in os.listdir(year_folder) if f.endswith((".csv", ".parquet"))]
+            all_input_files.extend(files)
+
+        # Check if any input is newer than output
+        output_mtime = output_path.stat().st_mtime
+        needs_update = any(f.stat().st_mtime > output_mtime for f in all_input_files if f.exists())
+
+        if not needs_update:
+            print(f">> Output up-to-date: {output_path}")
+            print(f">> Skipping concatenation (use force=True to reprocess)")
+            return pd.read_csv(output_path)
+
+    # Collect all year folders
+    year_folders = sorted([
+        f for f in os.listdir(table_1_folder)
+        if f.isdigit() and os.path.isdir(os.path.join(table_1_folder, f))
+    ], key=int)
 
     loaded_dfs: List[pd.DataFrame] = []
-    skipped_counter = 0
-    new_counter = 0
+    file_counter = 0
 
     # Load files from each year folder
     for year in year_folders:
@@ -143,10 +174,6 @@ def concatenate_table_1(
         files = sorted([f for f in os.listdir(year_folder) if f.endswith((".csv", ".parquet"))])
 
         for file in files:
-            if file in processed_files:
-                skipped_counter += 1
-                continue
-
             full_path = os.path.join(year_folder, file)
             try:
                 if file.endswith(".parquet"):
@@ -155,15 +182,13 @@ def concatenate_table_1(
                     df = pd.read_csv(full_path)
 
                 loaded_dfs.append(df)
-                processed_files.append(file)
-                write_records(record_folder, record_txt, processed_files)
-                new_counter += 1
+                file_counter += 1
             except Exception as e:
-                print(f"⚠️  Error loading {file}: {e}")
+                print(f"WARNING: Error loading {file}: {e}")
                 continue
 
     if not loaded_dfs:
-        print("No new files to concatenate.")
+        print("No files found to concatenate.")
         return pd.DataFrame()
 
     # Build union of all tp_* columns
@@ -185,7 +210,7 @@ def concatenate_table_1(
     aligned_dfs = []
     for df in loaded_dfs:
         if "industry" not in df.columns or "vintage" not in df.columns:
-            print("⚠️  Skipping DataFrame missing 'industry' or 'vintage' column")
+            print("WARNING: Skipping DataFrame missing 'industry' or 'vintage' column")
             continue
 
         df = df.reindex(columns=final_cols)
@@ -212,27 +237,25 @@ def concatenate_table_1(
         fname = csv_file_label or "gdp_rtd_table_1_unified.csv"
         out_path = os.path.join(persist_folder, fname)
         unified_df.to_csv(out_path, index=False)
-        print(f"📦 Unified RTD (Table 1) saved to {out_path}")
+        print(f">> Unified RTD (Table 1) saved to {out_path}")
 
     # Summary
     elapsed_time = round(time.time() - start_time)
-    print(f"\n📊 Summary (Table 1):")
-    print(f"📂 {len(year_folders)} year folders found")
-    print(f"🗃️  Already processed: {skipped_counter}")
-    print(f"✨ Newly concatenated: {new_counter}")
-    print(f"📏 Final shape: {unified_df.shape}")
-    print(f"⏱️  {elapsed_time} seconds")
+    print(f"\n>> Summary (Table 1):")
+    print(f">> Year folders: {len(year_folders)}")
+    print(f">> Files concatenated: {file_counter}")
+    print(f">> Final shape: {unified_df.shape}")
+    print(f">> Time: {elapsed_time} seconds")
 
     return unified_df
 
 
 def concatenate_table_2(
     input_data_subfolder: str,
-    record_folder: str,
-    record_txt: str,
     persist: bool = False,
     persist_folder: Optional[str] = None,
     csv_file_label: Optional[str] = None,
+    force: bool = False,
 ) -> pd.DataFrame:
     """
     Concatenate all Table 2 (quarterly/annual GDP) vintage files into unified RTD.
@@ -242,11 +265,10 @@ def concatenate_table_2(
 
     Args:
         input_data_subfolder: Root folder containing table_2/ subfolder with year folders.
-        record_folder: Folder for storing concatenation records.
-        record_txt: Filename for record file (e.g., 'concatenate_table_2.txt').
         persist: If True, save unified RTD to disk.
         persist_folder: Folder for saving output.
-        csv_file_label: Custom filename for output (default: 'gdp_rtd_table_2_unified.csv').
+        csv_file_label: Custom filename for output (default: 'quarterly_annual_gdp_rtd.csv').
+        force: If True, reprocess all files regardless of timestamps.
 
     Returns:
         Unified RTD DataFrame with columns: industry, vintage, tp_YYYYqN, tp_YYYY...
@@ -259,21 +281,56 @@ def concatenate_table_2(
         ...     persist=True
         ... )
     """
-    start_time = time.time()
-    print("\n⛓️  Starting Table 2 concatenation (row-based)...")
+    from pathlib import Path
 
-    processed_files = read_records(record_folder, record_txt)
+    start_time = time.time()
+    print("\n>> Starting Table 2 concatenation (row-based)...")
+
+    # Look for table_2 data in new unified structure
     table_2_folder = os.path.join(input_data_subfolder, "table_2")
 
     if not os.path.exists(table_2_folder):
-        print(f"⚠️  Table 2 folder not found: {table_2_folder}")
+        print(f"WARNING: Table 2 folder not found: {table_2_folder}")
         return pd.DataFrame()
 
-    year_folders = sorted([f for f in os.listdir(table_2_folder) if f.isdigit()], key=int)
+    print(f">> Found Table 2 data: {table_2_folder}")
+
+    # Determine output path
+    output_folder = persist_folder or input_data_subfolder
+    output_filename = csv_file_label or "quarterly_annual_gdp_rtd.csv"
+    output_path = Path(output_folder) / output_filename
+
+    # Check if concatenation needed (timestamp-based)
+    if not force and output_path.exists():
+        # Get all input files
+        all_input_files = []
+        year_folders = sorted([
+            f for f in os.listdir(table_2_folder)
+            if f.isdigit() and os.path.isdir(os.path.join(table_2_folder, f))
+        ], key=int)
+
+        for year in year_folders:
+            year_folder = os.path.join(table_2_folder, year)
+            files = [Path(year_folder) / f for f in os.listdir(year_folder) if f.endswith((".csv", ".parquet"))]
+            all_input_files.extend(files)
+
+        # Check if any input is newer than output
+        output_mtime = output_path.stat().st_mtime
+        needs_update = any(f.stat().st_mtime > output_mtime for f in all_input_files if f.exists())
+
+        if not needs_update:
+            print(f">> Output up-to-date: {output_path}")
+            print(f">> Skipping concatenation (use force=True to reprocess)")
+            return pd.read_csv(output_path)
+
+    # Collect all year folders
+    year_folders = sorted([
+        f for f in os.listdir(table_2_folder)
+        if f.isdigit() and os.path.isdir(os.path.join(table_2_folder, f))
+    ], key=int)
 
     loaded_dfs: List[pd.DataFrame] = []
-    skipped_counter = 0
-    new_counter = 0
+    file_counter = 0
 
     # Load files from each year folder
     for year in year_folders:
@@ -281,10 +338,6 @@ def concatenate_table_2(
         files = sorted([f for f in os.listdir(year_folder) if f.endswith((".csv", ".parquet"))])
 
         for file in files:
-            if file in processed_files:
-                skipped_counter += 1
-                continue
-
             full_path = os.path.join(year_folder, file)
             try:
                 if file.endswith(".parquet"):
@@ -293,15 +346,13 @@ def concatenate_table_2(
                     df = pd.read_csv(full_path)
 
                 loaded_dfs.append(df)
-                processed_files.append(file)
-                write_records(record_folder, record_txt, processed_files)
-                new_counter += 1
+                file_counter += 1
             except Exception as e:
-                print(f"⚠️  Error loading {file}: {e}")
+                print(f"WARNING: Error loading {file}: {e}")
                 continue
 
     if not loaded_dfs:
-        print("No new files to concatenate.")
+        print("No files found to concatenate.")
         return pd.DataFrame()
 
     # Build union of all tp_* columns
@@ -323,7 +374,7 @@ def concatenate_table_2(
     aligned_dfs = []
     for df in loaded_dfs:
         if "industry" not in df.columns or "vintage" not in df.columns:
-            print("⚠️  Skipping DataFrame missing 'industry' or 'vintage' column")
+            print("WARNING: Skipping DataFrame missing 'industry' or 'vintage' column")
             continue
 
         df = df.reindex(columns=final_cols)
@@ -350,15 +401,14 @@ def concatenate_table_2(
         fname = csv_file_label or "gdp_rtd_table_2_unified.csv"
         out_path = os.path.join(persist_folder, fname)
         unified_df.to_csv(out_path, index=False)
-        print(f"📦 Unified RTD (Table 2) saved to {out_path}")
+        print(f">> Unified RTD (Table 2) saved to {out_path}")
 
     # Summary
     elapsed_time = round(time.time() - start_time)
-    print(f"\n📊 Summary (Table 2):")
-    print(f"📂 {len(year_folders)} year folders found")
-    print(f"🗃️  Already processed: {skipped_counter}")
-    print(f"✨ Newly concatenated: {new_counter}")
-    print(f"📏 Final shape: {unified_df.shape}")
-    print(f"⏱️  {elapsed_time} seconds")
+    print(f"\n>> Summary (Table 2):")
+    print(f">> Year folders: {len(year_folders)}")
+    print(f">> Files concatenated: {file_counter}")
+    print(f">> Final shape: {unified_df.shape}")
+    print(f">> Time: {elapsed_time} seconds")
 
     return unified_df

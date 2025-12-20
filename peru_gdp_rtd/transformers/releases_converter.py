@@ -16,24 +16,26 @@ Version: 1.0.0
 
 import os
 import time
+from pathlib import Path
 from typing import Dict, List
 
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from peru_gdp_rtd.utils.data_manager import RecordManager
-
 
 def convert_to_releases_dataset(
+    input_data_subfolder: str,
     output_data_subfolder: str,
     csv_file_labels: List[str],
-    record_folder: str,
-    record_txt: str,
     releases_dataset_labels: List[str],
+    force: bool = False,
 ) -> Dict[str, pd.DataFrame]:
     """
     Convert vintage-format RTDs into release-format datasets.
+
+    Uses timestamp-based processing: only processes if input RTD is newer
+    than output releases file or if output doesn't exist.
 
     Transformation logic:
     1. For each industry, sort vintages chronologically
@@ -58,22 +60,22 @@ def convert_to_releases_dataset(
         | 2017m2        | 1.2   | 1.3   | 1.2   |  # 1st=2017m2, 2nd=2017m3, 3rd=2017m4
 
     Args:
-        output_data_subfolder: Folder containing input RTD CSV files
+        input_data_subfolder: Folder containing input vintage RTD CSV files
+        output_data_subfolder: Folder where release CSV files will be saved
         csv_file_labels: List of input CSV filenames (without .csv)
-        record_folder: Folder for processing records
-        record_txt: Record filename for tracking processed files
         releases_dataset_labels: List of output CSV filenames (without .csv)
+        force: If True, reprocess all files regardless of timestamps
 
     Returns:
         Dictionary mapping output labels to release-format DataFrames
 
     Example:
         >>> releases = convert_to_releases_dataset(
-        ...     output_data_subfolder="data/outputs",
+        ...     input_data_subfolder="data/output/vintages",
+        ...     output_data_subfolder="data/output/releases",
         ...     csv_file_labels=["monthly_gdp_rtd", "quarterly_annual_gdp_rtd"],
-        ...     record_folder="data/records",
-        ...     record_txt="releases_processed.txt",
-        ...     releases_dataset_labels=["monthly_releases", "quarterly_releases"]
+        ...     releases_dataset_labels=["monthly_releases", "quarterly_releases"],
+        ...     force=False
         ... )
     """
     start_time = time.time()
@@ -83,10 +85,11 @@ def convert_to_releases_dataset(
     if len(csv_file_labels) != len(releases_dataset_labels):
         raise ValueError("csv_file_labels and releases_dataset_labels must have same length")
 
-    # 2) Load processing records
-    record_manager = RecordManager(record_folder=record_folder, record_file=record_txt)
-    processed_files = record_manager.read_records()
     processed_results = {}
+    skipped_count = 0
+
+    # 2) Create output directory
+    Path(output_data_subfolder).mkdir(parents=True, exist_ok=True)
 
     # 3) Process each dataset
     for csv_label, release_label in zip(csv_file_labels, releases_dataset_labels):
@@ -94,16 +97,22 @@ def convert_to_releases_dataset(
         csv_label_clean = csv_label.replace(".csv", "")
         release_label_clean = release_label.replace(".csv", "")
 
-        csv_path = os.path.join(output_data_subfolder, f"{csv_label_clean}.csv")
+        csv_path = Path(input_data_subfolder) / f"{csv_label_clean}.csv"
+        release_path = Path(output_data_subfolder) / f"{release_label_clean}.csv"
 
-        # Check if already processed
-        if csv_label_clean in processed_files:
-            print(f"⏭️ Skipping already processed: {csv_label_clean}.csv")
-            continue
-
-        if not os.path.exists(csv_path):
+        if not csv_path.exists():
             print(f"⚠️ File not found, skipping: {csv_path}")
             continue
+
+        # Timestamp-based check
+        if not force and release_path.exists():
+            input_mtime = csv_path.stat().st_mtime
+            output_mtime = release_path.stat().st_mtime
+
+            if input_mtime <= output_mtime:
+                print(f"⏭️ Skipping {csv_label_clean}.csv (output up-to-date)")
+                skipped_count += 1
+                continue
 
         print(f"\n🔄 Processing file: {csv_label_clean}.csv")
         df = pd.read_csv(csv_path)
@@ -201,27 +210,20 @@ def convert_to_releases_dataset(
         releases_df_pivot.drop(columns=["year", "month"], inplace=True)
 
         # 12) Save release dataset
-        release_path = os.path.join(output_data_subfolder, f"{release_label_clean}.csv")
         releases_df_pivot.to_csv(release_path, index=False)
         processed_results[release_label_clean] = releases_df_pivot
-
-        # Update processed records
-        processed_files.append(csv_label_clean)
 
         print(f"💾 Saved release dataset: {release_label_clean}.csv")
         print(
             f"   📏 Rows: {len(releases_df_pivot)}, " f"Columns: {len(releases_df_pivot.columns)}"
         )
 
-    # 13) Update record file
-    record_manager.write_records(processed_files)
-
-    # 14) Summary
+    # 13) Summary
     elapsed_time = round(time.time() - start_time)
     print(f"\n📊 Summary (Conversion to Releases Dataset):")
-    print(f"📂 {len(csv_file_labels)} input files")
+    print(f"📂 {len(csv_file_labels)} total input files")
+    print(f"⏭️ {skipped_count} files skipped (up-to-date)")
     print(f"🔹 {len(processed_results)} release datasets created")
-    print(f"🗃️ Record updated: {record_txt}")
     print(f"⏱️ Total elapsed time: {elapsed_time} seconds")
 
     return processed_results

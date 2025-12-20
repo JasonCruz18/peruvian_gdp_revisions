@@ -16,10 +16,21 @@ paths:
   data_input: "data/input"
   data_output: "data/output"
 
+<<<<<<< Updated upstream
   # PDF directories
   pdf_root: "new_weekly_reports"
   pdf_raw: "new_weekly_reports/raw"
   pdf_input: "new_weekly_reports/input"
+=======
+  # Output subdirectories (new v1.0.0 structure)
+  vintages: "data/output/vintages"
+  releases: "data/output/releases"
+
+  # PDF directories (raw data)
+  pdf_root: "data/raw/new_weekly_reports"
+  pdf_raw: "data/raw/new_weekly_reports"
+  pdf_input: "data/raw/new_weekly_reports/shortened_pdfs"
+>>>>>>> Stashed changes
 
   # Old weekly reports (legacy data)
   old_weekly_reports: "old_weekly_reports"
@@ -224,7 +235,7 @@ logging:
 # FEATURE FLAGS
 # ====================
 features:
-  enable_alerts: true           # Play audio alerts after downloads
+  enable_alerts: false          # Play audio alerts after downloads (disabled for automated pipeline)
   persist_intermediate: true    # Save intermediate processing results
   persist_format: "csv"         # Options: csv, parquet
   validate_data: true           # Run data validation checks

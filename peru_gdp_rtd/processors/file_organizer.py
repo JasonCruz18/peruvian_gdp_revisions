@@ -50,7 +50,7 @@ def organize_files_by_year(raw_pdf_folder: str) -> None:
             os.makedirs(dest, exist_ok=True)
             shutil.move(os.path.join(raw_pdf_folder, file), dest)
         else:
-            print(f"⚠️  No 4-digit year detected in filename: {file}")
+            print(f"WARNING: No 4-digit year detected in filename: {file}")
 
 
 def replace_defective_pdfs(
@@ -209,22 +209,22 @@ def replace_defective_pdfs(
     fail = not_found + download_errors + file_op_errors
 
     if verbose:
-        print("\n📊 PDF replacement summary")
-        print(f"   • Succeeded: {ok}")
+        print("\n>> PDF replacement summary")
+        print(f"   - Succeeded: {ok}")
         print(
-            f"   • Failed:    {fail} "
+            f"   - Failed:    {fail} "
             f"(not found: {not_found}, download errors: {download_errors}, "
             f"file ops: {file_op_errors})"
         )
         if replaced_names:
             preview = ", ".join(replaced_names[:10])
-            suffix = "…" if len(replaced_names) > 10 else ""
-            print(f"   • New files: {preview}{suffix}")
+            suffix = "..." if len(replaced_names) > 10 else ""
+            print(f"   - New files: {preview}{suffix}")
         if failed_items:
-            print("   • Failed items (sample):")
+            print("   - Failed items (sample):")
             for y, bad, rep, reason in failed_items[:5]:
-                print(f"     - {bad} [{y}] ← {rep}  ({reason})")
+                print(f"     - {bad} [{y}] <- {rep}  ({reason})")
             if len(failed_items) > 5:
-                print(f"     … and {len(failed_items) - 5} more")
+                print(f"     ... and {len(failed_items) - 5} more")
 
     return ok, fail

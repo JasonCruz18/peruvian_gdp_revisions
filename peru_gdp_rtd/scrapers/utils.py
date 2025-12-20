@@ -74,5 +74,5 @@ def random_wait(min_time: float, max_time: float) -> None:
         ⏳ Waiting 7.34 seconds...
     """
     wait_time = random.uniform(min_time, max_time)
-    print(f"⏳ Waiting {wait_time:.2f} seconds...")
+    print(f">> Waiting {wait_time:.2f} seconds...")
     time.sleep(wait_time)
