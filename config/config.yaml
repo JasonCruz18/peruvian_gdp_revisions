@@ -175,17 +175,7 @@ benchmark:
 # RECORD FILES CONFIGURATION
 # ====================
 record_files:
-  downloaded_pdfs: "1_downloaded_pdfs.txt"
-  generated_inputs: "2_generated_input_pdfs.txt"
-  created_new_rtd_tab_1: "3_created_new_rtd_tab_1.txt"
-  created_new_rtd_tab_2: "3_created_new_rtd_tab_2.txt"
-  created_old_rtd_tab_1: "3_created_old_rtd_tab_1.txt"
-  created_old_rtd_tab_2: "3_created_old_rtd_tab_2.txt"
-  concatenated_tab_1: "4_concatenated_rtd_tab_1.txt"
-  concatenated_tab_2: "4_concatenated_rtd_tab_2.txt"
-  metadata_updated: "5_weekly_report_metadata.txt"
-  benchmark_converted: "5_converted_to_benchmark.txt"
-  releases_converted: "6_converted_to_releases.txt"
+  downloaded_pdfs: "downloaded_pdfs.txt"
 
 # ====================
 # OUTPUT FILES CONFIGURATION
