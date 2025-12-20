@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+<<<<<<< Updated upstream
       "Bash(cd:*)",
       "Bash(cat:*)",
       "Bash(tree:*)",
@@ -22,5 +23,9 @@
     ],
     "deny": [],
     "ask": []
+=======
+      "Bash(ls:*)"
+    ]
+>>>>>>> Stashed changes
   }
 }
