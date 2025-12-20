@@ -186,7 +186,7 @@ def pdf_input_generator(
 
     # Process each year folder
     for folder in sorted(os.listdir(raw_pdf_folder)):
-        if folder == "_quarantine":
+        if folder in {"_quarantine", "shortened_pdfs"}:
             continue
 
         folder_path = raw_pdf_folder / folder
