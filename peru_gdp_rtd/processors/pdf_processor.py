@@ -12,7 +12,12 @@ import time
 from typing import List, Optional, Set
 
 import fitz  # PyMuPDF
-from PyPDF2 import PdfReader, PdfWriter
+
+try:
+    from pypdf import PdfReader, PdfWriter
+except ImportError:  # Defer hard failure to runtime with clearer message
+    PdfReader = None
+    PdfWriter = None
 from tqdm import tqdm
 
 from peru_gdp_rtd.config.settings import Settings
@@ -57,6 +62,10 @@ def shortened_pdf(pdf_file: str, pages: List[int], output_folder: str) -> int:
     Note:
         Output filename mirrors the source filename.
     """
+    if PdfReader is None or PdfWriter is None:
+        raise ImportError(
+            "pypdf is required for PDF shortening. Install with `pip install pypdf`."
+        )
     if not pages:
         return 0
 

@@ -9,10 +9,11 @@ This module provides consolidated, validated runners that:
 5. Are truly independent with clear input/output contracts
 """
 
+from collections import defaultdict
 import logging
 import time
 from pathlib import Path
-from typing import Dict, Set
+from typing import Dict
 
 import pandas as pd
 
@@ -29,6 +30,24 @@ from peru_gdp_rtd.orchestration.validation import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _build_month_order_map_from_files(files):
+    """Build month order map per year from a flat list of WR files."""
+    grouped = defaultdict(list)
+    for f in files:
+        issue, year = parse_ns_meta(f.name)
+        if issue and year:
+            try:
+                grouped[year].append((f.name, int(issue)))
+            except ValueError:
+                continue
+
+    month_map: Dict[str, int] = {}
+    for _year, items in grouped.items():
+        for idx, (fname, _issue) in enumerate(sorted(items, key=lambda x: x[1])):
+            month_map[fname] = idx + 1
+    return month_map
 
 
 def build_table_1_vintages(
@@ -80,6 +99,8 @@ def build_table_1_vintages(
 
     # Validate inputs
     old_csv_path = Path(old_csv_folder)
+    if (old_csv_path / "table_1").exists():
+        old_csv_path = old_csv_path / "table_1"
     new_pdf_path = Path(new_pdf_folder)
     output_path = Path(output_folder)
 
@@ -100,7 +121,7 @@ def build_table_1_vintages(
     if old_csv_path.exists():
         logger.info("Processing OLD CSV files (pre-2013)...")
         old_stats = _process_old_csv_table_1(
-            old_csv_folder,
+            str(old_csv_path),
             output_folder,
             pipeline_version,
             force,
@@ -178,6 +199,8 @@ def build_table_2_vintages(
 
     # Validate inputs
     old_csv_path = Path(old_csv_folder)
+    if (old_csv_path / "table_2").exists():
+        old_csv_path = old_csv_path / "table_2"
     new_pdf_path = Path(new_pdf_folder)
     output_path = Path(output_folder)
 
@@ -198,7 +221,7 @@ def build_table_2_vintages(
     if old_csv_path.exists():
         logger.info("Processing OLD CSV files (pre-2013)...")
         old_stats = _process_old_csv_table_2(
-            old_csv_folder,
+            str(old_csv_path),
             output_folder,
             pipeline_version,
             force,
@@ -244,6 +267,8 @@ def _process_old_csv_table_1(
 
     stats = {'processed': 0, 'skipped': 0}
     old_csv_path = Path(old_csv_folder)
+    prep = VintagesPreparator()
+    cleaner = OldTableCleaner()
 
     # Find all year folders
     year_folders = sorted([
@@ -255,6 +280,7 @@ def _process_old_csv_table_1(
         year = year_folder.name
         output_year_folder = Path(output_folder) / year
         output_year_folder.mkdir(parents=True, exist_ok=True)
+        month_order_map = prep.build_month_order_map(str(year_folder), extensions=(".csv",))
 
         # Find all CSV files in this year
         csv_files = sorted(year_folder.glob("*.csv"))
@@ -272,16 +298,22 @@ def _process_old_csv_table_1(
                 raw_table = pd.read_csv(csv_file, sep=";", encoding="utf-8")
 
                 # Clean table
-                cleaner = OldTableCleaner(
-                    table_num=1,
-                    pipeline_version=pipeline_version,
-                )
-                clean_table = cleaner.clean(raw_table)
+                clean_table = cleaner.clean_table_1(raw_table)
+                issue, yr = parse_ns_meta(csv_file.name)
+                if not issue or not yr:
+                    logger.error(f"Failed to parse WR metadata from {csv_file.name}")
+                    stats['skipped'] += 1
+                    continue
+                if month_order_map.get(csv_file.name) is None:
+                    logger.error(f"Missing month order mapping for {csv_file.name}")
+                    stats['skipped'] += 1
+                    continue
+                clean_table.insert(0, "year", int(yr))
+                clean_table.insert(1, "wr", int(issue))
 
                 # Convert to vintage format
-                preparator = VintagesPreparator()
-                vintage_meta = parse_ns_meta(csv_file.stem)
-                vintage = preparator.to_vintage(clean_table, vintage_meta)
+                vintage = prep.prepare_table_1(clean_table, csv_file.name, month_order_map)
+                vintage.attrs["pipeline_version"] = pipeline_version
 
                 # Validate
                 validate_rtd_dataframe(vintage, f"Table 1 OLD {csv_file.name}")
@@ -311,14 +343,25 @@ def _process_new_pdf_table_1(
 
     stats = {'processed': 0, 'skipped': 0}
     new_pdf_path = Path(new_pdf_folder)
+    prep = VintagesPreparator()
+    cleaner = NewTableCleaner()
 
     # Find all PDF files
-    pdf_files = sorted(new_pdf_path.glob("*.pdf"))
+    pdf_files = sorted(new_pdf_path.rglob("*.pdf"))
+    month_order_map = _build_month_order_map_from_files(pdf_files)
 
     for pdf_file in pdf_files:
         # Determine year from filename
-        vintage_meta = parse_ns_meta(pdf_file.stem)
-        year = str(vintage_meta['year'])
+        issue, yr = parse_ns_meta(pdf_file.name)
+        if not issue or not yr:
+            logger.error(f"Failed to parse WR metadata from {pdf_file.name}")
+            stats['skipped'] += 1
+            continue
+        year = str(yr)
+        if month_order_map.get(pdf_file.name) is None:
+            logger.error(f"Missing month order mapping for {pdf_file.name}")
+            stats['skipped'] += 1
+            continue
 
         output_year_folder = Path(output_folder) / year
         output_year_folder.mkdir(parents=True, exist_ok=True)
@@ -331,18 +374,20 @@ def _process_new_pdf_table_1(
 
         try:
             # Extract table
-            raw_table = extract_table(str(pdf_file), table_num=1)
+            raw_table = extract_table(str(pdf_file), page=1)
+            if raw_table is None:
+                logger.error(f"No table extracted from {pdf_file.name} page 1")
+                stats['skipped'] += 1
+                continue
 
             # Clean table
-            cleaner = NewTableCleaner(
-                table_num=1,
-                pipeline_version=pipeline_version,
-            )
-            clean_table = cleaner.clean(raw_table)
+            clean_table = cleaner.clean_table_1(raw_table)
+            clean_table.insert(0, "year", int(yr))
+            clean_table.insert(1, "wr", int(issue))
 
             # Convert to vintage format
-            preparator = VintagesPreparator()
-            vintage = preparator.to_vintage(clean_table, vintage_meta)
+            vintage = prep.prepare_table_1(clean_table, pdf_file.name, month_order_map)
+            vintage.attrs["pipeline_version"] = pipeline_version
 
             # Validate
             validate_rtd_dataframe(vintage, f"Table 1 NEW {pdf_file.name}")
@@ -372,6 +417,8 @@ def _process_old_csv_table_2(
 
     stats = {'processed': 0, 'skipped': 0}
     old_csv_path = Path(old_csv_folder)
+    prep = VintagesPreparator()
+    cleaner = OldTableCleaner()
 
     # Find all year folders
     year_folders = sorted([
@@ -383,6 +430,7 @@ def _process_old_csv_table_2(
         year = year_folder.name
         output_year_folder = Path(output_folder) / year
         output_year_folder.mkdir(parents=True, exist_ok=True)
+        month_order_map = prep.build_month_order_map(str(year_folder), extensions=(".csv",))
 
         # Find all CSV files in this year
         csv_files = sorted(year_folder.glob("*.csv"))
@@ -400,16 +448,22 @@ def _process_old_csv_table_2(
                 raw_table = pd.read_csv(csv_file, sep=";", encoding="utf-8")
 
                 # Clean table
-                cleaner = OldTableCleaner(
-                    table_num=2,
-                    pipeline_version=pipeline_version,
-                )
-                clean_table = cleaner.clean(raw_table)
+                clean_table = cleaner.clean_table_2(raw_table)
+                issue, yr = parse_ns_meta(csv_file.name)
+                if not issue or not yr:
+                    logger.error(f"Failed to parse WR metadata from {csv_file.name}")
+                    stats['skipped'] += 1
+                    continue
+                if month_order_map.get(csv_file.name) is None:
+                    logger.error(f"Missing month order mapping for {csv_file.name}")
+                    stats['skipped'] += 1
+                    continue
+                clean_table.insert(0, "year", int(yr))
+                clean_table.insert(1, "wr", int(issue))
 
                 # Convert to vintage format
-                preparator = VintagesPreparator()
-                vintage_meta = parse_ns_meta(csv_file.stem)
-                vintage = preparator.to_vintage(clean_table, vintage_meta)
+                vintage = prep.prepare_table_2(clean_table, csv_file.name, month_order_map)
+                vintage.attrs["pipeline_version"] = pipeline_version
 
                 # Validate
                 validate_rtd_dataframe(vintage, f"Table 2 OLD {csv_file.name}")
@@ -439,14 +493,25 @@ def _process_new_pdf_table_2(
 
     stats = {'processed': 0, 'skipped': 0}
     new_pdf_path = Path(new_pdf_folder)
+    prep = VintagesPreparator()
+    cleaner = NewTableCleaner()
 
     # Find all PDF files
-    pdf_files = sorted(new_pdf_path.glob("*.pdf"))
+    pdf_files = sorted(new_pdf_path.rglob("*.pdf"))
+    month_order_map = _build_month_order_map_from_files(pdf_files)
 
     for pdf_file in pdf_files:
         # Determine year from filename
-        vintage_meta = parse_ns_meta(pdf_file.stem)
-        year = str(vintage_meta['year'])
+        issue, yr = parse_ns_meta(pdf_file.name)
+        if not issue or not yr:
+            logger.error(f"Failed to parse WR metadata from {pdf_file.name}")
+            stats['skipped'] += 1
+            continue
+        year = str(yr)
+        if month_order_map.get(pdf_file.name) is None:
+            logger.error(f"Missing month order mapping for {pdf_file.name}")
+            stats['skipped'] += 1
+            continue
 
         output_year_folder = Path(output_folder) / year
         output_year_folder.mkdir(parents=True, exist_ok=True)
@@ -459,18 +524,20 @@ def _process_new_pdf_table_2(
 
         try:
             # Extract table
-            raw_table = extract_table(str(pdf_file), table_num=2)
+            raw_table = extract_table(str(pdf_file), page=2)
+            if raw_table is None:
+                logger.error(f"No table extracted from {pdf_file.name} page 2")
+                stats['skipped'] += 1
+                continue
 
             # Clean table
-            cleaner = NewTableCleaner(
-                table_num=2,
-                pipeline_version=pipeline_version,
-            )
-            clean_table = cleaner.clean(raw_table)
+            clean_table = cleaner.clean_table_2(raw_table)
+            clean_table.insert(0, "year", int(yr))
+            clean_table.insert(1, "wr", int(issue))
 
             # Convert to vintage format
-            preparator = VintagesPreparator()
-            vintage = preparator.to_vintage(clean_table, vintage_meta)
+            vintage = prep.prepare_table_2(clean_table, pdf_file.name, month_order_map)
+            vintage.attrs["pipeline_version"] = pipeline_version
 
             # Validate
             validate_rtd_dataframe(vintage, f"Table 2 NEW {pdf_file.name}")

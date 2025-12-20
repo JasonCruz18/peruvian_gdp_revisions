@@ -19,7 +19,7 @@ webdriver-manager==4.0.2
 
 # PDF processing
 PyMuPDF==1.23.26
-PyPDF2==3.0.1
+pypdf==4.0.0
 tabula-py==2.9.0
 # Note: tabula-py requires Java Runtime Environment (JRE) to be installed
 
