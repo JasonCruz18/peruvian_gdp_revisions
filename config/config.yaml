@@ -175,7 +175,8 @@ benchmark:
 # RECORD FILES CONFIGURATION
 # ====================
 record_files:
-  downloaded_pdfs: "downloaded_pdfs.txt"
+  downloaded_pdfs: "1_downloaded_pdfs.txt"
+  shortened_pdfs: "2_shortened_pdfs.txt"
 
 # ====================
 # OUTPUT FILES CONFIGURATION

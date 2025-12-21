@@ -95,7 +95,7 @@ def replace_defective_pdfs(
         ...     items=items,
         ...     root_folder="new_weekly_reports/input",
         ...     record_folder="record",
-        ...     download_record_txt="downloaded_pdfs.txt",
+        ...     download_record_txt="1_downloaded_pdfs.txt",
         ...     quarantine="new_weekly_reports/input/_quarantine"
         ... )
         >>> print(f"Replaced: {ok}, Failed: {fail}")

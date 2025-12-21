@@ -180,6 +180,10 @@ def pdf_input_generator(
     # Ensure output folder exists
     input_pdf_folder.mkdir(parents=True, exist_ok=True)
 
+    record_folder = Path(settings.paths.record)
+    record_txt = settings.record_files.get("shortened_pdfs", "2_shortened_pdfs.txt")
+    processed_shortened = read_input_pdf_files(str(record_folder), record_txt)
+
     skipped_years = {}
     new_counter = 0
     skipped_counter = 0
@@ -217,10 +221,16 @@ def pdf_input_generator(
             output_folder_year.mkdir(parents=True, exist_ok=True)
             output_file = output_folder_year / filename
 
-            # Check if processing needed (timestamp-based)
+            # Record-based skip (with optional force override)
+            if not force and filename in processed_shortened:
+                folder_skipped_count += 1
+                continue
+
+            # Timestamp-based skip for safety when record is incomplete
             if not force and output_file.exists():
                 if pdf_file.stat().st_mtime <= output_file.stat().st_mtime:
                     folder_skipped_count += 1
+                    processed_shortened.add(filename)
                     continue
 
             # Extract pages with keywords
@@ -244,6 +254,7 @@ def pdf_input_generator(
                     writer.write(f_out)
 
             folder_new_count += 1
+            processed_shortened.add(filename)
 
         pbar.close()
 
@@ -277,3 +288,6 @@ def pdf_input_generator(
         print(f"  Already generated: {skipped_counter}")
         print(f"  Newly generated: {new_counter}")
         print(f"  Time elapsed: {elapsed_time} seconds")
+
+    # Persist updated record
+    write_input_pdf_files(processed_shortened, str(record_folder), record_txt)

@@ -66,7 +66,7 @@ python scripts/update_rtd.py --verbose
 
 That's it! The complete GDP RTD will be generated in `data/output/`.
 
-**Download deduplication:** The downloader keeps a simple record file at `record/downloaded_pdfs.txt` to skip PDFs it has already fetched. Remove entries or delete the file if you want to force re-downloads.
+**Download deduplication:** The downloader keeps a simple record file at `record/1_downloaded_pdfs.txt` to skip PDFs it has already fetched. Remove entries or delete the file if you want to force re-downloads.
 
 ---
 
