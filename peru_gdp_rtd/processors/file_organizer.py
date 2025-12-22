@@ -28,7 +28,7 @@ def organize_files_by_year(raw_pdf_folder: str) -> None:
         # new_weekly_reports/raw/2019/ns-07-2019.pdf
         # new_weekly_reports/raw/2020/ns-01-2020.pdf
     """
-    files = os.listdir(raw_pdf_folder)
+    files = [f for f in os.listdir(raw_pdf_folder) if f.lower().endswith(".pdf")]
 
     for file in files:
         # Skip if it's already a directory

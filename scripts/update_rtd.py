@@ -239,6 +239,10 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
             # STEP 2: Shorten PDFs (extract key tables)
             elif step_num == 2:
                 from peru_gdp_rtd.processors.pdf_processor import pdf_input_generator
+                from peru_gdp_rtd.processors.file_organizer import organize_files_by_year
+
+                # Ensure raw PDFs are organized by year before shortening
+                organize_files_by_year(str(settings.paths.pdf_raw))
 
                 pdf_input_generator(
                     settings=settings,
@@ -247,6 +251,9 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                     verbose=args.verbose,
                     force=False,
                 )
+
+                # Ensure shortened PDFs are also organized by year
+                organize_files_by_year(str(settings.paths.pdf_input))
 
             # STEP 3: Clean tables and build vintage-format RTD
             elif step_num == 3:
