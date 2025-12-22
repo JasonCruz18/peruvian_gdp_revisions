@@ -236,14 +236,16 @@ def pdf_input_generator(
 
             # Extract pages with keywords
             pages_with_keywords = search_keywords(str(pdf_file), keywords)
-            num_pages = shortened_pdf(str(pdf_file), pages_with_keywords, output_folder=str(input_pdf_folder))
+            num_pages = shortened_pdf(
+                str(pdf_file), pages_with_keywords, output_folder=str(output_folder_year)
+            )
 
             if num_pages == 0:
                 continue
 
             # Special handling for 4-page outputs
             # (contains both levels and percentage variations tables)
-            short_pdf_file = input_pdf_folder / filename
+            short_pdf_file = output_folder_year / filename
             reader = PdfReader(str(short_pdf_file))
 
             if len(reader.pages) == 4:
