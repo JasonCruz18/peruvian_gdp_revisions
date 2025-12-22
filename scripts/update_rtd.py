@@ -154,14 +154,6 @@ def print_completion_summary() -> None:
     print("=" * 70)
     print(" " * 20 + ">> Pipeline Completed Successfully!")
     print("=" * 70)
-    print()
-    print("Next steps:")
-    print("  - To shorten PDFs with key tables, run step 2: python scripts/update_rtd.py --steps 2")
-    print("  - To build vintages (steps 3-4): python scripts/update_rtd.py --steps 3,4")
-    print("  - To apply metadata and releases (steps 5-6): python scripts/update_rtd.py --steps 5,6")
-    print("  - Review console output or record/ files for execution details")
-    print("  - Explore outputs in notebooks/new_gdp_rtd.ipynb once generated")
-    print()
 
 
 def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
