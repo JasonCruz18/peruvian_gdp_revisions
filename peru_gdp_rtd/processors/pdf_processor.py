@@ -21,6 +21,7 @@ except ImportError:  # Defer hard failure to runtime with clearer message
 from tqdm import tqdm
 
 from peru_gdp_rtd.config.settings import Settings
+from peru_gdp_rtd.processors.metadata import ns_sort_key
 
 
 def search_keywords(pdf_file: str, keywords: List[str]) -> List[int]:
@@ -120,7 +121,7 @@ def write_input_pdf_files(
     os.makedirs(input_pdf_record_folder, exist_ok=True)
 
     with open(record_path, "w", encoding="utf-8") as f:
-        for filename in sorted(input_pdf_files):
+        for filename in sorted(input_pdf_files, key=ns_sort_key):
             f.write(filename + "\n")
 
 
