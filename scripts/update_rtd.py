@@ -267,7 +267,7 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                 build_table_1_vintages(
                     old_csv_folder=str(settings.paths.old_weekly_reports),
                     new_pdf_folder=str(settings.paths.pdf_input),
-                    output_folder=str(settings.paths.vintages / "table_1"),
+                    output_folder=str(settings.paths.data_input / "table_1"),
                     pipeline_version=settings.project["version"],
                     persist_format=settings.features.persist_format,
                     force=False,
@@ -278,7 +278,7 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                 build_table_2_vintages(
                     old_csv_folder=str(settings.paths.old_weekly_reports),
                     new_pdf_folder=str(settings.paths.pdf_input),
-                    output_folder=str(settings.paths.vintages / "table_2"),
+                    output_folder=str(settings.paths.data_input / "table_2"),
                     pipeline_version=settings.project["version"],
                     persist_format=settings.features.persist_format,
                     force=False,
@@ -293,19 +293,21 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
 
                 logger.info("Concatenating Table 1 vintages (monthly GDP)...")
                 concatenate_table_1(
-                    input_data_subfolder=str(settings.paths.vintages),
+                    input_data_subfolder=str(settings.paths.data_input),
                     persist=True,
                     persist_folder=str(settings.paths.vintages),
                     csv_file_label=settings.output_files["monthly_rtd"],
+                    persist_format=settings.features.persist_format,
                     force=False,
                 )
 
                 logger.info("Concatenating Table 2 vintages (quarterly/annual GDP)...")
                 concatenate_table_2(
-                    input_data_subfolder=str(settings.paths.vintages),
+                    input_data_subfolder=str(settings.paths.data_input),
                     persist=True,
                     persist_folder=str(settings.paths.vintages),
                     csv_file_label=settings.output_files["quarterly_annual_rtd"],
+                    persist_format=settings.features.persist_format,
                     force=False,
                 )
 
@@ -340,9 +342,10 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                     sentinel=settings.benchmark.sentinel_value,
                     output_data_subfolder=str(settings.paths.vintages),
                     csv_file_labels=[
-                        settings.output_files["monthly_rtd"].replace(".csv", ""),
-                        settings.output_files["quarterly_annual_rtd"].replace(".csv", ""),
+                        settings.output_files["monthly_rtd"],
+                        settings.output_files["quarterly_annual_rtd"],
                     ],
+                    persist_format=settings.features.persist_format,
                     force=False,
                 )
 
@@ -351,15 +354,16 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                 convert_to_benchmark_dataset(
                     output_data_subfolder=str(settings.paths.vintages),
                     csv_file_labels=[
-                        settings.output_files["monthly_rtd"].replace(".csv", ""),
-                        settings.output_files["quarterly_annual_rtd"].replace(".csv", ""),
+                        settings.output_files["monthly_rtd"],
+                        settings.output_files["quarterly_annual_rtd"],
                     ],
                     metadata_folder=str(settings.paths.metadata),
                     wr_metadata_csv=settings.metadata.filename,
                     benchmark_dataset_labels=[
-                        settings.output_files["monthly_benchmark"].replace(".csv", ""),
-                        settings.output_files["quarterly_benchmark"].replace(".csv", ""),
+                        settings.output_files["monthly_benchmark"],
+                        settings.output_files["quarterly_benchmark"],
                     ],
+                    persist_format=settings.features.persist_format,
                     force=False,
                 )
 
@@ -374,17 +378,18 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                     input_data_subfolder=str(settings.paths.vintages),
                     output_data_subfolder=str(settings.paths.releases),
                     csv_file_labels=[
-                        settings.output_files["monthly_rtd"].replace(".csv", ""),
-                        settings.output_files["quarterly_annual_rtd"].replace(".csv", ""),
-                        settings.output_files["by_adjusted_monthly"].replace(".csv", ""),
-                        settings.output_files["by_adjusted_quarterly"].replace(".csv", ""),
+                        settings.output_files["monthly_rtd"],
+                        settings.output_files["quarterly_annual_rtd"],
+                        settings.output_files["by_adjusted_monthly"],
+                        settings.output_files["by_adjusted_quarterly"],
                     ],
                     releases_dataset_labels=[
-                        settings.output_files["monthly_releases"].replace(".csv", ""),
-                        settings.output_files["quarterly_releases"].replace(".csv", ""),
-                        settings.output_files["by_adjusted_monthly_releases"].replace(".csv", ""),
-                        settings.output_files["by_adjusted_quarterly_releases"].replace(".csv", ""),
+                        settings.output_files["monthly_releases"],
+                        settings.output_files["quarterly_releases"],
+                        settings.output_files["by_adjusted_monthly_releases"],
+                        settings.output_files["by_adjusted_quarterly_releases"],
                     ],
+                    persist_format=settings.features.persist_format,
                     force=False,
                 )
 

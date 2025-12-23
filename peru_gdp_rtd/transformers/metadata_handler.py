@@ -399,6 +399,7 @@ def apply_base_year_sentinel(
     sentinel: float = -999999.0,
     output_data_subfolder: str = ".",
     csv_file_labels: Optional[List[str]] = None,
+    persist_format: str = "csv",
     force: bool = False,
 ) -> Dict[str, pd.DataFrame]:
     """
@@ -449,21 +450,21 @@ def apply_base_year_sentinel(
         csv_file_labels = ["monthly_gdp_rtd", "quarterly_annual_gdp_rtd"]
 
     # Ensure labels don't have .csv extension
-    csv_file_labels = [lbl.replace(".csv", "") for lbl in csv_file_labels]
+    csv_file_labels = [Path(lbl).stem for lbl in csv_file_labels]
 
     processed_data = {}
     skipped_count = 0
 
     for csv_file_label in tqdm(csv_file_labels, desc="Applying sentinel", colour="yellow"):
         # 1) Check input and output paths
-        csv_path = Path(output_data_subfolder) / f"{csv_file_label}.csv"
+        csv_path = Path(output_data_subfolder) / f"{csv_file_label}.{persist_format}"
         if not csv_path.exists():
             print(f"⚠️ File not found, skipping: {csv_path}")
             continue
 
         # 2) Determine output path and check if processing needed
         adjusted_csv_label = f"by_adjusted_{csv_file_label}"
-        adjusted_csv_path = Path(output_data_subfolder) / f"{adjusted_csv_label}.csv"
+        adjusted_csv_path = Path(output_data_subfolder) / f"{adjusted_csv_label}.{persist_format}"
 
         # Timestamp-based check
         if not force and adjusted_csv_path.exists():
@@ -471,16 +472,19 @@ def apply_base_year_sentinel(
             output_mtime = adjusted_csv_path.stat().st_mtime
 
             if input_mtime <= output_mtime:
-                print(f"⏭️ Skipping {csv_file_label}.csv (output up-to-date)")
+                print(f"⏭️ Skipping {csv_file_label} (output up-to-date)")
                 skipped_count += 1
                 continue
 
-        # 3) Load and process CSV
-        df = pd.read_csv(csv_path)
+        # 3) Load and process file
+        if csv_path.suffix == ".parquet":
+            df = pd.read_parquet(csv_path)
+        else:
+            df = pd.read_parquet(csv_path) if csv_path.suffix == ".parquet" else pd.read_csv(csv_path)
 
         # 2) Validate required columns
         if "industry" not in df.columns or "vintage" not in df.columns:
-            raise ValueError(f"CSV must have 'industry' and 'vintage' columns: {csv_path}")
+            raise ValueError(f"File must have 'industry' and 'vintage' columns: {csv_path}")
 
         df["industry"] = df["industry"].astype(str)
         df["vintage"] = df["vintage"].astype(str)
@@ -517,10 +521,13 @@ def apply_base_year_sentinel(
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
         # 8) Save adjusted dataset
-        df.to_csv(adjusted_csv_path, index=False)
+        if adjusted_csv_path.suffix == ".parquet":
+            df.to_parquet(adjusted_csv_path, index=False)
+        else:
+            df.to_csv(adjusted_csv_path, index=False)
 
         processed_data[adjusted_csv_label] = df
-        print(f"💾 Saved: {adjusted_csv_label}.csv")
+        print(f"? Saved: {adjusted_csv_path}")
 
     # 9) Summary
     elapsed_time = round(time.time() - start_time)
@@ -545,6 +552,7 @@ def convert_to_benchmark_dataset(
     metadata_folder: str,
     wr_metadata_csv: str,
     benchmark_dataset_labels: List[str],
+    persist_format: str = "csv",
     force: bool = False,
 ) -> Dict[str, pd.DataFrame]:
     """
@@ -622,12 +630,12 @@ def convert_to_benchmark_dataset(
 
     # 5) Process each dataset
     for csv_label, benchmark_label in zip(csv_file_labels, benchmark_dataset_labels):
-        # Ensure labels don't have .csv extension
-        csv_label_clean = csv_label.replace(".csv", "")
-        benchmark_label_clean = benchmark_label.replace(".csv", "")
+        # Ensure labels don't have extensions
+        csv_label_clean = Path(csv_label).stem
+        benchmark_label_clean = Path(benchmark_label).stem
 
-        csv_path = Path(output_data_subfolder) / f"{csv_label_clean}.csv"
-        output_path = Path(output_data_subfolder) / f"{benchmark_label_clean}.csv"
+        csv_path = Path(output_data_subfolder) / f"{csv_label_clean}.{persist_format}"
+        output_path = Path(output_data_subfolder) / f"{benchmark_label_clean}.{persist_format}"
 
         if not csv_path.exists():
             print(f"⚠️ File not found, skipping: {csv_path}")
@@ -639,12 +647,12 @@ def convert_to_benchmark_dataset(
             output_mtime = output_path.stat().st_mtime
 
             if input_mtime <= output_mtime:
-                print(f"⏭️ Skipping {csv_label_clean}.csv (output up-to-date)")
+                print(f"⏭️ Skipping {csv_label_clean} (output up-to-date)")
                 skipped_count += 1
                 continue
 
-        print(f"\n🔹 Processing dataset: {csv_label_clean}.csv")
-        df = pd.read_csv(csv_path)
+        print(f"\n🔹 Processing dataset: {csv_label_clean}")
+        df = pd.read_parquet(csv_path) if csv_path.suffix == ".parquet" else pd.read_csv(csv_path)
 
         if "vintage" not in df.columns:
             raise ValueError(f"File must contain 'vintage' column: {csv_label_clean}")
@@ -699,7 +707,7 @@ def convert_to_benchmark_dataset(
         df.to_csv(output_path, index=False)
         processed_results[benchmark_label_clean] = df
 
-        print(f"💾 Saved benchmark dataset: {benchmark_label_clean}.csv")
+        print(f"💾 Saved benchmark dataset: {benchmark_label_clean}")
         print(f"   Rows: {len(df)}, Columns: {len(df.columns)}")
 
     # 6) Summary

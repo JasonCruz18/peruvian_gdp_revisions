@@ -29,6 +29,7 @@ def convert_to_releases_dataset(
     output_data_subfolder: str,
     csv_file_labels: List[str],
     releases_dataset_labels: List[str],
+    persist_format: str = "csv",
     force: bool = False,
 ) -> Dict[str, pd.DataFrame]:
     """
@@ -94,11 +95,11 @@ def convert_to_releases_dataset(
     # 3) Process each dataset
     for csv_label, release_label in zip(csv_file_labels, releases_dataset_labels):
         # Ensure labels don't have .csv extension
-        csv_label_clean = csv_label.replace(".csv", "")
-        release_label_clean = release_label.replace(".csv", "")
+        csv_label_clean = Path(csv_label).stem
+        release_label_clean = Path(release_label).stem
 
-        csv_path = Path(input_data_subfolder) / f"{csv_label_clean}.csv"
-        release_path = Path(output_data_subfolder) / f"{release_label_clean}.csv"
+        csv_path = Path(input_data_subfolder) / f"{csv_label_clean}.{persist_format}"
+        release_path = Path(output_data_subfolder) / f"{release_label_clean}.{persist_format}"
 
         if not csv_path.exists():
             print(f"⚠️ File not found, skipping: {csv_path}")
@@ -110,12 +111,12 @@ def convert_to_releases_dataset(
             output_mtime = release_path.stat().st_mtime
 
             if input_mtime <= output_mtime:
-                print(f"⏭️ Skipping {csv_label_clean}.csv (output up-to-date)")
+                print(f"⏭️ Skipping {csv_label_clean} (output up-to-date)")
                 skipped_count += 1
                 continue
 
-        print(f"\n🔄 Processing file: {csv_label_clean}.csv")
-        df = pd.read_csv(csv_path)
+        print(f"\n🔄 Processing file: {csv_label_clean}")
+        df = pd.read_parquet(csv_path) if csv_path.suffix == ".parquet" else pd.read_csv(csv_path)
 
         # 4) Validate required columns
         if "industry" not in df.columns or "vintage" not in df.columns:
@@ -132,7 +133,7 @@ def convert_to_releases_dataset(
         # 6) Identify tp_* columns
         tp_cols = [col for col in df.columns if col.startswith("tp_")]
         if not tp_cols:
-            raise ValueError(f"No tp_* columns found in {csv_label_clean}.csv")
+            raise ValueError(f"No tp_* columns found in {csv_label_clean}")
 
         releases_df_list = []
 

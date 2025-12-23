@@ -17,7 +17,7 @@ paths:
   data_output: "data/output"
 
   # Output subdirectories (new v1.0.0 structure)
-  vintages: "data/input"
+  vintages: "data/output/vintages"
   releases: "data/output/releases"
 
   # PDF directories (raw data)

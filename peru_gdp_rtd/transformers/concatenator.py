@@ -84,6 +84,7 @@ def concatenate_table_1(
     persist: bool = False,
     persist_folder: Optional[str] = None,
     csv_file_label: Optional[str] = None,
+    persist_format: str = "csv",
     force: bool = False,
 ) -> pd.DataFrame:
     """
@@ -135,6 +136,10 @@ def concatenate_table_1(
     output_folder = persist_folder or input_data_subfolder
     output_filename = csv_file_label or "monthly_gdp_rtd.csv"
     output_path = Path(output_folder) / output_filename
+    if output_path.suffix:
+        output_path = output_path.with_suffix(f".{persist_format}")
+    else:
+        output_path = output_path.with_name(f"{output_path.name}.{persist_format}")
 
     # Check if concatenation needed (timestamp-based)
     if not force and output_path.exists():
@@ -152,12 +157,14 @@ def concatenate_table_1(
 
         # Check if any input is newer than output
         output_mtime = output_path.stat().st_mtime
-        needs_update = any(f.stat().st_mtime > output_mtime for f in all_input_files if f.exists())
+            needs_update = any(f.stat().st_mtime > output_mtime for f in all_input_files if f.exists())
 
-        if not needs_update:
-            print(f">> Output up-to-date: {output_path}")
-            print(f">> Skipping concatenation (use force=True to reprocess)")
-            return pd.read_csv(output_path)
+            if not needs_update:
+                print(f">> Output up-to-date: {output_path}")
+                print(f">> Skipping concatenation (use force=True to reprocess)")
+                if output_path.suffix == ".parquet":
+                    return pd.read_parquet(output_path)
+                return pd.read_csv(output_path)
 
     # Collect all year folders
     year_folders = sorted([
@@ -235,8 +242,15 @@ def concatenate_table_1(
         persist_folder = persist_folder or input_data_subfolder
         os.makedirs(persist_folder, exist_ok=True)
         fname = csv_file_label or "gdp_rtd_table_1_unified.csv"
-        out_path = os.path.join(persist_folder, fname)
-        unified_df.to_csv(out_path, index=False)
+        out_path = Path(persist_folder) / fname
+        if out_path.suffix:
+            out_path = out_path.with_suffix(f".{persist_format}")
+        else:
+            out_path = out_path.with_name(f"{out_path.name}.{persist_format}")
+        if out_path.suffix == ".parquet":
+            unified_df.to_parquet(out_path, index=False)
+        else:
+            unified_df.to_csv(out_path, index=False)
         print(f">> Unified RTD (Table 1) saved to {out_path}")
 
     # Summary
@@ -255,6 +269,7 @@ def concatenate_table_2(
     persist: bool = False,
     persist_folder: Optional[str] = None,
     csv_file_label: Optional[str] = None,
+    persist_format: str = "csv",
     force: bool = False,
 ) -> pd.DataFrame:
     """
@@ -299,6 +314,10 @@ def concatenate_table_2(
     output_folder = persist_folder or input_data_subfolder
     output_filename = csv_file_label or "quarterly_annual_gdp_rtd.csv"
     output_path = Path(output_folder) / output_filename
+    if output_path.suffix:
+        output_path = output_path.with_suffix(f".{persist_format}")
+    else:
+        output_path = output_path.with_name(f"{output_path.name}.{persist_format}")
 
     # Check if concatenation needed (timestamp-based)
     if not force and output_path.exists():
@@ -321,6 +340,8 @@ def concatenate_table_2(
         if not needs_update:
             print(f">> Output up-to-date: {output_path}")
             print(f">> Skipping concatenation (use force=True to reprocess)")
+            if output_path.suffix == ".parquet":
+                return pd.read_parquet(output_path)
             return pd.read_csv(output_path)
 
     # Collect all year folders
@@ -399,8 +420,15 @@ def concatenate_table_2(
         persist_folder = persist_folder or input_data_subfolder
         os.makedirs(persist_folder, exist_ok=True)
         fname = csv_file_label or "gdp_rtd_table_2_unified.csv"
-        out_path = os.path.join(persist_folder, fname)
-        unified_df.to_csv(out_path, index=False)
+        out_path = Path(persist_folder) / fname
+        if out_path.suffix:
+            out_path = out_path.with_suffix(f".{persist_format}")
+        else:
+            out_path = out_path.with_name(f"{out_path.name}.{persist_format}")
+        if out_path.suffix == ".parquet":
+            unified_df.to_parquet(out_path, index=False)
+        else:
+            unified_df.to_csv(out_path, index=False)
         print(f">> Unified RTD (Table 2) saved to {out_path}")
 
     # Summary
