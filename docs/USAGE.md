@@ -401,10 +401,10 @@ target_period | first_release | second_release | third_release | ...
 
 ### Vintage-Format Intermediate Files
 
-Stored in `data/output/vintages/`:
+Stored in `data/input/`:
 
 ```
-data/output/vintages/
+data/input/
 ├── monthly/
 │   ├── 2020_01.csv
 │   ├── 2020_02.csv

@@ -71,7 +71,7 @@ def convert_to_releases_dataset(
 
     Example:
         >>> releases = convert_to_releases_dataset(
-        ...     input_data_subfolder="data/output/vintages",
+        ...     input_data_subfolder="data/input",
         ...     output_data_subfolder="data/output/releases",
         ...     csv_file_labels=["monthly_gdp_rtd", "quarterly_annual_gdp_rtd"],
         ...     releases_dataset_labels=["monthly_releases", "quarterly_releases"],

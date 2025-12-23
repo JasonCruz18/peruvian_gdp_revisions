@@ -218,7 +218,7 @@ class Settings:
         # Parse paths
         paths_dict = config["paths"]
         # Provide sensible defaults if optional keys are missing
-        vintages_dir = paths_dict.get("vintages", f"{paths_dict['data_output']}/vintages")
+        vintages_dir = paths_dict.get("vintages", paths_dict["data_input"])
         releases_dir = paths_dict.get("releases", f"{paths_dict['data_output']}/releases")
 
         path_config = PathConfig(

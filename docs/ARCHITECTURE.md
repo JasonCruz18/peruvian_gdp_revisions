@@ -231,7 +231,7 @@ BCRP Website
 [2. PDF Processing] → Extract relevant pages → data/input/
     │
     ▼
-[3. Data Cleaning] → Standardize tables → data/output/vintages/
+[3. Data Cleaning] → Standardize tables → data/input/
     │
     ▼
 [4. Concatenation] → Merge vintages → monthly_gdp_rtd.csv
