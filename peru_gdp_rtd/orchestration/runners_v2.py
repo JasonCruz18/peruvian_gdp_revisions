@@ -55,6 +55,7 @@ def build_table_1_vintages(
     new_pdf_folder: str,
     output_folder: str,
     pipeline_version: str = "v1.0.0",
+    persist_format: str = "parquet",
     force: bool = False,
 ) -> Dict[str, int]:
     """Build Table 1 (monthly GDP) vintages from both OLD and NEW sources.
@@ -124,6 +125,7 @@ def build_table_1_vintages(
             str(old_csv_path),
             output_folder,
             pipeline_version,
+            persist_format,
             force,
         )
         stats['old_processed'] = old_stats['processed']
@@ -136,6 +138,7 @@ def build_table_1_vintages(
             new_pdf_folder,
             output_folder,
             pipeline_version,
+            persist_format,
             force,
         )
         stats['new_processed'] = new_stats['processed']
@@ -161,6 +164,7 @@ def build_table_2_vintages(
     new_pdf_folder: str,
     output_folder: str,
     pipeline_version: str = "v1.0.0",
+    persist_format: str = "parquet",
     force: bool = False,
 ) -> Dict[str, int]:
     """Build Table 2 (quarterly/annual GDP) vintages from both OLD and NEW sources.
@@ -224,6 +228,7 @@ def build_table_2_vintages(
             str(old_csv_path),
             output_folder,
             pipeline_version,
+            persist_format,
             force,
         )
         stats['old_processed'] = old_stats['processed']
@@ -236,6 +241,7 @@ def build_table_2_vintages(
             new_pdf_folder,
             output_folder,
             pipeline_version,
+            persist_format,
             force,
         )
         stats['new_processed'] = new_stats['processed']
@@ -260,6 +266,7 @@ def _process_old_csv_table_1(
     old_csv_folder: str,
     output_folder: str,
     pipeline_version: str,
+    persist_format: str,
     force: bool,
 ) -> Dict[str, int]:
     """Process OLD CSV files for Table 1 using timestamp-based incremental processing."""
@@ -286,7 +293,8 @@ def _process_old_csv_table_1(
         csv_files = sorted(year_folder.glob("*.csv"))
 
         for csv_file in csv_files:
-            output_file = output_year_folder / f"{csv_file.stem}.parquet"
+            ext = "parquet" if persist_format.lower() == "parquet" else "csv"
+            output_file = output_year_folder / f"{csv_file.stem}.{ext}"
 
             # Check if processing needed (timestamp-based)
             if not needs_processing(csv_file, output_file, force):
@@ -319,7 +327,10 @@ def _process_old_csv_table_1(
                 validate_rtd_dataframe(vintage, f"Table 1 OLD {csv_file.name}")
 
                 # Save
-                vintage.to_parquet(output_file, index=False)
+                if persist_format.lower() == "csv":
+                    vintage.to_csv(output_file, index=False)
+                else:
+                    vintage.to_parquet(output_file, index=False)
                 validate_output_created(output_file, f"Table 1 OLD {csv_file.name}")
 
                 stats['processed'] += 1
@@ -336,6 +347,7 @@ def _process_new_pdf_table_1(
     new_pdf_folder: str,
     output_folder: str,
     pipeline_version: str,
+    persist_format: str,
     force: bool,
 ) -> Dict[str, int]:
     """Process NEW PDF files for Table 1 using timestamp-based incremental processing."""
@@ -365,7 +377,8 @@ def _process_new_pdf_table_1(
 
         output_year_folder = Path(output_folder) / year
         output_year_folder.mkdir(parents=True, exist_ok=True)
-        output_file = output_year_folder / f"{pdf_file.stem}.parquet"
+        ext = "parquet" if persist_format.lower() == "parquet" else "csv"
+        output_file = output_year_folder / f"{pdf_file.stem}.{ext}"
 
         # Check if processing needed (timestamp-based)
         if not needs_processing(pdf_file, output_file, force):
@@ -393,7 +406,10 @@ def _process_new_pdf_table_1(
             validate_rtd_dataframe(vintage, f"Table 1 NEW {pdf_file.name}")
 
             # Save
-            vintage.to_parquet(output_file, index=False)
+            if persist_format.lower() == "csv":
+                vintage.to_csv(output_file, index=False)
+            else:
+                vintage.to_parquet(output_file, index=False)
             validate_output_created(output_file, f"Table 1 NEW {pdf_file.name}")
 
             stats['processed'] += 1
@@ -410,6 +426,7 @@ def _process_old_csv_table_2(
     old_csv_folder: str,
     output_folder: str,
     pipeline_version: str,
+    persist_format: str,
     force: bool,
 ) -> Dict[str, int]:
     """Process OLD CSV files for Table 2 using timestamp-based incremental processing."""
@@ -436,7 +453,8 @@ def _process_old_csv_table_2(
         csv_files = sorted(year_folder.glob("*.csv"))
 
         for csv_file in csv_files:
-            output_file = output_year_folder / f"{csv_file.stem}.parquet"
+            ext = "parquet" if persist_format.lower() == "parquet" else "csv"
+            output_file = output_year_folder / f"{csv_file.stem}.{ext}"
 
             # Check if processing needed (timestamp-based)
             if not needs_processing(csv_file, output_file, force):
@@ -469,7 +487,10 @@ def _process_old_csv_table_2(
                 validate_rtd_dataframe(vintage, f"Table 2 OLD {csv_file.name}")
 
                 # Save
-                vintage.to_parquet(output_file, index=False)
+                if persist_format.lower() == "csv":
+                    vintage.to_csv(output_file, index=False)
+                else:
+                    vintage.to_parquet(output_file, index=False)
                 validate_output_created(output_file, f"Table 2 OLD {csv_file.name}")
 
                 stats['processed'] += 1
@@ -486,6 +507,7 @@ def _process_new_pdf_table_2(
     new_pdf_folder: str,
     output_folder: str,
     pipeline_version: str,
+    persist_format: str,
     force: bool,
 ) -> Dict[str, int]:
     """Process NEW PDF files for Table 2 using timestamp-based incremental processing."""
@@ -515,7 +537,8 @@ def _process_new_pdf_table_2(
 
         output_year_folder = Path(output_folder) / year
         output_year_folder.mkdir(parents=True, exist_ok=True)
-        output_file = output_year_folder / f"{pdf_file.stem}.parquet"
+        ext = "parquet" if persist_format.lower() == "parquet" else "csv"
+        output_file = output_year_folder / f"{pdf_file.stem}.{ext}"
 
         # Check if processing needed (timestamp-based)
         if not needs_processing(pdf_file, output_file, force):
@@ -543,7 +566,10 @@ def _process_new_pdf_table_2(
             validate_rtd_dataframe(vintage, f"Table 2 NEW {pdf_file.name}")
 
             # Save
-            vintage.to_parquet(output_file, index=False)
+            if persist_format.lower() == "csv":
+                vintage.to_csv(output_file, index=False)
+            else:
+                vintage.to_parquet(output_file, index=False)
             validate_output_created(output_file, f"Table 2 NEW {pdf_file.name}")
 
             stats['processed'] += 1

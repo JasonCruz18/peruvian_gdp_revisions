@@ -269,6 +269,7 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                     new_pdf_folder=str(settings.paths.pdf_input),
                     output_folder=str(settings.paths.vintages / "table_1"),
                     pipeline_version=settings.project["version"],
+                    persist_format=settings.features.persist_format,
                     force=False,
                 )
 
@@ -279,6 +280,7 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                     new_pdf_folder=str(settings.paths.pdf_input),
                     output_folder=str(settings.paths.vintages / "table_2"),
                     pipeline_version=settings.project["version"],
+                    persist_format=settings.features.persist_format,
                     force=False,
                 )
 

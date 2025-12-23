@@ -219,5 +219,5 @@ logging:
 features:
   enable_alerts: true           # Play audio alerts after downloads
   persist_intermediate: true    # Save intermediate processing results
-  persist_format: "csv"         # Options: csv, parquet
+  persist_format: "parquet"     # Options: csv, parquet
   validate_data: true           # Run data validation checks
