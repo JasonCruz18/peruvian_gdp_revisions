@@ -106,25 +106,18 @@ python scripts/update_rtd.py --help
 
 ```python
 from peru_gdp_rtd.config import get_settings
-from peru_gdp_rtd.orchestration.runners import (
-    run_step1_download,
-    run_step2_generate_inputs,
-    run_step3_clean_and_build,
-    run_step4_concatenate,
-    run_step5_metadata,
-    run_step6_releases,
-)
+```bash
+# Download only
+python scripts/update_rtd.py --steps 1
 
-# Load configuration
-settings = get_settings('config/config.yaml')
+# Shorten PDFs only
+python scripts/update_rtd.py --steps 2
 
-# Run individual steps
-run_step1_download(settings)
-run_step2_generate_inputs(settings)
-run_step3_clean_and_build(settings)
-run_step4_concatenate(settings)
-run_step5_metadata(settings)
-run_step6_releases(settings)
+# Clean/build vintages only
+python scripts/update_rtd.py --steps 3
+
+# Concatenate + metadata + releases
+python scripts/update_rtd.py --steps 4,5,6
 ```
 
 ### Web Scraping
@@ -321,17 +314,6 @@ Process specific year ranges:
 
 ```python
 from peru_gdp_rtd.config import get_settings
-from peru_gdp_rtd.orchestration.runners import run_step3_clean_and_build
-
-settings = get_settings('config/config.yaml')
-
-# Modify settings for specific years
-years_to_process = [2018, 2019, 2020]
-
-# Process each year
-for year in years_to_process:
-    print(f"Processing year {year}")
-    run_step3_clean_and_build(settings, year_filter=year)
 ```
 
 ---
@@ -546,23 +528,6 @@ Process multiple years in parallel:
 ```python
 from concurrent.futures import ProcessPoolExecutor
 from peru_gdp_rtd.config import get_settings
-from peru_gdp_rtd.orchestration.runners import run_step3_clean_and_build
-
-settings = get_settings('config/config.yaml')
-
-def process_year(year):
-    """Process a single year."""
-    print(f"Processing year {year}")
-    run_step3_clean_and_build(settings, year_filter=year)
-    return year
-
-years = [2018, 2019, 2020, 2021, 2022]
-
-# Process in parallel
-with ProcessPoolExecutor(max_workers=4) as executor:
-    results = executor.map(process_year, years)
-
-print(f"Processed years: {list(results)}")
 ```
 
 ### Export to Different Formats

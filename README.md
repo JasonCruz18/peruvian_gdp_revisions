@@ -124,7 +124,7 @@ peru_gdp_revisions/            # Root directory
 ├── data/                      # Generated datasets (gitignored)
 │   ├── input/                 # Intermediate data
 │   ├── output/                # Final RTD datasets ⭐
-│   │   ├── vintages/          # Vintage-format intermediate files
+│   │   ├── input/             # Vintage-format intermediate files (stage 3)
 │   │   ├── monthly_gdp_rtd.csv
 │   │   ├── quarterly_annual_gdp_rtd.csv
 │   │   └── [10+ dataset variants]

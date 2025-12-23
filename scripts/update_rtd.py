@@ -257,7 +257,7 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
 
             # STEP 3: Clean tables and build vintage-format RTD
             elif step_num == 3:
-                from peru_gdp_rtd.orchestration.runners_v2 import (
+                from peru_gdp_rtd.orchestration.runners import (
                     build_table_1_vintages,
                     build_table_2_vintages,
                 )

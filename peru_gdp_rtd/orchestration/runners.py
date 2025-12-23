@@ -1,691 +1,582 @@
 """
-Workflow orchestration runners for OLD and NEW dataset processing.
+Refactored workflow orchestration runners (v1.0.0).
 
-This module provides high-level orchestrator functions that coordinate the entire
-processing workflow for GDP tables from both OLD (CSV-based) and NEW (PDF-based)
-datasets. Each runner:
-1. Walks through year folders
-2. Loads processing records for idempotency
-3. Extracts tables from source files
-4. Cleans tables using appropriate cleaner classes
-5. Reshapes into vintage format
-6. Optionally persists vintages to disk
-7. Provides progress tracking and summary reporting
+This module provides consolidated, validated runners that:
+1. Process both OLD and NEW data sources in one function
+2. Use the new unified output structure (vintages/table_1/YYYY/)
+3. Add comprehensive validation
+4. Support incremental processing with `force` flag
+5. Are truly independent with clear input/output contracts
 """
 
-import os
+from collections import defaultdict
+import logging
 import time
-from typing import Dict, Optional, Tuple
+from pathlib import Path
+from typing import Dict
 
 import pandas as pd
-from tqdm import tqdm
 
 from peru_gdp_rtd.cleaners import NewTableCleaner, OldTableCleaner
 from peru_gdp_rtd.processors.metadata import (
     extract_table,
-    ns_sort_key,
     parse_ns_meta,
-    read_records,
-    save_df,
-    write_records,
 )
 from peru_gdp_rtd.transformers import VintagesPreparator
+from peru_gdp_rtd.orchestration.validation import (
+    validate_input_exists,
+    validate_rtd_dataframe,
+    validate_output_created,
+)
+
+logger = logging.getLogger(__name__)
 
 
-def old_table_1_runner(
-    input_csv_folder: str,
-    record_folder: str,
-    record_txt: str,
-    persist: bool = False,
-    persist_folder: Optional[str] = None,
+def _build_month_order_map_from_files(files):
+    """Build month order map per year from a flat list of WR files."""
+    grouped = defaultdict(list)
+    for f in files:
+        issue, year = parse_ns_meta(f.name)
+        if issue and year:
+            try:
+                grouped[year].append((f.name, int(issue)))
+            except ValueError:
+                continue
+
+    month_map: Dict[str, int] = {}
+    for _year, items in grouped.items():
+        for idx, (fname, _issue) in enumerate(sorted(items, key=lambda x: x[1])):
+            month_map[fname] = idx + 1
+    return month_map
+
+
+def build_table_1_vintages(
+    old_csv_folder: str,
+    new_pdf_folder: str,
+    output_folder: str,
     pipeline_version: str = "v1.0.0",
-    sep: str = ";",
-) -> Tuple[Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame]]:
-    """
-    Process all OLD WR CSV files for Table 1 (monthly GDP).
+    persist_format: str = "parquet",
+    force: bool = False,
+) -> Dict[str, int]:
+    """Build Table 1 (monthly GDP) vintages from both OLD and NEW sources.
 
-    Coordinates complete workflow: record management, CSV reading, cleaning,
-    vintage reshaping, and optional persistence.
+    This consolidated runner processes both:
+    - OLD CSV files (pre-2013 data) from old_weekly_reports/
+    - NEW PDF files (2013+ data) from shortened_pdfs/
+
+    Output structure: vintages/table_1/YYYY/ns-XX-YYYY.parquet
 
     Args:
-        input_csv_folder: Root folder containing year subfolders with CSV files.
-        record_folder: Folder for storing processing records.
-        record_txt: Filename for record file (e.g., 'table_1_old.txt').
-        persist: If True, persist vintages to disk.
-        persist_folder: Root folder for persisted outputs (default: './data/input').
-        pipeline_version: Version stamp for processed tables.
-        sep: CSV separator (default: ';' for OLD dataset).
+        old_csv_folder: Path to OLD CSV files (by year)
+        new_pdf_folder: Path to NEW (shortened) PDF files
+        output_folder: Output root (e.g., data/output/vintages/table_1)
+        pipeline_version: Pipeline version string for metadata
+        force: If True, reprocess all files regardless of timestamps
 
     Returns:
-        Tuple of (raw_tables_dict, clean_tables_dict, vintages_dict).
+        Dictionary with processing statistics: {
+            'old_processed': int,
+            'new_processed': int,
+            'old_skipped': int,
+            'new_skipped': int,
+            'total_processed': int,
+        }
 
-    Example:
-        >>> raw, clean, vintages = old_table_1_runner(
-        ...     "./data/old/csv",
-        ...     "./record",
-        ...     "table_1_old.txt",
-        ...     persist=True
-        ... )
-        >>> print(f"Processed {len(vintages)} tables")
+    Raises:
+        FileNotFoundError: If input folders don't exist
+        ValueError: If validation fails
     """
     start_time = time.time()
-    print("\n>u Starting OLD Table 1 processing...\n")
+    stats = {
+        'old_processed': 0,
+        'new_processed': 0,
+        'old_skipped': 0,
+        'new_skipped': 0,
+    }
 
+    logger.info("=" * 70)
+    logger.info("Building Table 1 vintages (monthly GDP)")
+    logger.info("=" * 70)
+
+    # Validate inputs
+    old_csv_path = Path(old_csv_folder)
+    if (old_csv_path / "table_1").exists():
+        old_csv_path = old_csv_path / "table_1"
+    new_pdf_path = Path(new_pdf_folder)
+    output_path = Path(output_folder)
+
+    if old_csv_path.exists():
+        validate_input_exists(old_csv_path, "Table 1 OLD CSV")
+    else:
+        logger.warning(f"OLD CSV folder not found: {old_csv_path} - skipping OLD data")
+
+    if new_pdf_path.exists():
+        validate_input_exists(new_pdf_path, "Table 1 NEW PDF")
+    else:
+        logger.warning(f"NEW PDF folder not found: {new_pdf_path} - skipping NEW data")
+
+    # Create output directory
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    # Process OLD CSV files (timestamp-based, no record files needed)
+    if old_csv_path.exists():
+        logger.info("Processing OLD CSV files (pre-2013)...")
+        old_stats = _process_old_csv_table_1(
+            str(old_csv_path),
+            output_folder,
+            pipeline_version,
+            persist_format,
+            force,
+        )
+        stats['old_processed'] = old_stats['processed']
+        stats['old_skipped'] = old_stats['skipped']
+
+    # Process NEW PDF files (timestamp-based, no record files needed)
+    if new_pdf_path.exists():
+        logger.info("Processing NEW PDF files (2013+)...")
+        new_stats = _process_new_pdf_table_1(
+            new_pdf_folder,
+            output_folder,
+            pipeline_version,
+            persist_format,
+            force,
+        )
+        stats['new_processed'] = new_stats['processed']
+        stats['new_skipped'] = new_stats['skipped']
+
+    # Summary
+    stats['total_processed'] = stats['old_processed'] + stats['new_processed']
+    elapsed = round(time.time() - start_time)
+
+    logger.info("=" * 70)
+    logger.info("Table 1 Processing Summary:")
+    logger.info(f"  OLD CSV: {stats['old_processed']} processed, {stats['old_skipped']} skipped")
+    logger.info(f"  NEW PDF: {stats['new_processed']} processed, {stats['new_skipped']} skipped")
+    logger.info(f"  TOTAL: {stats['total_processed']} vintages created")
+    logger.info(f"  Time: {elapsed} seconds")
+    logger.info("=" * 70)
+
+    return stats
+
+
+def build_table_2_vintages(
+    old_csv_folder: str,
+    new_pdf_folder: str,
+    output_folder: str,
+    pipeline_version: str = "v1.0.0",
+    persist_format: str = "parquet",
+    force: bool = False,
+) -> Dict[str, int]:
+    """Build Table 2 (quarterly/annual GDP) vintages from both OLD and NEW sources.
+
+    This consolidated runner processes both:
+    - OLD CSV files (pre-2013 data) from old_weekly_reports/
+    - NEW PDF files (2013+ data) from shortened_pdfs/
+
+    Output structure: vintages/table_2/YYYY/ns-XX-YYYY.parquet
+
+    Args:
+        old_csv_folder: Path to OLD CSV files (by year)
+        new_pdf_folder: Path to NEW (shortened) PDF files
+        output_folder: Output root (e.g., data/output/vintages/table_2)
+        pipeline_version: Pipeline version string for metadata
+        force: If True, reprocess all files regardless of timestamps
+
+    Returns:
+        Dictionary with processing statistics
+
+    Raises:
+        FileNotFoundError: If input folders don't exist
+        ValueError: If validation fails
+    """
+    start_time = time.time()
+    stats = {
+        'old_processed': 0,
+        'new_processed': 0,
+        'old_skipped': 0,
+        'new_skipped': 0,
+    }
+
+    logger.info("=" * 70)
+    logger.info("Building Table 2 vintages (quarterly/annual GDP)")
+    logger.info("=" * 70)
+
+    # Validate inputs
+    old_csv_path = Path(old_csv_folder)
+    if (old_csv_path / "table_2").exists():
+        old_csv_path = old_csv_path / "table_2"
+    new_pdf_path = Path(new_pdf_folder)
+    output_path = Path(output_folder)
+
+    if old_csv_path.exists():
+        validate_input_exists(old_csv_path, "Table 2 OLD CSV")
+    else:
+        logger.warning(f"OLD CSV folder not found: {old_csv_path} - skipping OLD data")
+
+    if new_pdf_path.exists():
+        validate_input_exists(new_pdf_path, "Table 2 NEW PDF")
+    else:
+        logger.warning(f"NEW PDF folder not found: {new_pdf_path} - skipping NEW data")
+
+    # Create output directory
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    # Process OLD CSV files (timestamp-based, no record files needed)
+    if old_csv_path.exists():
+        logger.info("Processing OLD CSV files (pre-2013)...")
+        old_stats = _process_old_csv_table_2(
+            str(old_csv_path),
+            output_folder,
+            pipeline_version,
+            persist_format,
+            force,
+        )
+        stats['old_processed'] = old_stats['processed']
+        stats['old_skipped'] = old_stats['skipped']
+
+    # Process NEW PDF files (timestamp-based, no record files needed)
+    if new_pdf_path.exists():
+        logger.info("Processing NEW PDF files (2013+)...")
+        new_stats = _process_new_pdf_table_2(
+            new_pdf_folder,
+            output_folder,
+            pipeline_version,
+            persist_format,
+            force,
+        )
+        stats['new_processed'] = new_stats['processed']
+        stats['new_skipped'] = new_stats['skipped']
+
+    # Summary
+    stats['total_processed'] = stats['old_processed'] + stats['new_processed']
+    elapsed = round(time.time() - start_time)
+
+    logger.info("=" * 70)
+    logger.info("Table 2 Processing Summary:")
+    logger.info(f"  OLD CSV: {stats['old_processed']} processed, {stats['old_skipped']} skipped")
+    logger.info(f"  NEW PDF: {stats['new_processed']} processed, {stats['new_skipped']} skipped")
+    logger.info(f"  TOTAL: {stats['total_processed']} vintages created")
+    logger.info(f"  Time: {elapsed} seconds")
+    logger.info("=" * 70)
+
+    return stats
+
+
+def _process_old_csv_table_1(
+    old_csv_folder: str,
+    output_folder: str,
+    pipeline_version: str,
+    persist_format: str,
+    force: bool,
+) -> Dict[str, int]:
+    """Process OLD CSV files for Table 1 using timestamp-based incremental processing."""
+    from peru_gdp_rtd.orchestration.validation import needs_processing
+
+    stats = {'processed': 0, 'skipped': 0}
+    old_csv_path = Path(old_csv_folder)
+    prep = VintagesPreparator()
     cleaner = OldTableCleaner()
-    prep = VintagesPreparator()
-    records = read_records(record_folder, record_txt)
-    processed = set(records)
 
-    raw_tables: Dict[str, pd.DataFrame] = {}
-    clean_tables: Dict[str, pd.DataFrame] = {}
-    vintages: Dict[str, pd.DataFrame] = {}
+    # Find all year folders
+    year_folders = sorted([
+        f for f in old_csv_path.iterdir()
+        if f.is_dir() and f.name.isdigit()
+    ])
 
-    new_counter = 0
-    skipped_counter = 0
-    skipped_years: Dict[str, int] = {}
+    for year_folder in year_folders:
+        year = year_folder.name
+        output_year_folder = Path(output_folder) / year
+        output_year_folder.mkdir(parents=True, exist_ok=True)
+        month_order_map = prep.build_month_order_map(str(year_folder), extensions=(".csv",))
 
-    years = [
-        d
-        for d in sorted(os.listdir(input_csv_folder))
-        if os.path.isdir(os.path.join(input_csv_folder, d)) and d != "_quarantine"
-    ]
-    total_year_folders = len(years)
+        # Find all CSV files in this year
+        csv_files = sorted(year_folder.glob("*.csv"))
 
-    if persist:
-        base_out = persist_folder or os.path.join("data", "input")
-        out_root = os.path.join(base_out, "old_table_1")
-        os.makedirs(out_root, exist_ok=True)
+        for csv_file in csv_files:
+            ext = "parquet" if persist_format.lower() == "parquet" else "csv"
+            output_file = output_year_folder / f"{csv_file.stem}.{ext}"
 
-    for year in years:
-        folder_path = os.path.join(input_csv_folder, year)
-        csv_files = sorted(
-            [f for f in os.listdir(folder_path) if f.endswith(".csv")],
-            key=ns_sort_key,
-        )
-
-        month_order_map = prep.build_month_order_map(folder_path)
-
-        if not csv_files:
-            continue
-
-        already = [f for f in csv_files if f in processed]
-        if len(already) == len(csv_files):
-            skipped_years[year] = len(already)
-            skipped_counter += len(already)
-            continue
-
-        print(f"\n=Â Processing Table 1 in {year}\n")
-        folder_new_count = 0
-        folder_skipped_count = 0
-
-        pbar = tqdm(
-            csv_files,
-            desc=f">u {year}",
-            unit="CSV",
-            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}",
-            colour="#E6004C",
-            leave=False,
-        )
-
-        for filename in pbar:
-            if filename in processed:
-                folder_skipped_count += 1
+            # Check if processing needed (timestamp-based)
+            if not needs_processing(csv_file, output_file, force):
+                stats['skipped'] += 1
                 continue
 
-            issue, yr = parse_ns_meta(filename)
-            if not issue:
-                folder_skipped_count += 1
-                continue
-
-            csv_path = os.path.join(folder_path, filename)
             try:
-                raw = pd.read_csv(csv_path, sep=sep)
-                if raw is None:
-                    folder_skipped_count += 1
+                # Extract table
+                raw_table = pd.read_csv(csv_file, sep=";", encoding="utf-8")
+
+                # Clean table
+                clean_table = cleaner.clean_table_1(raw_table)
+                issue, yr = parse_ns_meta(csv_file.name)
+                if not issue or not yr:
+                    logger.error(f"Failed to parse WR metadata from {csv_file.name}")
+                    stats['skipped'] += 1
                     continue
+                if month_order_map.get(csv_file.name) is None:
+                    logger.error(f"Missing month order mapping for {csv_file.name}")
+                    stats['skipped'] += 1
+                    continue
+                clean_table.insert(0, "year", int(yr))
+                clean_table.insert(1, "wr", int(issue))
 
-                key = f"{os.path.splitext(filename)[0].replace('-', '_')}_1"
-                raw_tables[key] = raw.copy()
-
-                clean = cleaner.clean_table_1(raw)
-                clean.insert(0, "year", yr)
-                clean.insert(1, "wr", issue)
-                clean.attrs["pipeline_version"] = pipeline_version
-
-                clean_tables[key] = clean.copy()
-
-                vintage = prep.prepare_table_1(clean, filename, month_order_map)
+                # Convert to vintage format
+                vintage = prep.prepare_table_1(clean_table, csv_file.name, month_order_map)
                 vintage.attrs["pipeline_version"] = pipeline_version
-                vintages[key] = vintage
 
-                if persist:
-                    ns_code = os.path.splitext(filename)[0]
-                    out_dir = os.path.join(out_root, str(yr))
-                    out_path = os.path.join(out_dir, f"{ns_code}.parquet")
-                    save_df(vintage, out_path)
+                # Validate
+                validate_rtd_dataframe(vintage, f"Table 1 OLD {csv_file.name}")
 
-                processed.add(filename)
-                folder_new_count += 1
+                # Save
+                if persist_format.lower() == "csv":
+                    vintage.to_csv(output_file, index=False)
+                else:
+                    vintage.to_parquet(output_file, index=False)
+                validate_output_created(output_file, f"Table 1 OLD {csv_file.name}")
+
+                stats['processed'] += 1
+                logger.debug(f"Processed: {csv_file.name}")
+
             except Exception as e:
-                print(f"   {filename}: {e}")
-                folder_skipped_count += 1
+                logger.error(f"Failed to process {csv_file.name}: {e}")
+                continue
 
-        pbar.clear()
-        pbar.close()
-
-        fb = tqdm(
-            total=len(csv_files),
-            desc=f" {year}",
-            unit="CSV",
-            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}",
-            colour="#3366FF",
-            leave=True,
-        )
-        fb.update(len(csv_files))
-        fb.close()
-
-        new_counter += folder_new_count
-        skipped_counter += folder_skipped_count
-        write_records(record_folder, record_txt, list(processed))
-
-    if skipped_years:
-        years_summary = ", ".join(skipped_years.keys())
-        total_skipped = sum(skipped_years.values())
-        print(f"\né {total_skipped} tables already processed for years: {years_summary}")
-
-    elapsed_time = round(time.time() - start_time)
-    print(f"\n=Ê Summary:\n")
-    print(f"=Â {total_year_folders} year folders found")
-    print(f"=Ã  Already processed: {skipped_counter}")
-    print(f"( Newly processed: {new_counter}")
-    print(f"ñ  {elapsed_time} seconds")
-
-    return raw_tables, clean_tables, vintages
+    return stats
 
 
-def old_table_2_runner(
-    input_csv_folder: str,
-    record_folder: str,
-    record_txt: str,
-    persist: bool = False,
-    persist_folder: Optional[str] = None,
-    pipeline_version: str = "v1.0.0",
-    sep: str = ";",
-) -> Tuple[Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame]]:
-    """
-    Process all OLD WR CSV files for Table 2 (quarterly/annual GDP).
+def _process_new_pdf_table_1(
+    new_pdf_folder: str,
+    output_folder: str,
+    pipeline_version: str,
+    persist_format: str,
+    force: bool,
+) -> Dict[str, int]:
+    """Process NEW PDF files for Table 1 using timestamp-based incremental processing."""
+    from peru_gdp_rtd.orchestration.validation import needs_processing
 
-    Similar to old_table_1_runner but for Table 2 data.
+    stats = {'processed': 0, 'skipped': 0}
+    new_pdf_path = Path(new_pdf_folder)
+    prep = VintagesPreparator()
+    cleaner = NewTableCleaner()
 
-    Args:
-        input_csv_folder: Root folder containing year subfolders with CSV files.
-        record_folder: Folder for storing processing records.
-        record_txt: Filename for record file (e.g., 'table_2_old.txt').
-        persist: If True, persist vintages to disk.
-        persist_folder: Root folder for persisted outputs.
-        pipeline_version: Version stamp for processed tables.
-        sep: CSV separator (default: ';').
+    # Find all PDF files
+    pdf_files = sorted(new_pdf_path.rglob("*.pdf"))
+    month_order_map = _build_month_order_map_from_files(pdf_files)
 
-    Returns:
-        Tuple of (raw_tables_dict, clean_tables_dict, vintages_dict).
-    """
-    start_time = time.time()
-    print("\n>u Starting OLD Table 2 processing...\n")
+    for pdf_file in pdf_files:
+        # Determine year from filename
+        issue, yr = parse_ns_meta(pdf_file.name)
+        if not issue or not yr:
+            logger.error(f"Failed to parse WR metadata from {pdf_file.name}")
+            stats['skipped'] += 1
+            continue
+        year = str(yr)
+        if month_order_map.get(pdf_file.name) is None:
+            logger.error(f"Missing month order mapping for {pdf_file.name}")
+            stats['skipped'] += 1
+            continue
 
+        output_year_folder = Path(output_folder) / year
+        output_year_folder.mkdir(parents=True, exist_ok=True)
+        ext = "parquet" if persist_format.lower() == "parquet" else "csv"
+        output_file = output_year_folder / f"{pdf_file.stem}.{ext}"
+
+        # Check if processing needed (timestamp-based)
+        if not needs_processing(pdf_file, output_file, force):
+            stats['skipped'] += 1
+            continue
+
+        try:
+            # Extract table
+            raw_table = extract_table(str(pdf_file), page=1)
+            if raw_table is None:
+                logger.error(f"No table extracted from {pdf_file.name} page 1")
+                stats['skipped'] += 1
+                continue
+
+            # Clean table
+            clean_table = cleaner.clean_table_1(raw_table)
+            clean_table.insert(0, "year", int(yr))
+            clean_table.insert(1, "wr", int(issue))
+
+            # Convert to vintage format
+            vintage = prep.prepare_table_1(clean_table, pdf_file.name, month_order_map)
+            vintage.attrs["pipeline_version"] = pipeline_version
+
+            # Validate
+            validate_rtd_dataframe(vintage, f"Table 1 NEW {pdf_file.name}")
+
+            # Save
+            if persist_format.lower() == "csv":
+                vintage.to_csv(output_file, index=False)
+            else:
+                vintage.to_parquet(output_file, index=False)
+            validate_output_created(output_file, f"Table 1 NEW {pdf_file.name}")
+
+            stats['processed'] += 1
+            logger.debug(f"Processed: {pdf_file.name}")
+
+        except Exception as e:
+            logger.error(f"Failed to process {pdf_file.name}: {e}")
+            continue
+
+    return stats
+
+
+def _process_old_csv_table_2(
+    old_csv_folder: str,
+    output_folder: str,
+    pipeline_version: str,
+    persist_format: str,
+    force: bool,
+) -> Dict[str, int]:
+    """Process OLD CSV files for Table 2 using timestamp-based incremental processing."""
+    from peru_gdp_rtd.orchestration.validation import needs_processing
+
+    stats = {'processed': 0, 'skipped': 0}
+    old_csv_path = Path(old_csv_folder)
+    prep = VintagesPreparator()
     cleaner = OldTableCleaner()
-    prep = VintagesPreparator()
-    records = read_records(record_folder, record_txt)
-    processed = set(records)
 
-    raw_tables: Dict[str, pd.DataFrame] = {}
-    clean_tables: Dict[str, pd.DataFrame] = {}
-    vintages: Dict[str, pd.DataFrame] = {}
+    # Find all year folders
+    year_folders = sorted([
+        f for f in old_csv_path.iterdir()
+        if f.is_dir() and f.name.isdigit()
+    ])
 
-    new_counter = 0
-    skipped_counter = 0
-    skipped_years: Dict[str, int] = {}
+    for year_folder in year_folders:
+        year = year_folder.name
+        output_year_folder = Path(output_folder) / year
+        output_year_folder.mkdir(parents=True, exist_ok=True)
+        month_order_map = prep.build_month_order_map(str(year_folder), extensions=(".csv",))
 
-    years = [
-        d
-        for d in sorted(os.listdir(input_csv_folder))
-        if os.path.isdir(os.path.join(input_csv_folder, d)) and d != "_quarantine"
-    ]
-    total_year_folders = len(years)
+        # Find all CSV files in this year
+        csv_files = sorted(year_folder.glob("*.csv"))
 
-    if persist:
-        base_out = persist_folder or os.path.join("data", "input")
-        out_root = os.path.join(base_out, "old_table_2")
-        os.makedirs(out_root, exist_ok=True)
+        for csv_file in csv_files:
+            ext = "parquet" if persist_format.lower() == "parquet" else "csv"
+            output_file = output_year_folder / f"{csv_file.stem}.{ext}"
 
-    for year in years:
-        folder_path = os.path.join(input_csv_folder, year)
-        csv_files = sorted(
-            [f for f in os.listdir(folder_path) if f.endswith(".csv")],
-            key=ns_sort_key,
-        )
-
-        month_order_map = prep.build_month_order_map(folder_path)
-
-        if not csv_files:
-            continue
-
-        already = [f for f in csv_files if f in processed]
-        if len(already) == len(csv_files):
-            skipped_years[year] = len(already)
-            skipped_counter += len(already)
-            continue
-
-        print(f"\n=Â Processing Table 2 in {year}\n")
-        folder_new_count = 0
-        folder_skipped_count = 0
-
-        pbar = tqdm(
-            csv_files,
-            desc=f">u {year}",
-            unit="CSV",
-            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}",
-            colour="#E6004C",
-            leave=False,
-        )
-
-        for filename in pbar:
-            if filename in processed:
-                folder_skipped_count += 1
+            # Check if processing needed (timestamp-based)
+            if not needs_processing(csv_file, output_file, force):
+                stats['skipped'] += 1
                 continue
 
-            issue, yr = parse_ns_meta(filename)
-            if not issue:
-                folder_skipped_count += 1
-                continue
-
-            csv_path = os.path.join(folder_path, filename)
             try:
-                raw = pd.read_csv(csv_path, sep=sep)
-                if raw is None:
-                    folder_skipped_count += 1
+                # Extract table
+                raw_table = pd.read_csv(csv_file, sep=";", encoding="utf-8")
+
+                # Clean table
+                clean_table = cleaner.clean_table_2(raw_table)
+                issue, yr = parse_ns_meta(csv_file.name)
+                if not issue or not yr:
+                    logger.error(f"Failed to parse WR metadata from {csv_file.name}")
+                    stats['skipped'] += 1
                     continue
+                if month_order_map.get(csv_file.name) is None:
+                    logger.error(f"Missing month order mapping for {csv_file.name}")
+                    stats['skipped'] += 1
+                    continue
+                clean_table.insert(0, "year", int(yr))
+                clean_table.insert(1, "wr", int(issue))
 
-                key = f"{os.path.splitext(filename)[0].replace('-', '_')}_2"
-                raw_tables[key] = raw.copy()
-
-                clean = cleaner.clean_table_2(raw)
-                clean.insert(0, "year", yr)
-                clean.insert(1, "wr", issue)
-                clean.attrs["pipeline_version"] = pipeline_version
-
-                clean_tables[key] = clean.copy()
-
-                vintage = prep.prepare_table_2(clean, filename, month_order_map)
+                # Convert to vintage format
+                vintage = prep.prepare_table_2(clean_table, csv_file.name, month_order_map)
                 vintage.attrs["pipeline_version"] = pipeline_version
-                vintages[key] = vintage
 
-                if persist:
-                    ns_code = os.path.splitext(filename)[0]
-                    out_dir = os.path.join(out_root, str(yr))
-                    out_path = os.path.join(out_dir, f"{ns_code}.parquet")
-                    save_df(vintage, out_path)
+                # Validate
+                validate_rtd_dataframe(vintage, f"Table 2 OLD {csv_file.name}")
 
-                processed.add(filename)
-                folder_new_count += 1
+                # Save
+                if persist_format.lower() == "csv":
+                    vintage.to_csv(output_file, index=False)
+                else:
+                    vintage.to_parquet(output_file, index=False)
+                validate_output_created(output_file, f"Table 2 OLD {csv_file.name}")
+
+                stats['processed'] += 1
+                logger.debug(f"Processed: {csv_file.name}")
+
             except Exception as e:
-                print(f"   {filename}: {e}")
-                folder_skipped_count += 1
+                logger.error(f"Failed to process {csv_file.name}: {e}")
+                continue
 
-        pbar.clear()
-        pbar.close()
-
-        fb = tqdm(
-            total=len(csv_files),
-            desc=f" {year}",
-            unit="CSV",
-            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}",
-            colour="#3366FF",
-            leave=True,
-        )
-        fb.update(len(csv_files))
-        fb.close()
-
-        new_counter += folder_new_count
-        skipped_counter += folder_skipped_count
-        write_records(record_folder, record_txt, list(processed))
-
-    if skipped_years:
-        years_summary = ", ".join(skipped_years.keys())
-        total_skipped = sum(skipped_years.values())
-        print(f"\né {total_skipped} tables already processed for years: {years_summary}")
-
-    elapsed_time = round(time.time() - start_time)
-    print(f"\n=Ê Summary:\n")
-    print(f"=Â {total_year_folders} year folders found")
-    print(f"=Ã  Already processed: {skipped_counter}")
-    print(f"( Newly processed: {new_counter}")
-    print(f"ñ  {elapsed_time} seconds")
-
-    return raw_tables, clean_tables, vintages
+    return stats
 
 
-def new_table_1_runner(
-    input_pdf_folder: str,
-    record_folder: str,
-    record_txt: str,
-    persist: bool = False,
-    persist_folder: Optional[str] = None,
-    pipeline_version: str = "v1.0.0",
-) -> Tuple[Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame]]:
-    """
-    Process all NEW WR PDF files for Table 1 (monthly GDP from page 1).
+def _process_new_pdf_table_2(
+    new_pdf_folder: str,
+    output_folder: str,
+    pipeline_version: str,
+    persist_format: str,
+    force: bool,
+) -> Dict[str, int]:
+    """Process NEW PDF files for Table 2 using timestamp-based incremental processing."""
+    from peru_gdp_rtd.orchestration.validation import needs_processing
 
-    Coordinates complete workflow: record management, PDF extraction, cleaning,
-    vintage reshaping, and optional persistence.
-
-    Args:
-        input_pdf_folder: Root folder containing year subfolders with PDF files.
-        record_folder: Folder for storing processing records.
-        record_txt: Filename for record file (e.g., 'table_1_new.txt').
-        persist: If True, persist vintages to disk.
-        persist_folder: Root folder for persisted outputs.
-        pipeline_version: Version stamp for processed tables.
-
-    Returns:
-        Tuple of (raw_tables_dict, clean_tables_dict, vintages_dict).
-
-    Example:
-        >>> raw, clean, vintages = new_table_1_runner(
-        ...     "./data/new/pdfs",
-        ...     "./record",
-        ...     "table_1_new.txt",
-        ...     persist=True
-        ... )
-    """
-    start_time = time.time()
-    print("\n>u Starting NEW Table 1 processing...\n")
-
+    stats = {'processed': 0, 'skipped': 0}
+    new_pdf_path = Path(new_pdf_folder)
+    prep = VintagesPreparator()
     cleaner = NewTableCleaner()
-    prep = VintagesPreparator()
-    records = read_records(record_folder, record_txt)
-    processed = set(records)
 
-    raw_tables: Dict[str, pd.DataFrame] = {}
-    clean_tables: Dict[str, pd.DataFrame] = {}
-    vintages: Dict[str, pd.DataFrame] = {}
+    # Find all PDF files
+    pdf_files = sorted(new_pdf_path.rglob("*.pdf"))
+    month_order_map = _build_month_order_map_from_files(pdf_files)
 
-    new_counter = 0
-    skipped_counter = 0
-    skipped_years: Dict[str, int] = {}
-
-    years = [
-        d
-        for d in sorted(os.listdir(input_pdf_folder))
-        if os.path.isdir(os.path.join(input_pdf_folder, d)) and d != "_quarantine"
-    ]
-    total_year_folders = len(years)
-
-    if persist:
-        base_out = persist_folder or os.path.join("data", "input")
-        out_root = os.path.join(base_out, "new_table_1")
-        os.makedirs(out_root, exist_ok=True)
-
-    for year in years:
-        folder_path = os.path.join(input_pdf_folder, year)
-        pdf_files = sorted(
-            [f for f in os.listdir(folder_path) if f.endswith(".pdf")],
-            key=ns_sort_key,
-        )
-
-        month_order_map = prep.build_month_order_map(folder_path)
-
-        if not pdf_files:
+    for pdf_file in pdf_files:
+        # Determine year from filename
+        issue, yr = parse_ns_meta(pdf_file.name)
+        if not issue or not yr:
+            logger.error(f"Failed to parse WR metadata from {pdf_file.name}")
+            stats['skipped'] += 1
+            continue
+        year = str(yr)
+        if month_order_map.get(pdf_file.name) is None:
+            logger.error(f"Missing month order mapping for {pdf_file.name}")
+            stats['skipped'] += 1
             continue
 
-        already = [f for f in pdf_files if f in processed]
-        if len(already) == len(pdf_files):
-            skipped_years[year] = len(already)
-            skipped_counter += len(already)
+        output_year_folder = Path(output_folder) / year
+        output_year_folder.mkdir(parents=True, exist_ok=True)
+        ext = "parquet" if persist_format.lower() == "parquet" else "csv"
+        output_file = output_year_folder / f"{pdf_file.stem}.{ext}"
+
+        # Check if processing needed (timestamp-based)
+        if not needs_processing(pdf_file, output_file, force):
+            stats['skipped'] += 1
             continue
 
-        print(f"\n=Â Processing Table 1 in {year}\n")
-        folder_new_count = 0
-        folder_skipped_count = 0
-
-        pbar = tqdm(
-            pdf_files,
-            desc=f">u {year}",
-            unit="PDF",
-            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}",
-            colour="#E6004C",
-            leave=False,
-        )
-
-        for filename in pbar:
-            if filename in processed:
-                folder_skipped_count += 1
+        try:
+            # Extract table
+            raw_table = extract_table(str(pdf_file), page=2)
+            if raw_table is None:
+                logger.error(f"No table extracted from {pdf_file.name} page 2")
+                stats['skipped'] += 1
                 continue
 
-            issue, yr = parse_ns_meta(filename)
-            if not issue:
-                folder_skipped_count += 1
-                continue
+            # Clean table
+            clean_table = cleaner.clean_table_2(raw_table)
+            clean_table.insert(0, "year", int(yr))
+            clean_table.insert(1, "wr", int(issue))
 
-            pdf_path = os.path.join(folder_path, filename)
-            try:
-                raw = extract_table(pdf_path, page=1)
-                if raw is None:
-                    folder_skipped_count += 1
-                    continue
+            # Convert to vintage format
+            vintage = prep.prepare_table_2(clean_table, pdf_file.name, month_order_map)
+            vintage.attrs["pipeline_version"] = pipeline_version
 
-                key = f"{os.path.splitext(filename)[0].replace('-', '_')}_1"
-                raw_tables[key] = raw.copy()
+            # Validate
+            validate_rtd_dataframe(vintage, f"Table 2 NEW {pdf_file.name}")
 
-                clean = cleaner.clean_table_1(raw)
-                clean.insert(0, "year", yr)
-                clean.insert(1, "wr", issue)
-                clean.attrs["pipeline_version"] = pipeline_version
+            # Save
+            if persist_format.lower() == "csv":
+                vintage.to_csv(output_file, index=False)
+            else:
+                vintage.to_parquet(output_file, index=False)
+            validate_output_created(output_file, f"Table 2 NEW {pdf_file.name}")
 
-                clean_tables[key] = clean.copy()
+            stats['processed'] += 1
+            logger.debug(f"Processed: {pdf_file.name}")
 
-                vintage = prep.prepare_table_1(clean, filename, month_order_map)
-                vintage.attrs["pipeline_version"] = pipeline_version
-                vintages[key] = vintage
-
-                if persist:
-                    ns_code = os.path.splitext(filename)[0]
-                    out_dir = os.path.join(out_root, str(yr))
-                    out_path = os.path.join(out_dir, f"{ns_code}.parquet")
-                    save_df(vintage, out_path)
-
-                processed.add(filename)
-                folder_new_count += 1
-            except Exception as e:
-                print(f"   {filename}: {e}")
-                folder_skipped_count += 1
-
-        pbar.clear()
-        pbar.close()
-
-        fb = tqdm(
-            total=len(pdf_files),
-            desc=f" {year}",
-            unit="PDF",
-            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}",
-            colour="#3366FF",
-            leave=True,
-        )
-        fb.update(len(pdf_files))
-        fb.close()
-
-        new_counter += folder_new_count
-        skipped_counter += folder_skipped_count
-        write_records(record_folder, record_txt, list(processed))
-
-    if skipped_years:
-        years_summary = ", ".join(skipped_years.keys())
-        total_skipped = sum(skipped_years.values())
-        print(f"\né {total_skipped} tables already processed for years: {years_summary}")
-
-    elapsed_time = round(time.time() - start_time)
-    print(f"\n=Ê Summary:\n")
-    print(f"=Â {total_year_folders} year folders found")
-    print(f"=Ã  Already processed: {skipped_counter}")
-    print(f"( Newly processed: {new_counter}")
-    print(f"ñ  {elapsed_time} seconds")
-
-    return raw_tables, clean_tables, vintages
-
-
-def new_table_2_runner(
-    input_pdf_folder: str,
-    record_folder: str,
-    record_txt: str,
-    persist: bool = False,
-    persist_folder: Optional[str] = None,
-    pipeline_version: str = "v1.0.0",
-) -> Tuple[Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame]]:
-    """
-    Process all NEW WR PDF files for Table 2 (quarterly/annual GDP from page 2).
-
-    Similar to new_table_1_runner but extracts from page 2 and processes Table 2 data.
-
-    Args:
-        input_pdf_folder: Root folder containing year subfolders with PDF files.
-        record_folder: Folder for storing processing records.
-        record_txt: Filename for record file (e.g., 'table_2_new.txt').
-        persist: If True, persist vintages to disk.
-        persist_folder: Root folder for persisted outputs.
-        pipeline_version: Version stamp for processed tables.
-
-    Returns:
-        Tuple of (raw_tables_dict, clean_tables_dict, vintages_dict).
-    """
-    start_time = time.time()
-    print("\n>u Starting NEW Table 2 processing...\n")
-
-    cleaner = NewTableCleaner()
-    prep = VintagesPreparator()
-    records = read_records(record_folder, record_txt)
-    processed = set(records)
-
-    raw_tables: Dict[str, pd.DataFrame] = {}
-    clean_tables: Dict[str, pd.DataFrame] = {}
-    vintages: Dict[str, pd.DataFrame] = {}
-
-    new_counter = 0
-    skipped_counter = 0
-    skipped_years: Dict[str, int] = {}
-
-    years = [
-        d
-        for d in sorted(os.listdir(input_pdf_folder))
-        if os.path.isdir(os.path.join(input_pdf_folder, d)) and d != "_quarantine"
-    ]
-    total_year_folders = len(years)
-
-    if persist:
-        base_out = persist_folder or os.path.join("data", "input")
-        out_root = os.path.join(base_out, "new_table_2")
-        os.makedirs(out_root, exist_ok=True)
-
-    for year in years:
-        folder_path = os.path.join(input_pdf_folder, year)
-        pdf_files = sorted(
-            [f for f in os.listdir(folder_path) if f.endswith(".pdf")],
-            key=ns_sort_key,
-        )
-
-        month_order_map = prep.build_month_order_map(folder_path)
-
-        if not pdf_files:
+        except Exception as e:
+            logger.error(f"Failed to process {pdf_file.name}: {e}")
             continue
 
-        already = [f for f in pdf_files if f in processed]
-        if len(already) == len(pdf_files):
-            skipped_years[year] = len(already)
-            skipped_counter += len(already)
-            continue
-
-        print(f"\n=Â Processing Table 2 in {year}\n")
-        folder_new_count = 0
-        folder_skipped_count = 0
-
-        pbar = tqdm(
-            pdf_files,
-            desc=f">u {year}",
-            unit="PDF",
-            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}",
-            colour="#E6004C",
-            leave=False,
-        )
-
-        for filename in pbar:
-            if filename in processed:
-                folder_skipped_count += 1
-                continue
-
-            issue, yr = parse_ns_meta(filename)
-            if not issue:
-                folder_skipped_count += 1
-                continue
-
-            pdf_path = os.path.join(folder_path, filename)
-            try:
-                raw = extract_table(pdf_path, page=2)
-                if raw is None:
-                    folder_skipped_count += 1
-                    continue
-
-                key = f"{os.path.splitext(filename)[0].replace('-', '_')}_2"
-                raw_tables[key] = raw.copy()
-
-                clean = cleaner.clean_table_2(raw)
-                clean.insert(0, "year", yr)
-                clean.insert(1, "wr", issue)
-                clean.attrs["pipeline_version"] = pipeline_version
-
-                clean_tables[key] = clean.copy()
-
-                vintage = prep.prepare_table_2(clean, filename, month_order_map)
-                vintage.attrs["pipeline_version"] = pipeline_version
-                vintages[key] = vintage
-
-                if persist:
-                    ns_code = os.path.splitext(filename)[0]
-                    out_dir = os.path.join(out_root, str(yr))
-                    out_path = os.path.join(out_dir, f"{ns_code}.parquet")
-                    save_df(vintage, out_path)
-
-                processed.add(filename)
-                folder_new_count += 1
-            except Exception as e:
-                print(f"   {filename}: {e}")
-                folder_skipped_count += 1
-
-        pbar.clear()
-        pbar.close()
-
-        fb = tqdm(
-            total=len(pdf_files),
-            desc=f" {year}",
-            unit="PDF",
-            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}",
-            colour="#3366FF",
-            leave=True,
-        )
-        fb.update(len(pdf_files))
-        fb.close()
-
-        new_counter += folder_new_count
-        skipped_counter += folder_skipped_count
-        write_records(record_folder, record_txt, list(processed))
-
-    if skipped_years:
-        years_summary = ", ".join(skipped_years.keys())
-        total_skipped = sum(skipped_years.values())
-        print(f"\né {total_skipped} tables already processed for years: {years_summary}")
-
-    elapsed_time = round(time.time() - start_time)
-    print(f"\n=Ê Summary:\n")
-    print(f"=Â {total_year_folders} year folders found")
-    print(f"=Ã  Already processed: {skipped_counter}")
-    print(f"( Newly processed: {new_counter}")
-    print(f"ñ  {elapsed_time} seconds")
-
-    return raw_tables, clean_tables, vintages
+    return stats
