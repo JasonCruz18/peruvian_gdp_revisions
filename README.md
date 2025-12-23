@@ -73,83 +73,38 @@ That's it! The complete GDP RTD will be generated in `data/output/`.
 ## Project Structure
 
 ```
-peru_gdp_revisions/            # Root directory
-├── peru_gdp_rtd/              # Main Python package
-│   ├── config/
-│   │   ├── settings.py        # Type-safe Settings classes
-│   │   └── __init__.py
-│   │
-│   ├── scrapers/
-│   │   └── bcrp_scraper.py    # PDF downloader with Selenium
-│   │
-│   ├── processors/
-│   │   ├── pdf_processor.py   # PDF input generation
-│   │   ├── file_organizer.py  # Year-based file organization
-│   │   └── metadata.py        # Metadata parsing utilities
-│   │
-│   ├── cleaners/              # 70+ cleaning functions in 7 modules
-│   │   ├── old_table_cleaner.py    # OLD CSV cleaner class
-│   │   ├── new_table_cleaner.py    # NEW PDF cleaner class
-│   │   ├── text_cleaners.py        # 4 text normalization functions
-│   │   ├── table_cleaners.py       # 22 DataFrame operations
-│   │   ├── column_handlers.py      # 14 column manipulations
-│   │   ├── table1_cleaners.py      # 13 Table 1 specific functions
-│   │   └── table2_cleaners.py      # 13 Table 2 specific functions
-│   │
-│   ├── transformers/          # Data transformation and RTD construction
-│   │   ├── vintage_preparator.py   # VintagesPreparator class
-│   │   ├── concatenator.py         # RTD concatenation (372 lines)
-│   │   ├── metadata_handler.py     # Metadata & benchmarks (655 lines)
-│   │   └── releases_converter.py   # Release format converter (241 lines)
-│   │
-│   ├── orchestration/
-│   │   └── runners.py         # 4 high-level workflow runners
-│   │
-│   └── utils/
-│       ├── data_manager.py    # RecordManager for idempotency
-│       └── alerts.py          # Audio alert utilities
-│
-├── config/
-│   ├── config.yaml            # YAML configuration (231 lines)
-│   └── config.example.yaml    # Configuration template
-│
-├── scripts/
-│   └── update_rtd.py          # One-button update script ⭐
-│
-├── notebooks/                 # Educational Jupyter notebooks
-│   ├── new_gdp_rtd.ipynb      # Complete pipeline walkthrough (updated)
-│   ├── old_gdp_rtd.ipynb      # Legacy reference
-│   └── README.md              # Comprehensive notebook guide
-│
-├── data/                      # Generated datasets (gitignored)
-│   ├── input/                 # Intermediate data
-│   ├── output/                # Final RTD datasets ⭐
-│   │   ├── input/             # Vintage-format intermediate files (stage 3)
-│   │   ├── monthly_gdp_rtd.csv
-│   │   ├── quarterly_annual_gdp_rtd.csv
-│   │   └── [10+ dataset variants]
-│   └── records/               # Processing records for idempotency
-│
-├── metadata/
-│   └── wr_metadata.csv        # Revision metadata (tracked in git)
-│
-├── new_weekly_reports/        # Downloaded PDF files (gitignored)
-├── old_weekly_reports/        # Historical CSV files (gitignored)
-├── record/                    # Legacy progress tracking (gitignored)
-├── alert_track/               # Audio alerts (Beethoven.mp3)
-│
-├── tests/                     # Test suite
-│   └── test_smoke.py          # Smoke tests
-│
-├── docs/                      # Documentation
-│
-├── _Supplement.tex            # Publication-ready supplement (35 pages)
-├── pyproject.toml             # Modern Python packaging
-├── requirements.txt           # Dependencies
-├── requirements-dev.txt       # Development dependencies
-├── .gitignore                 # Ignore patterns
-└── README.md                  # This file
-```
+peru_gdp_revisions/          # Root directory
+|-- peru_gdp_rtd/            # Main Python package
+|   |-- config/
+|   |-- scrapers/
+|   |-- processors/
+|   |-- cleaners/
+|   |-- transformers/
+|   |-- orchestration/
+|   `-- utils/
+|-- config/                  # YAML configuration and template
+|-- scripts/                 # Entry points (e.g., update_rtd.py)
+|-- notebooks/               # Pipeline walkthroughs
+|-- data/                    # Gitignored working data
+|   |-- raw/
+|   |   |-- new_weekly_reports/<year>/                # Downloaded PDFs (stage 1)
+|   |   |-- new_weekly_reports/shortened_pdfs/<year>/ # Key-page PDFs (stage 2)
+|   |   `-- old_weekly_reports/                       # Legacy sources
+|   |-- input/                                        # Intermediate tables (stage 3 output)
+|   |   |-- table_1/<year>/
+|   |   `-- table_2/<year>/
+|   `-- output/
+|       |-- vintages/                                 # RTD vintages (stages 4-5)
+|       `-- releases/                                 # Release-format datasets (stage 6)
+|-- metadata/               # Reference metadata (wr_metadata.csv)
+|-- record/                 # Idempotency logs (1_downloaded_pdfs.txt, 2_shortened_pdfs.txt)
+|-- alert_track/            # Audio alerts
+|-- tests/
+|-- docs/
+|-- assets/
+|-- README.md
+`-- pyproject.toml
+
 
 ---
 
