@@ -36,7 +36,7 @@ This will:
 5. Apply metadata and track base-year changes
 6. Convert to releases format
 
-**Output**: All datasets in `data/output/` directory.
+**Output**: Intermediate tables go to `data/input/table_1|table_2/<year>/`; final datasets go to `data/output/`.
 
 ---
 
@@ -106,18 +106,13 @@ python scripts/update_rtd.py --help
 
 ```python
 from peru_gdp_rtd.config import get_settings
-```bash
-# Download only
-python scripts/update_rtd.py --steps 1
+from peru_gdp_rtd.orchestration import build_table_1_vintages, build_table_2_vintages
 
-# Shorten PDFs only
-python scripts/update_rtd.py --steps 2
+settings = get_settings("config/config.yaml")
 
-# Clean/build vintages only
-python scripts/update_rtd.py --steps 3
-
-# Concatenate + metadata + releases
-python scripts/update_rtd.py --steps 4,5,6
+# Build stage 3 outputs directly from shortened PDFs
+build_table_1_vintages(settings)
+build_table_2_vintages(settings)
 ```
 
 ### Web Scraping
@@ -320,93 +315,81 @@ from peru_gdp_rtd.config import get_settings
 
 ## Output Datasets
 
-All datasets are saved in `data/output/` directory.
+Intermediate (stage 3) tables live in `data/input/table_1|table_2/<year>/`; final RTD and releases live in `data/output/`.
 
 ### Real-Time Datasets (RTD)
 
-**Format**: Each row is a vintage, each column is a target period.
+Stored in `data/output/vintages/`.
 
 ```
-data/output/
-├── monthly_gdp_rtd.csv                      # Monthly GDP growth rates
-└── quarterly_annual_gdp_rtd.csv             # Quarterly/annual GDP growth
+data/output/vintages/
+|-- monthly_gdp_rtd.parquet            # Monthly vintages (set to .csv if configured)
+`-- quarterly_annual_gdp_rtd.parquet   # Quarterly/annual vintages
 ```
 
-**Structure Example**:
-```
-vintage_id | 2020_01 | 2020_02 | 2020_03 | ...
------------|---------|---------|---------|-----
-2020_02    |   3.5   |   2.1   |   NaN   | ...
-2020_03    |   3.3   |   2.0   |   1.8   | ...
-```
+Each row is a vintage, each column is a target period.
 
 ### Base-Year Adjusted Datasets
 
-Remove revisions caused by base-year changes:
+Also in `data/output/vintages/`.
 
 ```
-data/output/
-├── by_adjusted_monthly_gdp_rtd.csv
-└── by_adjusted_quarterly_annual_gdp_rtd.csv
+data/output/vintages/
+|-- by_adjusted_monthly_gdp_rtd.parquet
+`-- by_adjusted_quarterly_annual_gdp_rtd.parquet
 ```
 
 ### Benchmark Datasets
 
-Only vintages immediately before base-year changes:
+Only vintages immediately before base-year changes, stored in `data/output/vintages/`.
 
 ```
-data/output/
-├── monthly_gdp_benchmark.csv
-├── quarterly_annual_gdp_benchmark.csv
-├── by_adjusted_monthly_gdp_benchmark.csv
-└── by_adjusted_quarterly_annual_gdp_benchmark.csv
+data/output/vintages/
+|-- monthly_gdp_benchmark.parquet
+|-- quarterly_annual_gdp_benchmark.parquet
+|-- by_adjusted_monthly_gdp_benchmark.parquet
+`-- by_adjusted_quarterly_annual_gdp_benchmark.parquet
 ```
 
 ### Releases Datasets
 
-**Format**: Each row is a target period, columns are release numbers.
+Release format lives in `data/output/releases/`.
 
 ```
-data/output/
-├── monthly_gdp_releases.csv                 # Monthly GDP by release
-├── quarterly_annual_gdp_releases.csv        # Quarterly GDP by release
-└── [benchmark and adjusted versions]
+data/output/releases/
+|-- monthly_gdp_releases.parquet
+`-- quarterly_annual_gdp_releases.parquet
 ```
 
-**Structure Example**:
-```
-target_period | first_release | second_release | third_release | ...
---------------|---------------|----------------|---------------|-----
-2020_01       |     3.5       |      3.3       |      3.4      | ...
-2020_02       |     2.1       |      2.0       |      1.9      | ...
-```
+Each row is a target period; columns are release numbers.
 
 ### Vintage-Format Intermediate Files
 
-Stored in `data/input/`:
+Stage 3 writes cleaned tables by vintage here:
 
 ```
 data/input/
-├── monthly/
-│   ├── 2020_01.csv
-│   ├── 2020_02.csv
-│   └── ...
-└── quarterly/
-    ├── 2020_01.csv
-    └── ...
+|-- table_1/<year>/
+|   `-- ns-XX-YYYY_table_1.parquet
+`-- table_2/<year>/
+    `-- ns-XX-YYYY_table_2.parquet
 ```
+
+Switch the extension to .csv when `features.persist_format: "csv"`.
 
 ### Using Output Datasets
 
 ```python
 import pandas as pd
 
-# Load RTD
-monthly_rtd = pd.read_csv('data/output/monthly_gdp_rtd.csv', index_col=0)
-quarterly_rtd = pd.read_csv('data/output/quarterly_annual_gdp_rtd.csv', index_col=0)
+# Load RTD (default parquet)
+monthly_rtd = pd.read_parquet('data/output/vintages/monthly_gdp_rtd.parquet')
+quarterly_rtd = pd.read_parquet('data/output/vintages/quarterly_annual_gdp_rtd.parquet')
 
 # Load releases format
-monthly_releases = pd.read_csv('data/output/monthly_gdp_releases.csv', index_col=0)
+monthly_releases = pd.read_parquet('data/output/releases/monthly_gdp_releases.parquet')
+
+# If configured for CSV, swap read_parquet for read_csv and adjust paths.
 
 # Example: Calculate mean revision
 revisions = monthly_releases['second_release'] - monthly_releases['first_release']

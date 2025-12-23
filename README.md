@@ -66,7 +66,7 @@ python scripts/update_rtd.py --verbose
 
 That's it! The complete GDP RTD will be generated in `data/output/`.
 
-**Download deduplication:** The downloader keeps a simple record file at `record/1_downloaded_pdfs.txt` to skip PDFs it has already fetched. Remove entries or delete the file if you want to force re-downloads.
+**Idempotency:** Stage 1 tracks downloads in `record/1_downloaded_pdfs.txt`; stage 2 tracks shortened PDFs in `record/2_shortened_pdfs.txt`. Remove entries (or the file) if you want to force re-processing.
 
 ---
 
@@ -233,7 +233,7 @@ cleaning:
 
 features:
   enable_alerts: true      # Play audio alerts
-  persist_format: "csv"    # Output format: csv or parquet
+  persist_format: "parquet" # Stage 3 outputs: parquet (or switch to csv)
 ```
 
 See `config/config.example.yaml` for all available options.
