@@ -145,26 +145,34 @@ def concatenate_table_1(
     if not force and output_path.exists():
         # Get all input files
         all_input_files = []
-        year_folders = sorted([
-            f for f in os.listdir(table_1_folder)
-            if f.isdigit() and os.path.isdir(os.path.join(table_1_folder, f))
-        ], key=int)
+        year_folders = sorted(
+            [
+                f
+                for f in os.listdir(table_1_folder)
+                if f.isdigit() and os.path.isdir(os.path.join(table_1_folder, f))
+            ],
+            key=int,
+        )
 
         for year in year_folders:
             year_folder = os.path.join(table_1_folder, year)
-            files = [Path(year_folder) / f for f in os.listdir(year_folder) if f.endswith((".csv", ".parquet"))]
+            files = [
+                Path(year_folder) / f
+                for f in os.listdir(year_folder)
+                if f.endswith((".csv", ".parquet"))
+            ]
             all_input_files.extend(files)
 
         # Check if any input is newer than output
         output_mtime = output_path.stat().st_mtime
-            needs_update = any(f.stat().st_mtime > output_mtime for f in all_input_files if f.exists())
+        needs_update = any(f.stat().st_mtime > output_mtime for f in all_input_files if f.exists())
 
-            if not needs_update:
-                print(f">> Output up-to-date: {output_path}")
-                print(f">> Skipping concatenation (use force=True to reprocess)")
-                if output_path.suffix == ".parquet":
-                    return pd.read_parquet(output_path)
-                return pd.read_csv(output_path)
+        if not needs_update:
+            print(f">> Output up-to-date: {output_path}")
+            print(f">> Skipping concatenation (use force=True to reprocess)")
+            if output_path.suffix == ".parquet":
+                return pd.read_parquet(output_path)
+            return pd.read_csv(output_path)
 
     # Collect all year folders
     year_folders = sorted([
