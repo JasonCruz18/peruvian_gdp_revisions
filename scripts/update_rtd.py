@@ -367,6 +367,23 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                     force=False,
                 )
 
+                # Generate benchmark datasets for base-year-adjusted RTDs
+                convert_to_benchmark_dataset(
+                    output_data_subfolder=str(settings.paths.vintages),
+                    csv_file_labels=[
+                        settings.output_files["by_adjusted_monthly"],
+                        settings.output_files["by_adjusted_quarterly"],
+                    ],
+                    metadata_folder=str(settings.paths.metadata),
+                    wr_metadata_csv=settings.metadata.filename,
+                    benchmark_dataset_labels=[
+                        settings.output_files["by_adjusted_monthly_benchmark"],
+                        settings.output_files["by_adjusted_quarterly_benchmark"],
+                    ],
+                    persist_format=settings.features.persist_format,
+                    force=False,
+                )
+
             # STEP 6: Convert RTD to releases format
             elif step_num == 6:
                 from peru_gdp_rtd.transformers.releases_converter import (
