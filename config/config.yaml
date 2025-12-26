@@ -155,9 +155,6 @@ metadata:
     - year: 2014
       wr: 11
       base_year: 2007
-    - year: 2022
-      wr: 20
-      base_year: 2019
 
 # ====================
 # BENCHMARK CONFIGURATION
