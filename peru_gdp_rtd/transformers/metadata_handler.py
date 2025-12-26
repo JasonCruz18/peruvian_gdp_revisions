@@ -456,15 +456,23 @@ def apply_base_year_sentinel(
     skipped_count = 0
 
     for csv_file_label in tqdm(csv_file_labels, desc="Applying sentinel", colour="yellow"):
-        # 1) Check input and output paths
-        csv_path = Path(output_data_subfolder) / f"{csv_file_label}.{persist_format}"
-        if not csv_path.exists():
-            print(f"⚠️ File not found, skipping: {csv_path}")
+        # 1) Check input and output paths (prefer configured format, fall back if needed)
+        preferred = Path(output_data_subfolder) / f"{csv_file_label}.{persist_format}"
+        alternate_ext = "csv" if persist_format == "parquet" else "parquet"
+        alternate = Path(output_data_subfolder) / f"{csv_file_label}.{alternate_ext}"
+
+        if preferred.exists():
+            csv_path = preferred
+        elif alternate.exists():
+            csv_path = alternate
+            print(f"⚠️ File not found in preferred format, using fallback: {csv_path}")
+        else:
+            print(f"⚠️ File not found, skipping: {preferred}")
             continue
 
         # 2) Determine output path and check if processing needed
         adjusted_csv_label = f"by_adjusted_{csv_file_label}"
-        adjusted_csv_path = Path(output_data_subfolder) / f"{adjusted_csv_label}.{persist_format}"
+        adjusted_csv_path = Path(output_data_subfolder) / f"{adjusted_csv_label}{csv_path.suffix}"
 
         # Timestamp-based check
         if not force and adjusted_csv_path.exists():
@@ -480,7 +488,7 @@ def apply_base_year_sentinel(
         if csv_path.suffix == ".parquet":
             df = pd.read_parquet(csv_path)
         else:
-            df = pd.read_parquet(csv_path) if csv_path.suffix == ".parquet" else pd.read_csv(csv_path)
+            df = pd.read_csv(csv_path)
 
         # 2) Validate required columns
         if "industry" not in df.columns or "vintage" not in df.columns:
@@ -634,12 +642,20 @@ def convert_to_benchmark_dataset(
         csv_label_clean = Path(csv_label).stem
         benchmark_label_clean = Path(benchmark_label).stem
 
-        csv_path = Path(output_data_subfolder) / f"{csv_label_clean}.{persist_format}"
-        output_path = Path(output_data_subfolder) / f"{benchmark_label_clean}.{persist_format}"
+        preferred = Path(output_data_subfolder) / f"{csv_label_clean}.{persist_format}"
+        alternate_ext = "csv" if persist_format == "parquet" else "parquet"
+        alternate = Path(output_data_subfolder) / f"{csv_label_clean}.{alternate_ext}"
 
-        if not csv_path.exists():
-            print(f"⚠️ File not found, skipping: {csv_path}")
+        if preferred.exists():
+            csv_path = preferred
+        elif alternate.exists():
+            csv_path = alternate
+            print(f"⚠️ File not found in preferred format, using fallback: {csv_path}")
+        else:
+            print(f"⚠️ File not found, skipping: {preferred}")
             continue
+
+        output_path = Path(output_data_subfolder) / f"{benchmark_label_clean}{csv_path.suffix}"
 
         # Timestamp-based check
         if not force and output_path.exists():
@@ -704,10 +720,13 @@ def convert_to_benchmark_dataset(
         df[tp_cols] = df[tp_cols].astype(float)
 
         # 6.5) Save processed dataset
-        df.to_csv(output_path, index=False)
+        if output_path.suffix == ".parquet":
+            df.to_parquet(output_path, index=False)
+        else:
+            df.to_csv(output_path, index=False)
         processed_results[benchmark_label_clean] = df
 
-        print(f"💾 Saved benchmark dataset: {benchmark_label_clean}")
+        print(f"💾 Saved benchmark dataset: {output_path.name}")
         print(f"   Rows: {len(df)}, Columns: {len(df.columns)}")
 
     # 6) Summary

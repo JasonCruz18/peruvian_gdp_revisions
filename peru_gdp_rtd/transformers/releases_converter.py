@@ -98,12 +98,20 @@ def convert_to_releases_dataset(
         csv_label_clean = Path(csv_label).stem
         release_label_clean = Path(release_label).stem
 
-        csv_path = Path(input_data_subfolder) / f"{csv_label_clean}.{persist_format}"
-        release_path = Path(output_data_subfolder) / f"{release_label_clean}.{persist_format}"
+        preferred = Path(input_data_subfolder) / f"{csv_label_clean}.{persist_format}"
+        alternate_ext = "csv" if persist_format == "parquet" else "parquet"
+        alternate = Path(input_data_subfolder) / f"{csv_label_clean}.{alternate_ext}"
 
-        if not csv_path.exists():
-            print(f"⚠️ File not found, skipping: {csv_path}")
+        if preferred.exists():
+            csv_path = preferred
+        elif alternate.exists():
+            csv_path = alternate
+            print(f"⚠️ File not found in preferred format, using fallback: {csv_path}")
+        else:
+            print(f"⚠️ File not found, skipping: {preferred}")
             continue
+
+        release_path = Path(output_data_subfolder) / f"{release_label_clean}{csv_path.suffix}"
 
         # Timestamp-based check
         if not force and release_path.exists():
@@ -211,10 +219,13 @@ def convert_to_releases_dataset(
         releases_df_pivot.drop(columns=["year", "month"], inplace=True)
 
         # 12) Save release dataset
-        releases_df_pivot.to_csv(release_path, index=False)
+        if release_path.suffix == ".parquet":
+            releases_df_pivot.to_parquet(release_path, index=False)
+        else:
+            releases_df_pivot.to_csv(release_path, index=False)
         processed_results[release_label_clean] = releases_df_pivot
 
-        print(f"💾 Saved release dataset: {release_label_clean}.csv")
+        print(f"💾 Saved release dataset: {release_path.name}")
         print(
             f"   📏 Rows: {len(releases_df_pivot)}, " f"Columns: {len(releases_df_pivot.columns)}"
         )
