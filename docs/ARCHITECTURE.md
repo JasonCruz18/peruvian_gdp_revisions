@@ -16,24 +16,8 @@ Comprehensive guide to the Peru GDP RTD pipeline architecture, design decisions,
 
 ## Overview
 
-### Project Transformation
-
-The Peru GDP RTD pipeline was transformed from a monolithic 4,393-line script into a modular, production-ready system:
-
-**Before (Monolithic)**:
-- 1 file: 4,393 lines of code
-- Hardcoded values throughout
-- Difficult to test and maintain
-- No separation of concerns
-
-**After (Modular)**:
-- 14+ focused modules
-- 28 Python files (~4,000+ lines)
-- 100+ specialized functions
-- Zero hardcoding (YAML-driven)
-- Clear separation of concerns
-- Type-safe with complete type hints
-- Black-formatted for consistency
+This document explains how the pipeline is organized, how modules interact,
+and how data flows from raw PDFs to final datasets.
 
 ### Core Components
 
@@ -105,7 +89,7 @@ max_downloads = settings.scraper.max_downloads  # Type: int
 
 **Benefits**:
 - Catch errors at development time
-- Better IDE support (autocomplete, refactoring)
+- Better IDE support (autocomplete, navigation)
 - Self-documenting code
 - Improved maintainability
 
