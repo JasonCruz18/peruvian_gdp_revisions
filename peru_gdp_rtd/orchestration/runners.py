@@ -94,9 +94,7 @@ def build_table_1_vintages(
         'new_skipped': 0,
     }
 
-    logger.info("=" * 70)
-    logger.info("Building Table 1 vintages (monthly GDP)")
-    logger.info("=" * 70)
+    logger.info(">> Starting Table 1 vintages (monthly GDP)...")
 
     # Validate inputs
     old_csv_path = Path(old_csv_folder)
@@ -148,13 +146,21 @@ def build_table_1_vintages(
     stats['total_processed'] = stats['old_processed'] + stats['new_processed']
     elapsed = round(time.time() - start_time)
 
-    logger.info("=" * 70)
-    logger.info("Table 1 Processing Summary:")
-    logger.info(f"  OLD CSV: {stats['old_processed']} processed, {stats['old_skipped']} skipped")
-    logger.info(f"  NEW PDF: {stats['new_processed']} processed, {stats['new_skipped']} skipped")
-    logger.info(f"  TOTAL: {stats['total_processed']} vintages created")
-    logger.info(f"  Time: {elapsed} seconds")
-    logger.info("=" * 70)
+    old_label = str(old_csv_path) if old_csv_path.exists() else f"{old_csv_path} (missing)"
+    new_label = str(new_pdf_path) if new_pdf_path.exists() else f"{new_pdf_path} (missing)"
+
+    logger.info(">> Summary (Table 1 vintages):")
+    logger.info(
+        f">> OLD CSV input: {old_label} "
+        f"(processed {stats['old_processed']}, skipped {stats['old_skipped']})"
+    )
+    logger.info(
+        f">> NEW PDF input: {new_label} "
+        f"(processed {stats['new_processed']}, skipped {stats['new_skipped']})"
+    )
+    logger.info(f">> Output folder: {output_path}")
+    logger.info(f">> Total vintages created: {stats['total_processed']}")
+    logger.info(f">> Time elapsed: {elapsed} seconds")
 
     return stats
 
@@ -197,9 +203,7 @@ def build_table_2_vintages(
         'new_skipped': 0,
     }
 
-    logger.info("=" * 70)
-    logger.info("Building Table 2 vintages (quarterly/annual GDP)")
-    logger.info("=" * 70)
+    logger.info(">> Starting Table 2 vintages (quarterly/annual GDP)...")
 
     # Validate inputs
     old_csv_path = Path(old_csv_folder)
@@ -251,13 +255,21 @@ def build_table_2_vintages(
     stats['total_processed'] = stats['old_processed'] + stats['new_processed']
     elapsed = round(time.time() - start_time)
 
-    logger.info("=" * 70)
-    logger.info("Table 2 Processing Summary:")
-    logger.info(f"  OLD CSV: {stats['old_processed']} processed, {stats['old_skipped']} skipped")
-    logger.info(f"  NEW PDF: {stats['new_processed']} processed, {stats['new_skipped']} skipped")
-    logger.info(f"  TOTAL: {stats['total_processed']} vintages created")
-    logger.info(f"  Time: {elapsed} seconds")
-    logger.info("=" * 70)
+    old_label = str(old_csv_path) if old_csv_path.exists() else f"{old_csv_path} (missing)"
+    new_label = str(new_pdf_path) if new_pdf_path.exists() else f"{new_pdf_path} (missing)"
+
+    logger.info(">> Summary (Table 2 vintages):")
+    logger.info(
+        f">> OLD CSV input: {old_label} "
+        f"(processed {stats['old_processed']}, skipped {stats['old_skipped']})"
+    )
+    logger.info(
+        f">> NEW PDF input: {new_label} "
+        f"(processed {stats['new_processed']}, skipped {stats['new_skipped']})"
+    )
+    logger.info(f">> Output folder: {output_path}")
+    logger.info(f">> Total vintages created: {stats['total_processed']}")
+    logger.info(f">> Time elapsed: {elapsed} seconds")
 
     return stats
 

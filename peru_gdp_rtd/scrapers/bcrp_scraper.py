@@ -167,8 +167,8 @@ def download_pdf(
                         fh.write(chunk)
         else:
             print(
-                f"{download_counter}. ERROR: downloading {file_name}. "
-                f"HTTP {response.status_code}"
+                f"{download_counter}. ERROR: Download failed for {file_name} "
+                f"(HTTP {response.status_code})"
             )
             driver.close()
             driver.switch_to.window(windows[0])
@@ -278,7 +278,7 @@ def pdf_downloader(
 
     enable_alerts = settings.features.enable_alerts
 
-    print("\n>> Starting PDF downloader for BCRP WR...\n")
+    print("\n>> Starting PDF download (BCRP Weekly Reports)...")
 
     # Initialize audio if enabled
     _last_alert = None
@@ -415,11 +415,11 @@ def pdf_downloader(
     elapsed_time = round(time.time() - start_time)
     total_links = len(pdf_links)
 
-    print("\n>> Summary:")
-    print(f"\n>> Total monthly links kept: {total_links}")
-
-    if skipped_files:
-        print(f">> {len(skipped_files)} already downloaded PDFs were skipped.")
-
-    print(f">> Newly downloaded: {new_counter}")
-    print(f">> {elapsed_time} seconds")
+    print("\n>> Summary (Download PDFs):")
+    print(f">> Source: {bcrp_url}")
+    print(f">> Output folder: {raw_pdf_folder}")
+    print(f">> Record file: {record_path}")
+    print(f">> Monthly links scanned: {total_links}")
+    print(f">> PDFs skipped (already downloaded): {len(skipped_files)}")
+    print(f">> PDFs downloaded: {new_counter}")
+    print(f">> Time elapsed: {elapsed_time} seconds")

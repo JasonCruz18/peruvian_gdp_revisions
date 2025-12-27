@@ -185,9 +185,15 @@ def pdf_input_generator(
     record_txt = settings.record_files.get("shortened_pdfs", "2_shortened_pdfs.txt")
     processed_shortened = read_input_pdf_files(str(record_folder), record_txt)
 
-    skipped_years = {}
+    years_found = []
+    total_files = 0
     new_counter = 0
     skipped_counter = 0
+
+    print("\n>> Starting PDF shortening...")
+    print(f">> Raw PDF folder: {raw_pdf_folder}")
+    print(f">> Shortened PDF folder: {input_pdf_folder}")
+    print(f">> Record file: {record_folder / record_txt}")
 
     # Process each year folder
     for folder in sorted(os.listdir(raw_pdf_folder)):
@@ -198,12 +204,14 @@ def pdf_input_generator(
         if not folder_path.is_dir():
             continue
 
+        years_found.append(folder)
         pdf_files = sorted([f for f in os.listdir(folder_path) if f.endswith(".pdf")])
         if not pdf_files:
             continue
+        total_files += len(pdf_files)
 
         if verbose:
-            print(f"\nProcessing folder: {folder}\n")
+            print(f"\n>> Processing year folder: {folder}")
 
         folder_new_count = 0
         folder_skipped_count = 0
@@ -263,7 +271,7 @@ def pdf_input_generator(
 
         if verbose:
             print(
-                f"Shortened PDFs saved in '{output_folder_year}' "
+                f">> Shortened PDFs saved in '{output_folder_year}' "
                 f"({folder_new_count} new, {folder_skipped_count} skipped)"
             )
 
@@ -275,22 +283,20 @@ def pdf_input_generator(
             f"Do you want to continue to the next folder after '{folder}'?"
         ):
             if verbose:
-                print("Process stopped by user.")
+                print(">> Process stopped by user.")
             break
 
     # Print summary
-    if verbose:
-        if skipped_years:
-            years_summary = ", ".join(skipped_years.keys())
-            total_skipped = sum(skipped_years.values())
-            print(f"\n{total_skipped} shortened PDFs already generated for years: {years_summary}")
-
-        elapsed_time = round(time.time() - start_time)
-        print(f"\nSummary:")
-        print(f"  Folders (years) found: {len(os.listdir(raw_pdf_folder))}")
-        print(f"  Already generated: {skipped_counter}")
-        print(f"  Newly generated: {new_counter}")
-        print(f"  Time elapsed: {elapsed_time} seconds")
+    elapsed_time = round(time.time() - start_time)
+    print("\n>> Summary (Shorten PDFs):")
+    print(f">> Raw PDF folder: {raw_pdf_folder}")
+    print(f">> Shortened PDF folder: {input_pdf_folder}")
+    print(f">> Record file: {record_folder / record_txt}")
+    print(f">> Year folders processed: {len(years_found)}")
+    print(f">> PDFs scanned: {total_files}")
+    print(f">> PDFs skipped (already shortened): {skipped_counter}")
+    print(f">> PDFs generated: {new_counter}")
+    print(f">> Time elapsed: {elapsed_time} seconds")
 
     # Persist updated record
     write_input_pdf_files(processed_shortened, str(record_folder), record_txt)
