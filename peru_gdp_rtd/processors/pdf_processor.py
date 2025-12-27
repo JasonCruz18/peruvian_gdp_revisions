@@ -18,7 +18,7 @@ try:
 except ImportError:  # Defer hard failure to runtime with clearer message
     PdfReader = None
     PdfWriter = None
-from tqdm import tqdm
+from peru_gdp_rtd.utils.progress import progress_bar
 
 from peru_gdp_rtd.config.settings import Settings
 from peru_gdp_rtd.processors.metadata import ns_sort_key
@@ -217,11 +217,10 @@ def pdf_input_generator(
         folder_skipped_count = 0
 
         # Process PDFs in this year with progress bar
-        pbar = tqdm(
+        pbar = progress_bar(
             pdf_files,
             desc=f"Shortening PDFs in {folder}",
             unit="PDF",
-            disable=not verbose,
         )
 
         for filename in pbar:

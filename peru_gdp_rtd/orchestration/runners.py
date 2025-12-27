@@ -23,6 +23,7 @@ from peru_gdp_rtd.processors.metadata import (
     parse_ns_meta,
 )
 from peru_gdp_rtd.transformers import VintagesPreparator
+from peru_gdp_rtd.utils.progress import progress_bar
 from peru_gdp_rtd.orchestration.validation import (
     validate_input_exists,
     validate_rtd_dataframe,
@@ -304,7 +305,7 @@ def _process_old_csv_table_1(
         # Find all CSV files in this year
         csv_files = sorted(year_folder.glob("*.csv"))
 
-        for csv_file in csv_files:
+        for csv_file in progress_bar(csv_files, desc=f"Table 1 OLD {year}", unit="file"):
             ext = "parquet" if persist_format.lower() == "parquet" else "csv"
             output_file = output_year_folder / f"{csv_file.stem}.{ext}"
 
@@ -374,7 +375,7 @@ def _process_new_pdf_table_1(
     pdf_files = sorted(new_pdf_path.rglob("*.pdf"))
     month_order_map = _build_month_order_map_from_files(pdf_files)
 
-    for pdf_file in pdf_files:
+    for pdf_file in progress_bar(pdf_files, desc="Table 1 NEW PDFs", unit="PDF"):
         # Determine year from filename
         issue, yr = parse_ns_meta(pdf_file.name)
         if not issue or not yr:
@@ -464,7 +465,7 @@ def _process_old_csv_table_2(
         # Find all CSV files in this year
         csv_files = sorted(year_folder.glob("*.csv"))
 
-        for csv_file in csv_files:
+        for csv_file in progress_bar(csv_files, desc=f"Table 2 OLD {year}", unit="file"):
             ext = "parquet" if persist_format.lower() == "parquet" else "csv"
             output_file = output_year_folder / f"{csv_file.stem}.{ext}"
 
@@ -534,7 +535,7 @@ def _process_new_pdf_table_2(
     pdf_files = sorted(new_pdf_path.rglob("*.pdf"))
     month_order_map = _build_month_order_map_from_files(pdf_files)
 
-    for pdf_file in pdf_files:
+    for pdf_file in progress_bar(pdf_files, desc="Table 2 NEW PDFs", unit="PDF"):
         # Determine year from filename
         issue, yr = parse_ns_meta(pdf_file.name)
         if not issue or not yr:

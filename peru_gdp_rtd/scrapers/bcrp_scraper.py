@@ -43,6 +43,7 @@ from peru_gdp_rtd.utils.alerts import (
     play_alert_track,
     stop_alert_track,
 )
+from peru_gdp_rtd.utils.progress import progress_bar
 from peru_gdp_rtd.config import Settings
 
 
@@ -342,7 +343,10 @@ def pdf_downloader(
                 new_downloads.append((link, file_name))
 
         # Download queue (chronological), with optional batch pauses and pacing
-        for i, (link, file_name) in enumerate(new_downloads, start=1):
+        for i, (link, file_name) in enumerate(
+            progress_bar(new_downloads, desc="Downloading PDFs", unit="PDF"),
+            start=1,
+        ):
             # Load a new random alert for each batch start
             if enable_alerts and i % downloads_per_batch == 1:
                 alert_track_path = load_alert_track(alert_folder, _last_alert)

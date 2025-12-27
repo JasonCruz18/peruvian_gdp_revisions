@@ -26,6 +26,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+from peru_gdp_rtd.utils.progress import progress_bar
+
 
 # ==============================================================================================
 # PDF Metadata Extraction
@@ -308,7 +310,7 @@ def update_metadata(
     # 3) Extract revision data from PDF files
     if years_to_process:
         print(f">> Processing {len(years_to_process)} new year(s)...")
-        for year in tqdm(years_to_process, desc="Extracting metadata", colour="blue"):
+        for year in progress_bar(years_to_process, desc="Extracting metadata", unit="year"):
             year_folder = input_pdf_path / year
             pdf_files = sorted(
                 [f for f in year_folder.iterdir() if f.suffix == ".pdf"],
@@ -495,8 +497,8 @@ def apply_base_year_sentinel(
         )
         return processed_data
 
-    for csv_file_label, csv_path in tqdm(
-        available_inputs, desc="Applying sentinel", colour="yellow"
+    for csv_file_label, csv_path in progress_bar(
+        available_inputs, desc="Applying sentinel", unit="file"
     ):
 
         # 2) Determine output path and check if processing needed

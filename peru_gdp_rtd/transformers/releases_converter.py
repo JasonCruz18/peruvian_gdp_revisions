@@ -21,7 +21,8 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
+
+from peru_gdp_rtd.utils.progress import progress_bar
 
 
 def convert_to_releases_dataset(
@@ -151,8 +152,11 @@ def convert_to_releases_dataset(
 
         # 7) Process each industry independently
         print(f">> Processing {df['industry'].nunique()} industries...")
-        for industry, group in tqdm(
-            df.groupby("industry"), desc="Converting to releases", colour="cyan"
+        for industry, group in progress_bar(
+            df.groupby("industry"),
+            desc="Converting to releases",
+            unit="industry",
+            total=df["industry"].nunique(),
         ):
             group = group.reset_index(drop=True)
 
