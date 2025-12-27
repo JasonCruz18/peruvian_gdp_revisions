@@ -301,64 +301,69 @@ def update_metadata(
 
     if not years_to_process:
         print(">> No new revisions to process (metadata up-to-date).")
-        return metadata
+        print(">> Refreshing base-year mapping from config.")
 
     new_rows = []
 
     # 3) Extract revision data from PDF files
-    print(f">> Processing {len(years_to_process)} new year(s)...")
-    for year in tqdm(years_to_process, desc="Extracting metadata", colour="blue"):
-        year_folder = input_pdf_path / year
-        pdf_files = sorted(
-            [f for f in year_folder.iterdir() if f.suffix == ".pdf"],
-            key=lambda x: int(re.search(r"ns-(\d+)-", x.name).group(1)),
-        )
-
-        for month_idx, pdf_file in enumerate(pdf_files, start=1):
-            pdf_filename = pdf_file.name
-            pdf_path = str(pdf_file)
-
-            # Extract wr_number and year from filename
-            m = re.search(r"ns-(\d{1,2})-(\d{4})", pdf_filename)
-            if not m:
-                continue
-            wr_number = int(m.group(1))
-            year_int = int(m.group(2))
-
-            # Extract revision numbers from PDF pages
-            rev1, rev2 = extract_wr_update_from_pdf(pdf_path)
-
-            # Build row (base_year will be filled later)
-            new_rows.append(
-                {
-                    "year": year_int,
-                    "wr": wr_number,
-                    "month": month_idx,
-                    "revision_calendar_tab_1": (int(rev1) if str(rev1).isdigit() else np.nan),
-                    "revision_calendar_tab_2": (int(rev2) if str(rev2).isdigit() else np.nan),
-                    "benchmark_revision": (
-                        1
-                        if (str(rev1).isdigit() and str(rev2).isdigit() and int(rev1) == int(rev2))
-                        else 0
-                    ),
-                    "base_year": np.nan,
-                    "base_year_affected": 0,
-                }
+    if years_to_process:
+        print(f">> Processing {len(years_to_process)} new year(s)...")
+        for year in tqdm(years_to_process, desc="Extracting metadata", colour="blue"):
+            year_folder = input_pdf_path / year
+            pdf_files = sorted(
+                [f for f in year_folder.iterdir() if f.suffix == ".pdf"],
+                key=lambda x: int(re.search(r"ns-(\d+)-", x.name).group(1)),
             )
+
+            for month_idx, pdf_file in enumerate(pdf_files, start=1):
+                pdf_filename = pdf_file.name
+                pdf_path = str(pdf_file)
+
+                # Extract wr_number and year from filename
+                m = re.search(r"ns-(\d{1,2})-(\d{4})", pdf_filename)
+                if not m:
+                    continue
+                wr_number = int(m.group(1))
+                year_int = int(m.group(2))
+
+                # Extract revision numbers from PDF pages
+                rev1, rev2 = extract_wr_update_from_pdf(pdf_path)
+
+                # Build row (base_year will be filled later)
+                new_rows.append(
+                    {
+                        "year": year_int,
+                        "wr": wr_number,
+                        "month": month_idx,
+                        "revision_calendar_tab_1": (int(rev1) if str(rev1).isdigit() else np.nan),
+                        "revision_calendar_tab_2": (int(rev2) if str(rev2).isdigit() else np.nan),
+                        "benchmark_revision": (
+                            1
+                            if (
+                                str(rev1).isdigit()
+                                and str(rev2).isdigit()
+                                and int(rev1) == int(rev2)
+                            )
+                            else 0
+                        ),
+                        "base_year": np.nan,
+                        "base_year_affected": 0,
+                    }
+                )
 
     # 5) Build DataFrame for new rows
     new_df = pd.DataFrame(new_rows)
 
-    # 6) Apply base-year mapping to new rows
-    new_df = apply_base_years_block(new_df, base_year_list)
-
-    # 7) Mark base-year changes within new rows
-    new_df = mark_base_year_affected(new_df)
-
-    # 8) Concatenate with existing metadata
+    # 6) Concatenate with existing metadata
     updated = pd.concat([metadata, new_df], ignore_index=True)
 
-    # 9) Enforce dtypes
+    # 7) Recompute base-year mapping for all rows to reflect config
+    updated["base_year"] = pd.NA
+    updated["base_year_affected"] = 0
+    updated = apply_base_years_block(updated, base_year_list)
+    updated = mark_base_year_affected(updated)
+
+    # 8) Enforce dtypes
     int_cols = [
         "year",
         "wr",
