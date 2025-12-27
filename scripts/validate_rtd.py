@@ -52,10 +52,10 @@ class RTDValidator:
         """Log message."""
         if self.verbose or level in ["ERROR", "WARNING"]:
             prefix = {
-                "INFO": "ℹ️",
-                "SUCCESS": "✓",
-                "WARNING": "⚠️",
-                "ERROR": "✗",
+                "INFO": "INFO:",
+                "SUCCESS": "OK:",
+                "WARNING": "WARNING:",
+                "ERROR": "ERROR:",
             }.get(level, "")
             print(f"{prefix} {message}")
 
@@ -206,19 +206,19 @@ class RTDValidator:
         print(f"Valid datasets: {valid}/{exists}")
 
         if self.errors:
-            print(f"\n❌ Errors: {len(self.errors)}")
+            print(f"\nErrors: {len(self.errors)}")
             for error in self.errors:
                 print(f"  - {error}")
 
         if self.warnings:
-            print(f"\n⚠️  Warnings: {len(self.warnings)}")
+            print(f"\nWarnings: {len(self.warnings)}")
             for warning in self.warnings[:10]:  # Show first 10
                 print(f"  - {warning}")
             if len(self.warnings) > 10:
                 print(f"  ... and {len(self.warnings) - 10} more")
 
         if not self.errors and not self.warnings:
-            print("\n✅ All checks passed!")
+            print("\nAll checks passed!")
 
         print("\n" + "=" * 60)
 
@@ -275,7 +275,7 @@ def main():
     data_dir = PROJECT_ROOT / args.data_dir
 
     if not data_dir.exists():
-        print(f"❌ Data directory not found: {data_dir}")
+        print(f"ERROR: Data directory not found: {data_dir}")
         print(f"Please run the pipeline first: python scripts/update_rtd.py")
         sys.exit(1)
 

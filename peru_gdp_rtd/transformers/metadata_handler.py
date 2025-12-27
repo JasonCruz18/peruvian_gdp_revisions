@@ -247,7 +247,7 @@ def update_metadata(
         ... )
     """
     start_time = time.time()
-    print("\n🔄📋 Starting metadata update process...")
+    print("\n>> Starting metadata update process...")
 
     # 1) Read or initialize metadata
     metadata_path = Path(metadata_folder) / wr_metadata_csv
@@ -297,13 +297,13 @@ def update_metadata(
                 years_to_process.append(year)
 
     if not years_to_process:
-        print("✅ No new revisions to process (metadata up-to-date).")
+        print("No new revisions to process (metadata up-to-date).")
         return metadata
 
     new_rows = []
 
     # 3) Extract revision data from PDF files
-    print(f"📂 Processing {len(years_to_process)} new year(s)...")
+    print(f"Processing {len(years_to_process)} new year(s)...")
     for year in tqdm(years_to_process, desc="Extracting metadata", colour="blue"):
         year_folder = input_pdf_path / year
         pdf_files = sorted(
@@ -375,16 +375,16 @@ def update_metadata(
     # 10) Save updated metadata
     metadata_path.parent.mkdir(parents=True, exist_ok=True)
     updated.to_csv(metadata_path, index=False)
-    print(f"💾 Updated metadata saved to {metadata_path}")
+    print(f"Updated metadata saved to {metadata_path}")
 
     # 11) Summary
     elapsed_time = round(time.time() - start_time)
-    print(f"\n📊 Summary (Metadata Update):")
-    print(f"📂 {len(years)} total years in input folder")
-    print(f"⏭️ {len(years) - len(years_to_process)} years skipped (up-to-date)")
-    print(f"🔹 {len(years_to_process)} years processed")
-    print(f"📝 {len(new_rows)} new metadata rows extracted")
-    print(f"⏱️ Total elapsed time: {elapsed_time} seconds")
+    print(f"\nSummary (Metadata Update):")
+    print(f"Total years in input folder: {len(years)}")
+    print(f"Years skipped (up-to-date): {len(years) - len(years_to_process)}")
+    print(f"Years processed: {len(years_to_process)}")
+    print(f"New metadata rows extracted: {len(new_rows)}")
+    print(f"Total elapsed time: {elapsed_time} seconds")
 
     return updated
 
@@ -444,7 +444,7 @@ def apply_base_year_sentinel(
         >>> # that first appeared in 2017m20
     """
     start_time = time.time()
-    print("\n🔧 Starting base-year sentinel application...")
+    print("\n>> Starting base-year sentinel application...")
 
     if csv_file_labels is None:
         csv_file_labels = ["monthly_gdp_rtd", "quarterly_annual_gdp_rtd"]
@@ -498,7 +498,7 @@ def apply_base_year_sentinel(
             output_mtime = adjusted_csv_path.stat().st_mtime
 
             if input_mtime <= output_mtime:
-                print(f"⏭️ Skipping {csv_file_label} (output up-to-date)")
+                print(f"Skipping {csv_file_label} (output up-to-date)")
                 skipped_count += 1
                 continue
 
@@ -557,12 +557,12 @@ def apply_base_year_sentinel(
 
     # 9) Summary
     elapsed_time = round(time.time() - start_time)
-    print(f"\n📊 Summary (Base-Year Sentinel Application):")
-    print(f"📂 {len(available_inputs)} total files")
-    print(f"⏭️ {skipped_count} files skipped (up-to-date)")
-    print(f"🔹 {len(processed_data)} files processed")
-    print(f"🔹 Sentinel value: {sentinel}")
-    print(f"⏱️ Total elapsed time: {elapsed_time} seconds")
+    print(f"\nSummary (Base-Year Sentinel Application):")
+    print(f"Total files: {len(available_inputs)}")
+    print(f"Files skipped (up-to-date): {skipped_count}")
+    print(f"Files processed: {len(processed_data)}")
+    print(f"Sentinel value: {sentinel}")
+    print(f"Total elapsed time: {elapsed_time} seconds")
 
     return processed_data
 
@@ -618,7 +618,7 @@ def convert_to_benchmark_dataset(
         ... )
     """
     start_time = time.time()
-    print("\n🔄📊 Starting benchmark dataset generation...")
+    print("\n>> Starting benchmark dataset generation...")
 
     # 1) Validate input lengths
     if len(csv_file_labels) != len(benchmark_dataset_labels):
@@ -699,11 +699,11 @@ def convert_to_benchmark_dataset(
             output_mtime = output_path.stat().st_mtime
 
             if input_mtime <= output_mtime:
-                print(f"⏭️ Skipping {csv_label_clean} (output up-to-date)")
+                print(f"Skipping {csv_label_clean} (output up-to-date)")
                 skipped_count += 1
                 continue
 
-        print(f"\n🔹 Processing dataset: {csv_label_clean}")
+        print(f"\nProcessing dataset: {csv_label_clean}")
         df = pd.read_parquet(csv_path) if csv_path.suffix == ".parquet" else pd.read_csv(csv_path)
 
         if "vintage" not in df.columns:
@@ -732,11 +732,11 @@ def convert_to_benchmark_dataset(
         matched = vintages_map.intersection(vintages_df)
         unmatched = vintages_map - vintages_df
 
-        print(f"🔍 Matching diagnostics for {csv_label_clean}.csv:")
+        print(f"Matching diagnostics for {csv_label_clean}.csv:")
         print(f"   Total vintages in data: {len(vintages_df)}")
         print(f"   Total benchmark vintages: {len(vintages_map)}")
-        print(f"   ✅ Matched vintages: {len(matched)} / {len(vintages_map)}")
-        print(f"   ⚠️ Unmatched vintages: {len(unmatched)}")
+        print(f"   Matched vintages: {len(matched)} / {len(vintages_map)}")
+        print(f"   Unmatched vintages: {len(unmatched)}")
         if unmatched:
             print(f"   Example unmatched: {list(sorted(unmatched))[:5]}")
 
@@ -762,15 +762,15 @@ def convert_to_benchmark_dataset(
             df.to_csv(output_path, index=False)
         processed_results[benchmark_label_clean] = df
 
-        print(f"💾 Saved benchmark dataset: {output_path.name}")
+        print(f"Saved benchmark dataset: {output_path.name}")
         print(f"   Rows: {len(df)}, Columns: {len(df.columns)}")
 
     # 6) Summary
     elapsed_time = round(time.time() - start_time)
-    print(f"\n📊 Summary (Benchmark Dataset Generation):")
-    print(f"📂 {len(available_inputs)} total input files")
-    print(f"⏭️ {skipped_count} files skipped (up-to-date)")
-    print(f"🔹 {len(processed_results)} benchmark datasets created")
-    print(f"⏱️ Total elapsed time: {elapsed_time} seconds")
+    print(f"\nSummary (Benchmark Dataset Generation):")
+    print(f"Total input files: {len(available_inputs)}")
+    print(f"Files skipped (up-to-date): {skipped_count}")
+    print(f"Benchmark datasets created: {len(processed_results)}")
+    print(f"Total elapsed time: {elapsed_time} seconds")
 
     return processed_results

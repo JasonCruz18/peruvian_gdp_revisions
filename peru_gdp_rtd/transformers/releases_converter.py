@@ -80,7 +80,7 @@ def convert_to_releases_dataset(
         ... )
     """
     start_time = time.time()
-    print("\n🧮 Starting conversion to releases dataset(s)...")
+    print("\n>> Starting conversion to releases dataset(s)...")
 
     # 1) Validate input lengths
     if len(csv_file_labels) != len(releases_dataset_labels):
@@ -106,9 +106,9 @@ def convert_to_releases_dataset(
             csv_path = preferred
         elif alternate.exists():
             csv_path = alternate
-            print(f"⚠️ File not found in preferred format, using fallback: {csv_path}")
+            print(f"WARNING: File not found in preferred format, using fallback: {csv_path}")
         else:
-            print(f"⚠️ File not found, skipping: {preferred}")
+            print(f"WARNING: File not found, skipping: {preferred}")
             continue
 
         release_path = Path(output_data_subfolder) / f"{release_label_clean}{csv_path.suffix}"
@@ -119,11 +119,11 @@ def convert_to_releases_dataset(
             output_mtime = release_path.stat().st_mtime
 
             if input_mtime <= output_mtime:
-                print(f"⏭️ Skipping {csv_label_clean} (output up-to-date)")
+                print(f"Skipping {csv_label_clean} (output up-to-date)")
                 skipped_count += 1
                 continue
 
-        print(f"\n🔄 Processing file: {csv_label_clean}")
+        print(f"\nProcessing file: {csv_label_clean}")
         df = pd.read_parquet(csv_path) if csv_path.suffix == ".parquet" else pd.read_csv(csv_path)
 
         # 4) Validate required columns
@@ -146,7 +146,7 @@ def convert_to_releases_dataset(
         releases_df_list = []
 
         # 7) Process each industry independently
-        print(f"🏭 Processing {df['industry'].nunique()} industries...")
+        print(f"Processing {df['industry'].nunique()} industries...")
         for industry, group in tqdm(
             df.groupby("industry"), desc="Converting to releases", colour="cyan"
         ):
@@ -225,17 +225,15 @@ def convert_to_releases_dataset(
             releases_df_pivot.to_csv(release_path, index=False)
         processed_results[release_label_clean] = releases_df_pivot
 
-        print(f"💾 Saved release dataset: {release_path.name}")
-        print(
-            f"   📏 Rows: {len(releases_df_pivot)}, " f"Columns: {len(releases_df_pivot.columns)}"
-        )
+        print(f"Saved release dataset: {release_path.name}")
+        print(f"   Rows: {len(releases_df_pivot)}, Columns: {len(releases_df_pivot.columns)}")
 
     # 13) Summary
     elapsed_time = round(time.time() - start_time)
-    print(f"\n📊 Summary (Conversion to Releases Dataset):")
-    print(f"📂 {len(csv_file_labels)} total input files")
-    print(f"⏭️ {skipped_count} files skipped (up-to-date)")
-    print(f"🔹 {len(processed_results)} release datasets created")
-    print(f"⏱️ Total elapsed time: {elapsed_time} seconds")
+    print(f"\nSummary (Conversion to Releases Dataset):")
+    print(f"Total input files: {len(csv_file_labels)}")
+    print(f"Files skipped (up-to-date): {skipped_count}")
+    print(f"Release datasets created: {len(processed_results)}")
+    print(f"Total elapsed time: {elapsed_time} seconds")
 
     return processed_results
