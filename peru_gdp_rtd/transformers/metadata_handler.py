@@ -455,20 +455,38 @@ def apply_base_year_sentinel(
     processed_data = {}
     skipped_count = 0
 
-    for csv_file_label in tqdm(csv_file_labels, desc="Applying sentinel", colour="yellow"):
-        # 1) Check input and output paths (prefer configured format, fall back if needed)
+    available_inputs = []
+    missing_labels = []
+
+    for csv_file_label in csv_file_labels:
         preferred = Path(output_data_subfolder) / f"{csv_file_label}.{persist_format}"
         alternate_ext = "csv" if persist_format == "parquet" else "parquet"
         alternate = Path(output_data_subfolder) / f"{csv_file_label}.{alternate_ext}"
 
         if preferred.exists():
-            csv_path = preferred
+            available_inputs.append((csv_file_label, preferred))
         elif alternate.exists():
-            csv_path = alternate
-            print(f"⚠️ File not found in preferred format, using fallback: {csv_path}")
+            available_inputs.append((csv_file_label, alternate))
+            print(f"WARNING: File not found in preferred format, using fallback: {alternate}")
         else:
-            print(f"⚠️ File not found, skipping: {preferred}")
-            continue
+            missing_labels.append(csv_file_label)
+
+    if missing_labels:
+        print(
+            "WARNING: Missing input RTDs (skipping): "
+            + ", ".join(sorted(missing_labels))
+        )
+
+    if not available_inputs:
+        print(
+            f"WARNING: No RTD inputs found in {output_data_subfolder}. "
+            "Run step 4 to generate monthly/quarterly RTDs first."
+        )
+        return processed_data
+
+    for csv_file_label, csv_path in tqdm(
+        available_inputs, desc="Applying sentinel", colour="yellow"
+    ):
 
         # 2) Determine output path and check if processing needed
         adjusted_csv_label = f"by_adjusted_{csv_file_label}"
@@ -535,12 +553,12 @@ def apply_base_year_sentinel(
             df.to_csv(adjusted_csv_path, index=False)
 
         processed_data[adjusted_csv_label] = df
-        print(f"? Saved: {adjusted_csv_path}")
+        tqdm.write(f"Saved: {adjusted_csv_path}")
 
     # 9) Summary
     elapsed_time = round(time.time() - start_time)
     print(f"\n📊 Summary (Base-Year Sentinel Application):")
-    print(f"📂 {len(csv_file_labels)} total files")
+    print(f"📂 {len(available_inputs)} total files")
     print(f"⏭️ {skipped_count} files skipped (up-to-date)")
     print(f"🔹 {len(processed_data)} files processed")
     print(f"🔹 Sentinel value: {sentinel}")
@@ -636,9 +654,10 @@ def convert_to_benchmark_dataset(
 
     benchmark_map = {normalize_key(k): v for k, v in benchmark_map.items()}
 
-    # 5) Process each dataset
+    available_inputs = []
+    missing_labels = []
+
     for csv_label, benchmark_label in zip(csv_file_labels, benchmark_dataset_labels):
-        # Ensure labels don't have extensions
         csv_label_clean = Path(csv_label).stem
         benchmark_label_clean = Path(benchmark_label).stem
 
@@ -650,12 +669,29 @@ def convert_to_benchmark_dataset(
             csv_path = preferred
         elif alternate.exists():
             csv_path = alternate
-            print(f"⚠️ File not found in preferred format, using fallback: {csv_path}")
+            print(f"WARNING: File not found in preferred format, using fallback: {alternate}")
         else:
-            print(f"⚠️ File not found, skipping: {preferred}")
+            missing_labels.append(csv_label_clean)
             continue
 
         output_path = Path(output_data_subfolder) / f"{benchmark_label_clean}{csv_path.suffix}"
+        available_inputs.append((csv_label_clean, benchmark_label_clean, csv_path, output_path))
+
+    if missing_labels:
+        print(
+            "WARNING: Missing input RTDs (skipping): "
+            + ", ".join(sorted(missing_labels))
+        )
+
+    if not available_inputs:
+        print(
+            f"WARNING: No RTD inputs found in {output_data_subfolder}. "
+            "Run step 4 to generate monthly/quarterly RTDs first."
+        )
+        return processed_results
+
+    # 5) Process each dataset
+    for csv_label_clean, benchmark_label_clean, csv_path, output_path in available_inputs:
 
         # Timestamp-based check
         if not force and output_path.exists():
@@ -732,7 +768,7 @@ def convert_to_benchmark_dataset(
     # 6) Summary
     elapsed_time = round(time.time() - start_time)
     print(f"\n📊 Summary (Benchmark Dataset Generation):")
-    print(f"📂 {len(csv_file_labels)} total input files")
+    print(f"📂 {len(available_inputs)} total input files")
     print(f"⏭️ {skipped_count} files skipped (up-to-date)")
     print(f"🔹 {len(processed_results)} benchmark datasets created")
     print(f"⏱️ Total elapsed time: {elapsed_time} seconds")
