@@ -36,7 +36,7 @@ This will:
 5. Apply metadata and track base-year changes
 6. Convert to releases format
 
-**Output**: All datasets in `data/output/` directory.
+**Output**: Intermediate tables go to `data/input/table_1|table_2/<year>/`; final datasets go to `data/output/`.
 
 ---
 
@@ -72,7 +72,7 @@ python scripts/update_rtd.py --steps 3
 
 **Pipeline Steps:**
 - **Step 1**: Download PDFs from BCRP
-- **Step 2**: Generate input PDFs (extract relevant pages)
+- **Step 2**: Shorten PDFs (extract key tables)
 - **Step 3**: Clean tables and build RTD
 - **Step 4**: Concatenate RTD across years
 - **Step 5**: Apply metadata and benchmarks
@@ -106,25 +106,13 @@ python scripts/update_rtd.py --help
 
 ```python
 from peru_gdp_rtd.config import get_settings
-from peru_gdp_rtd.orchestration.runners import (
-    run_step1_download,
-    run_step2_generate_inputs,
-    run_step3_clean_and_build,
-    run_step4_concatenate,
-    run_step5_metadata,
-    run_step6_releases,
-)
+from peru_gdp_rtd.orchestration import build_table_1_vintages, build_table_2_vintages
 
-# Load configuration
-settings = get_settings('config/config.yaml')
+settings = get_settings("config/config.yaml")
 
-# Run individual steps
-run_step1_download(settings)
-run_step2_generate_inputs(settings)
-run_step3_clean_and_build(settings)
-run_step4_concatenate(settings)
-run_step5_metadata(settings)
-run_step6_releases(settings)
+# Build stage 3 outputs directly from shortened PDFs
+build_table_1_vintages(settings)
+build_table_2_vintages(settings)
 ```
 
 ### Web Scraping
@@ -321,110 +309,87 @@ Process specific year ranges:
 
 ```python
 from peru_gdp_rtd.config import get_settings
-from peru_gdp_rtd.orchestration.runners import run_step3_clean_and_build
-
-settings = get_settings('config/config.yaml')
-
-# Modify settings for specific years
-years_to_process = [2018, 2019, 2020]
-
-# Process each year
-for year in years_to_process:
-    print(f"Processing year {year}")
-    run_step3_clean_and_build(settings, year_filter=year)
 ```
 
 ---
 
 ## Output Datasets
 
-All datasets are saved in `data/output/` directory.
+Intermediate (stage 3) tables live in `data/input/table_1|table_2/<year>/`; final RTD and releases live in `data/output/`.
 
 ### Real-Time Datasets (RTD)
 
-**Format**: Each row is a vintage, each column is a target period.
+Stored in `data/output/vintages/`.
 
 ```
-data/output/
-├── monthly_gdp_rtd.csv                      # Monthly GDP growth rates
-└── quarterly_annual_gdp_rtd.csv             # Quarterly/annual GDP growth
+data/output/vintages/
+|-- monthly_gdp_rtd.parquet            # Monthly vintages (set to .csv if configured)
+`-- quarterly_annual_gdp_rtd.parquet   # Quarterly/annual vintages
 ```
 
-**Structure Example**:
-```
-vintage_id | 2020_01 | 2020_02 | 2020_03 | ...
------------|---------|---------|---------|-----
-2020_02    |   3.5   |   2.1   |   NaN   | ...
-2020_03    |   3.3   |   2.0   |   1.8   | ...
-```
+Each row is a vintage, each column is a target period.
 
 ### Base-Year Adjusted Datasets
 
-Remove revisions caused by base-year changes:
+Also in `data/output/vintages/`.
 
 ```
-data/output/
-├── by_adjusted_monthly_gdp_rtd.csv
-└── by_adjusted_quarterly_annual_gdp_rtd.csv
+data/output/vintages/
+|-- by_adjusted_monthly_gdp_rtd.parquet
+`-- by_adjusted_quarterly_annual_gdp_rtd.parquet
 ```
 
 ### Benchmark Datasets
 
-Only vintages immediately before base-year changes:
+Only vintages immediately before base-year changes, stored in `data/output/vintages/`.
 
 ```
-data/output/
-├── monthly_gdp_benchmark.csv
-├── quarterly_annual_gdp_benchmark.csv
-├── by_adjusted_monthly_gdp_benchmark.csv
-└── by_adjusted_quarterly_annual_gdp_benchmark.csv
+data/output/vintages/
+|-- monthly_gdp_benchmark.parquet
+|-- quarterly_annual_gdp_benchmark.parquet
+|-- by_adjusted_monthly_gdp_benchmark.parquet
+`-- by_adjusted_quarterly_annual_gdp_benchmark.parquet
 ```
 
 ### Releases Datasets
 
-**Format**: Each row is a target period, columns are release numbers.
+Release format lives in `data/output/releases/`.
 
 ```
-data/output/
-├── monthly_gdp_releases.csv                 # Monthly GDP by release
-├── quarterly_annual_gdp_releases.csv        # Quarterly GDP by release
-└── [benchmark and adjusted versions]
+data/output/releases/
+|-- monthly_gdp_releases.parquet
+`-- quarterly_annual_gdp_releases.parquet
 ```
 
-**Structure Example**:
-```
-target_period | first_release | second_release | third_release | ...
---------------|---------------|----------------|---------------|-----
-2020_01       |     3.5       |      3.3       |      3.4      | ...
-2020_02       |     2.1       |      2.0       |      1.9      | ...
-```
+Each row is a target period; columns are release numbers.
 
 ### Vintage-Format Intermediate Files
 
-Stored in `data/output/vintages/`:
+Stage 3 writes cleaned tables by vintage here:
 
 ```
-data/output/vintages/
-├── monthly/
-│   ├── 2020_01.csv
-│   ├── 2020_02.csv
-│   └── ...
-└── quarterly/
-    ├── 2020_01.csv
-    └── ...
+data/input/
+|-- table_1/<year>/
+|   `-- ns-XX-YYYY_table_1.parquet
+`-- table_2/<year>/
+    `-- ns-XX-YYYY_table_2.parquet
 ```
+
+Switch the extension to .csv when `features.persist_format: "csv"`.
 
 ### Using Output Datasets
 
 ```python
 import pandas as pd
 
-# Load RTD
-monthly_rtd = pd.read_csv('data/output/monthly_gdp_rtd.csv', index_col=0)
-quarterly_rtd = pd.read_csv('data/output/quarterly_annual_gdp_rtd.csv', index_col=0)
+# Load RTD (default parquet)
+monthly_rtd = pd.read_parquet('data/output/vintages/monthly_gdp_rtd.parquet')
+quarterly_rtd = pd.read_parquet('data/output/vintages/quarterly_annual_gdp_rtd.parquet')
 
 # Load releases format
-monthly_releases = pd.read_csv('data/output/monthly_gdp_releases.csv', index_col=0)
+monthly_releases = pd.read_parquet('data/output/releases/monthly_gdp_releases.parquet')
+
+# If configured for CSV, swap read_parquet for read_csv and adjust paths.
 
 # Example: Calculate mean revision
 revisions = monthly_releases['second_release'] - monthly_releases['first_release']
@@ -546,23 +511,6 @@ Process multiple years in parallel:
 ```python
 from concurrent.futures import ProcessPoolExecutor
 from peru_gdp_rtd.config import get_settings
-from peru_gdp_rtd.orchestration.runners import run_step3_clean_and_build
-
-settings = get_settings('config/config.yaml')
-
-def process_year(year):
-    """Process a single year."""
-    print(f"Processing year {year}")
-    run_step3_clean_and_build(settings, year_filter=year)
-    return year
-
-years = [2018, 2019, 2020, 2021, 2022]
-
-# Process in parallel
-with ProcessPoolExecutor(max_workers=4) as executor:
-    results = executor.map(process_year, years)
-
-print(f"Processed years: {list(results)}")
 ```
 
 ### Export to Different Formats

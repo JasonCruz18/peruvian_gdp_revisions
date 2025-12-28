@@ -1,7 +1,7 @@
 """
-PDF input generation for BCRP Weekly Reports.
+PDF shortening for BCRP Weekly Reports.
 
-This module provides functionality to generate shortened "input" PDFs from raw WR PDFs
+This module provides functionality to generate shortened PDFs from raw WR PDFs
 by extracting only pages containing relevant keywords (e.g., GDP tables). For 4-page
 outputs, it retains only pages 1 and 3 where key tables typically appear.
 """
@@ -12,10 +12,16 @@ import time
 from typing import List, Optional, Set
 
 import fitz  # PyMuPDF
-from pypdf import PdfReader, PdfWriter
-from tqdm import tqdm
+
+try:
+    from pypdf import PdfReader, PdfWriter
+except ImportError:  # Defer hard failure to runtime with clearer message
+    PdfReader = None
+    PdfWriter = None
+from peru_gdp_rtd.utils.progress import progress_bar
 
 from peru_gdp_rtd.config.settings import Settings
+from peru_gdp_rtd.processors.metadata import ns_sort_key
 
 
 def search_keywords(pdf_file: str, keywords: List[str]) -> List[int]:
@@ -57,6 +63,10 @@ def shortened_pdf(pdf_file: str, pages: List[int], output_folder: str) -> int:
     Note:
         Output filename mirrors the source filename.
     """
+    if PdfReader is None or PdfWriter is None:
+        raise ImportError(
+            "pypdf is required for PDF shortening. Install with `pip install pypdf`."
+        )
     if not pages:
         return 0
 
@@ -111,7 +121,7 @@ def write_input_pdf_files(
     os.makedirs(input_pdf_record_folder, exist_ok=True)
 
     with open(record_path, "w", encoding="utf-8") as f:
-        for filename in sorted(input_pdf_files):
+        for filename in sorted(input_pdf_files, key=ns_sort_key):
             f.write(filename + "\n")
 
 
@@ -136,9 +146,10 @@ def pdf_input_generator(
     keywords: Optional[List[str]] = None,
     interactive: bool = True,
     verbose: bool = True,
+    force: bool = False,
 ) -> None:
     """
-    Generate input PDFs from raw WR PDFs by extracting pages matching keywords.
+    Generate shortened PDFs from raw WR PDFs by extracting pages matching keywords.
 
     Processes raw PDFs organized in yearly subfolders, extracting only pages that
     contain specified keywords. For 4-page outputs (typical when searching for
@@ -150,10 +161,13 @@ def pdf_input_generator(
         keywords: Keywords to search for. If None, uses default GDP table keywords.
         interactive: If True, prompts user between folders. If False, processes all.
         verbose: If True, prints detailed progress information.
+        force: If True, reprocess all files regardless of timestamps.
 
     Note:
-        Updates record file to avoid re-processing already completed PDFs.
+        Uses timestamp-based processing - only regenerates if source is newer than output.
     """
+    from pathlib import Path
+
     start_time = time.time()
 
     # Use default keywords if none provided
@@ -161,69 +175,85 @@ def pdf_input_generator(
         keywords = ["sectores económicos", "economic sectors"]
 
     # Get paths from configuration
-    raw_pdf_folder = str(settings.paths.raw_pdf_folder)
-    input_pdf_folder = str(settings.paths.input_pdf_folder)
-    record_folder = str(settings.paths.record_folder)
-    record_txt = "input_pdfs.txt"
+    raw_pdf_folder = Path(settings.paths.pdf_raw)
+    input_pdf_folder = Path(settings.paths.pdf_input)
 
-    # Load existing record
-    input_pdf_files = read_input_pdf_files(record_folder, record_txt)
-    skipped_years = {}
+    # Ensure output folder exists
+    input_pdf_folder.mkdir(parents=True, exist_ok=True)
+
+    record_folder = Path(settings.paths.record)
+    record_txt = settings.record_files.get("shortened_pdfs", "2_shortened_pdfs.txt")
+    processed_shortened = read_input_pdf_files(str(record_folder), record_txt)
+
+    years_found = []
+    total_files = 0
     new_counter = 0
     skipped_counter = 0
 
+    print("\n>> Starting PDF shortening...")
+    print(f">> Raw PDF folder: {raw_pdf_folder}")
+    print(f">> Shortened PDF folder: {input_pdf_folder}")
+    print(f">> Record file: {record_folder / record_txt}")
+
     # Process each year folder
     for folder in sorted(os.listdir(raw_pdf_folder)):
-        if folder == "_quarantine":
+        if folder in {"_quarantine", "shortened_pdfs"}:
             continue
 
-        folder_path = os.path.join(raw_pdf_folder, folder)
-        if not os.path.isdir(folder_path):
+        folder_path = raw_pdf_folder / folder
+        if not folder_path.is_dir():
             continue
 
-        pdf_files = [f for f in os.listdir(folder_path) if f.endswith(".pdf")]
+        years_found.append(folder)
+        pdf_files = sorted([f for f in os.listdir(folder_path) if f.endswith(".pdf")])
         if not pdf_files:
             continue
-
-        # Check if entire year is already processed
-        already_processed = [f for f in pdf_files if f in input_pdf_files]
-        if len(already_processed) == len(pdf_files):
-            skipped_years[folder] = len(already_processed)
-            skipped_counter += len(already_processed)
-            continue
+        total_files += len(pdf_files)
 
         if verbose:
-            print(f"\nProcessing folder: {folder}\n")
+            print(f"\n>> Processing year folder: {folder}")
 
         folder_new_count = 0
         folder_skipped_count = 0
 
         # Process PDFs in this year with progress bar
-        pbar = tqdm(
+        pbar = progress_bar(
             pdf_files,
-            desc=f"Generating input PDFs in {folder}",
+            desc=f"Shortening PDFs in {folder}",
             unit="PDF",
-            disable=not verbose,
         )
 
         for filename in pbar:
-            pdf_file = os.path.join(folder_path, filename)
+            pdf_file = folder_path / filename
+            output_folder_year = input_pdf_folder / folder
+            output_folder_year.mkdir(parents=True, exist_ok=True)
+            output_file = output_folder_year / filename
 
-            if filename in input_pdf_files:
+            # Record-based skip (with optional force override)
+            if not force and filename in processed_shortened:
                 folder_skipped_count += 1
                 continue
 
+            # Timestamp-based skip for safety when record is incomplete
+            if not force and output_file.exists():
+                if pdf_file.stat().st_mtime <= output_file.stat().st_mtime:
+                    folder_skipped_count += 1
+                    processed_shortened.add(filename)
+                    continue
+
             # Extract pages with keywords
-            pages_with_keywords = search_keywords(pdf_file, keywords)
-            num_pages = shortened_pdf(pdf_file, pages_with_keywords, output_folder=input_pdf_folder)
+            pages_with_keywords = search_keywords(str(pdf_file), keywords)
+            num_pages = shortened_pdf(
+                str(pdf_file), pages_with_keywords, output_folder=str(output_folder_year)
+            )
 
             if num_pages == 0:
                 continue
 
             # Special handling for 4-page outputs
             # (contains both levels and percentage variations tables)
-            short_pdf_file = os.path.join(input_pdf_folder, os.path.basename(pdf_file))
-            reader = PdfReader(short_pdf_file)
+            short_pdf_file = output_folder_year / filename
+            reader = PdfReader(str(short_pdf_file))
 
             if len(reader.pages) == 4:
                 # Keep only pages 1 and 3 (percentage variation tables)
@@ -233,33 +263,14 @@ def pdf_input_generator(
                 with open(short_pdf_file, "wb") as f_out:
                     writer.write(f_out)
 
-            # Update record
-            input_pdf_files.add(filename)
             folder_new_count += 1
+            processed_shortened.add(filename)
 
         pbar.close()
 
-        # Write updated record in chronological order
-        def _ns_key(s):
-            """Sort key for 'ns-XX-YYYY' filenames."""
-            base = os.path.splitext(os.path.basename(s))[0]
-            m = re.search(r"ns-(\d{2})-(\d{4})", base, re.I)
-            if not m:
-                return (9999, 9999, base)
-            issue = int(m.group(1))
-            year = int(m.group(2))
-            return (year, issue)
-
-        ordered_records = sorted(input_pdf_files, key=_ns_key)
-        os.makedirs(record_folder, exist_ok=True)
-        record_path = os.path.join(record_folder, record_txt)
-        with open(record_path, "w", encoding="utf-8") as f_rec:
-            for name in ordered_records:
-                f_rec.write(name + "\n")
-
         if verbose:
             print(
-                f"Shortened PDFs saved in '{input_pdf_folder}' "
+                f">> Shortened PDFs saved in '{output_folder_year}' "
                 f"({folder_new_count} new, {folder_skipped_count} skipped)"
             )
 
@@ -271,19 +282,20 @@ def pdf_input_generator(
             f"Do you want to continue to the next folder after '{folder}'?"
         ):
             if verbose:
-                print("Process stopped by user.")
+                print(">> Process stopped by user.")
             break
 
     # Print summary
-    if verbose:
-        if skipped_years:
-            years_summary = ", ".join(skipped_years.keys())
-            total_skipped = sum(skipped_years.values())
-            print(f"\n{total_skipped} input PDFs already generated for years: {years_summary}")
+    elapsed_time = round(time.time() - start_time)
+    print("\n>> Summary (Shorten PDFs):")
+    print(f">> Raw PDF folder: {raw_pdf_folder}")
+    print(f">> Shortened PDF folder: {input_pdf_folder}")
+    print(f">> Record file: {record_folder / record_txt}")
+    print(f">> Year folders processed: {len(years_found)}")
+    print(f">> PDFs scanned: {total_files}")
+    print(f">> PDFs skipped (already shortened): {skipped_counter}")
+    print(f">> PDFs generated: {new_counter}")
+    print(f">> Time elapsed: {elapsed_time} seconds")
 
-        elapsed_time = round(time.time() - start_time)
-        print(f"\nSummary:")
-        print(f"  Folders (years) found: {len(os.listdir(raw_pdf_folder))}")
-        print(f"  Already generated: {skipped_counter}")
-        print(f"  Newly generated: {new_counter}")
-        print(f"  Time elapsed: {elapsed_time} seconds")
+    # Persist updated record
+    write_input_pdf_files(processed_shortened, str(record_folder), record_txt)

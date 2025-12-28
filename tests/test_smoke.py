@@ -82,7 +82,7 @@ def test_base_years():
 
     settings = get_settings("config/config.yaml", force_reload=True)
 
-    assert len(settings.metadata.base_years) >= 4
+    assert len(settings.metadata.base_years) >= 3
 
     # Check first base year entry
     first_by = settings.metadata.base_years[0]

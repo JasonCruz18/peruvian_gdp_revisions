@@ -35,7 +35,7 @@ def load_alert_track(alert_track_folder: str, last_alert: Optional[str] = None) 
     tracks = [f for f in os.listdir(alert_track_folder) if f.lower().endswith(".mp3")]
 
     if not tracks:
-        print("🔇 No .mp3 files found in 'alert_track/'. Continuing without audio alerts.")
+        print("No .mp3 files found in 'alert_track/'. Continuing without audio alerts.")
         return None
 
     # Prefer any file ≠ last; fallback to all if single

@@ -18,6 +18,8 @@ class PathConfig:
     data_root: Path
     data_input: Path
     data_output: Path
+    vintages: Path
+    releases: Path
     pdf_root: Path
     pdf_raw: Path
     pdf_input: Path
@@ -215,10 +217,16 @@ class Settings:
 
         # Parse paths
         paths_dict = config["paths"]
+        # Provide sensible defaults if optional keys are missing
+        vintages_dir = paths_dict.get("vintages", f"{paths_dict['data_output']}/vintages")
+        releases_dir = paths_dict.get("releases", f"{paths_dict['data_output']}/releases")
+
         path_config = PathConfig(
             data_root=root_dir / paths_dict["data_root"],
             data_input=root_dir / paths_dict["data_input"],
             data_output=root_dir / paths_dict["data_output"],
+            vintages=root_dir / vintages_dir,
+            releases=root_dir / releases_dir,
             pdf_root=root_dir / paths_dict["pdf_root"],
             pdf_raw=root_dir / paths_dict["pdf_raw"],
             pdf_input=root_dir / paths_dict["pdf_input"],
@@ -286,6 +294,8 @@ class Settings:
             self.paths.data_root,
             self.paths.data_input,
             self.paths.data_output,
+            self.paths.vintages,
+            self.paths.releases,
             self.paths.pdf_root,
             self.paths.pdf_raw,
             self.paths.pdf_input,

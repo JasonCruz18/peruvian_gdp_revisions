@@ -1,17 +1,8 @@
 # Peru GDP Real-Time Dataset - Frozen Dependencies
 # ================================================
-# Generated on 2025-12-17 (Security Update)
+# Generated on 2025-12-16
 # Use this file for exact reproducibility across environments
 # Install with: pip install -r requirements-frozen.txt
-
-# SECURITY UPDATE: Fixed 9 Dependabot vulnerabilities
-# - urllib3: 2.5.0 → 2.6.2 (High severity)
-# - notebook: 7.0.6 → 7.5.1 (High severity)
-# - PyPDF2 → pypdf: 3.0.1 → 6.4.2 (Moderate severity - infinite loop fix)
-# - requests: 2.31.0 → 2.32.5 (Moderate severity)
-# - selenium: 4.35.0 → 4.39.0 (Moderate severity)
-# - PyMuPDF: 1.23.26 → 1.26.7 (Moderate severity)
-# - ipywidgets: 8.1.3 → 8.1.8 (Moderate severity)
 
 # Core data processing
 pandas==2.1.4
@@ -21,17 +12,16 @@ numpy==1.26.3
 pyyaml==6.0.3
 
 # HTTP and web scraping
-requests==2.32.5
-urllib3==2.6.2
-selenium==4.39.0
+requests==2.31.0
+urllib3==2.5.0
+selenium==4.35.0
 webdriver-manager==4.0.2
 
 # PDF processing
-PyMuPDF==1.26.7
-pypdf==6.4.2
+PyMuPDF==1.23.26
+pypdf==4.0.0
 tabula-py==2.9.0
 # Note: tabula-py requires Java Runtime Environment (JRE) to be installed
-# Note: pypdf replaces the deprecated PyPDF2 package
 
 # Utilities
 pygame==2.5.2
@@ -39,9 +29,9 @@ roman==4.1
 tqdm==4.66.5
 
 # Jupyter support (optional for notebooks)
-ipywidgets==8.1.8
+ipywidgets==8.1.3
 jupyter==1.0.0
-notebook==7.5.1
+notebook==7.0.6
 
 # Optional: Progress bars and UI
 colorama==0.4.6

@@ -28,7 +28,9 @@ def organize_files_by_year(raw_pdf_folder: str) -> None:
         # new_weekly_reports/raw/2019/ns-07-2019.pdf
         # new_weekly_reports/raw/2020/ns-01-2020.pdf
     """
-    files = os.listdir(raw_pdf_folder)
+    files = [f for f in os.listdir(raw_pdf_folder) if f.lower().endswith(".pdf")]
+    moved = 0
+    missing_year = 0
 
     for file in files:
         # Skip if it's already a directory
@@ -49,8 +51,16 @@ def organize_files_by_year(raw_pdf_folder: str) -> None:
             dest = os.path.join(raw_pdf_folder, year)
             os.makedirs(dest, exist_ok=True)
             shutil.move(os.path.join(raw_pdf_folder, file), dest)
+            moved += 1
         else:
-            print(f"⚠️  No 4-digit year detected in filename: {file}")
+            missing_year += 1
+            print(f"WARNING: No 4-digit year detected in filename: {file}")
+
+    print("\n>> Summary (Organize PDFs by year):")
+    print(f">> Folder: {raw_pdf_folder}")
+    print(f">> PDFs found in root: {len(files)}")
+    print(f">> PDFs moved into year folders: {moved}")
+    print(f">> PDFs without year token: {missing_year}")
 
 
 def replace_defective_pdfs(
@@ -209,22 +219,24 @@ def replace_defective_pdfs(
     fail = not_found + download_errors + file_op_errors
 
     if verbose:
-        print("\n📊 PDF replacement summary")
-        print(f"   • Succeeded: {ok}")
+        print("\n>> Summary (Replace Defective PDFs):")
+        print(f">> Output folder: {root_folder}")
+        print(f">> Record file: {os.path.join(record_folder, download_record_txt)}")
+        print(f">> Files replaced: {ok}")
         print(
-            f"   • Failed:    {fail} "
+            f">> Failures: {fail} "
             f"(not found: {not_found}, download errors: {download_errors}, "
             f"file ops: {file_op_errors})"
         )
         if replaced_names:
             preview = ", ".join(replaced_names[:10])
-            suffix = "…" if len(replaced_names) > 10 else ""
-            print(f"   • New files: {preview}{suffix}")
+            suffix = "..." if len(replaced_names) > 10 else ""
+            print(f">> New files: {preview}{suffix}")
         if failed_items:
-            print("   • Failed items (sample):")
+            print(">> Failed items (sample):")
             for y, bad, rep, reason in failed_items[:5]:
-                print(f"     - {bad} [{y}] ← {rep}  ({reason})")
+                print(f"   - {bad} [{y}] <- {rep} ({reason})")
             if len(failed_items) > 5:
-                print(f"     … and {len(failed_items) - 5} more")
+                print(f"   ... and {len(failed_items) - 5} more")
 
     return ok, fail
