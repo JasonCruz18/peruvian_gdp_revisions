@@ -3,7 +3,7 @@ message: "If you use this software or dataset, please cite it as below."
 type: software
 title: "Peru GDP Real-Time Dataset Construction Pipeline"
 version: "1.0.0"
-date-released: "2025-12-15"
+date-released: "2024-12-28"
 authors:
   - family-names: "Cruz"
     given-names: "Jason"

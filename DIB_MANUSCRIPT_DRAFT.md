@@ -34,16 +34,16 @@ This draft contains all DIB manuscript sections. Complete the following before s
 **Peru GDP Real-Time Dataset (1994-present)**
 
 ### Author Information
-**[YOUR_FULL_NAME]¹**
+**Jason Cruz¹**
 **[ORCID]:** https://orcid.org/[YOUR_ORCID_ID]
 
 **Affiliations:**
-¹ [YOUR_DEPARTMENT], [YOUR_INSTITUTION], [CITY], [COUNTRY]
+¹ Centro de Investigación (CIUP), Universidad del Pacífico, Lima, Peru
 
 **Corresponding Author:**
-[YOUR_FULL_NAME]
-Email: [YOUR_EMAIL]
-Address: [YOUR_INSTITUTIONAL_ADDRESS]
+Jason Cruz
+Email: jj.cruza@up.edu.pe
+Address: Universidad del Pacífico, Av. Salaverry 2020, Jesús María, Lima, Peru
 
 ---
 
@@ -58,7 +58,7 @@ Address: [YOUR_INSTITUTIONAL_ADDRESS]
 | Parameters for data collection | GDP growth rates from BCRP Weekly Reports (Nota Semanal), 1994-present |
 | Description of data collection | Automated 6-stage pipeline: (1) PDF download via web scraping, (2) Table extraction from PDFs, (3) Data cleaning (70+ functions), (4) Vintage construction, (5) Metadata handling and base-year adjustments, (6) Releases format conversion |
 | Data source location | **Institution:** Banco Central de Reserva del Perú (BCRP)<br>**City/Country:** Lima, Peru<br>**URLs:**<br>• Current reports: https://www.bcrp.gob.pe/publicaciones/nota-semanal.html<br>• Historical archive: https://www.bcrp.gob.pe/publicaciones/nota-semanal/nota-semanal-archivo.html |
-| Data accessibility | **Repository:** Zenodo<br>**Data DOI:** [DATA_DOI]<br>**Data URL:** https://doi.org/[DATA_DOI]<br>**Code Repository:** GitHub<br>**Code DOI:** [CODE_DOI]<br>**Code URL:** https://github.com/[YOUR_GITHUB_USERNAME]/peru_gdp_revisions<br>**License:** Data: CC-BY-4.0, Code: MIT<br>**Files:** 16 CSV files (~17 MB total) |
+| Data accessibility | **Repository:** Zenodo<br>**Data DOI:** [DATA_DOI]<br>**Data URL:** https://doi.org/[DATA_DOI]<br>**Code Repository:** GitHub<br>**Code DOI:** [CODE_DOI]<br>**Code URL:** https://github.com/JasonCruz18/peru_gdp_revisions<br>**License:** Data: CC-BY-4.0, Code: MIT<br>**Files:** 16 CSV files (~17 MB total) |
 | Related research article | [OPTIONAL: Add reference to your forthcoming research paper]<br>Example: Author(s), "Rationality and Nowcasting on Peruvian GDP Revisions," Journal Name (in preparation) |
 
 ---
@@ -562,7 +562,7 @@ python scripts/update_rtd.py [--force] [--verbose]
 **Installation:**
 ```bash
 # Clone repository
-git clone https://github.com/[YOUR_GITHUB_USERNAME]/peru_gdp_revisions.git
+git clone https://github.com/JasonCruz18/peru_gdp_revisions.git
 cd peru_gdp_revisions
 
 # Install dependencies
@@ -599,7 +599,7 @@ conda activate gdp_revisions
 **To Reproduce:**
 ```bash
 # 1. Clone repository and install
-git clone https://github.com/[YOUR_GITHUB_USERNAME]/peru_gdp_revisions.git
+git clone https://github.com/JasonCruz18/peru_gdp_revisions.git
 cd peru_gdp_revisions
 pip install -e .
 
@@ -628,7 +628,7 @@ The authors declare that they have no known competing financial interests or per
 
 ## CREDIT AUTHOR STATEMENT
 
-**[YOUR_FULL_NAME]:** Conceptualization, Data curation, Formal analysis, Investigation, Methodology, Software, Validation, Visualization, Writing - original draft, Writing - review & editing.
+**Jason Cruz:** Conceptualization, Data curation, Formal analysis, Investigation, Methodology, Software, Validation, Visualization, Writing - original draft, Writing - review & editing.
 
 [If multiple authors, add roles for each]
 
@@ -659,9 +659,9 @@ This research did not receive any specific grant from funding agencies in the pu
 
 [2] Banco Central de Reserva del Perú (BCRP). Weekly Reports Archive (Nota Semanal - Archivo). Available at: https://www.bcrp.gob.pe/publicaciones/nota-semanal/nota-semanal-archivo.html (accessed December 28, 2024).
 
-[3] [YOUR_NAME]. (2024). Peru GDP Real-Time Dataset (1994-present) [Data set]. Zenodo. https://doi.org/[DATA_DOI]
+[3] Cruz, J. (2024). Peru GDP Real-Time Dataset (1994-present) [Data set]. Zenodo. https://doi.org/[DATA_DOI]
 
-[4] [YOUR_NAME]. (2024). Peru GDP RTD: Code Repository (v1.0.0) [Software]. Zenodo. https://doi.org/[CODE_DOI]
+[4] Cruz, J. (2024). Peru GDP RTD: Code Repository (v1.0.0) [Software]. Zenodo. https://doi.org/[CODE_DOI]
 
 [OPTIONAL: Add references to related research papers, methodological papers, or similar RTD papers]
 
