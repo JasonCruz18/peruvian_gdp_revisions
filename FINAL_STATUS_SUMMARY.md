@@ -37,24 +37,24 @@
 **Files Ready for Zenodo Upload:**
 ```
 Vintages Format (8 files - 14.7 MB):
-✓ monthly_gdp_rtd.csv (2.9 MB)
-✓ quarterly_annual_gdp_rtd.csv (1.3 MB)
-✓ by_adjusted_monthly_gdp_rtd.csv (2.9 MB)
-✓ by_adjusted_quarterly_annual_gdp_rtd.csv (1.3 MB)
-✓ monthly_gdp_benchmark.csv (2.9 MB)
-✓ quarterly_annual_gdp_benchmark.csv (1.3 MB)
-✓ by_adjusted_monthly_gdp_benchmark.csv (2.9 MB)
-✓ by_adjusted_quarterly_annual_gdp_benchmark.csv (1.3 MB)
+✓ monthly_gdp_vintages.csv (2.9 MB)
+✓ quarterly_gdp_vintages.csv (1.3 MB)
+✓ monthly_gdp_vintages_adjusted.csv (2.9 MB)
+✓ quarterly_gdp_vintages_adjusted.csv (1.3 MB)
+✓ monthly_gdp_vintages_benchmark.csv (2.9 MB)
+✓ quarterly_gdp_vintages_benchmark.csv (1.3 MB)
+✓ monthly_gdp_vintages_adjusted_benchmark.csv (2.9 MB)
+✓ quarterly_gdp_vintages_adjusted_benchmark.csv (1.3 MB)
 
 Releases Format (8 files - 1.7 MB):
 ✓ monthly_gdp_releases.csv (212 KB)
-✓ quarterly_annual_gdp_releases.csv (186 KB)
-✓ by_adjusted_monthly_gdp_releases.csv (219 KB)
-✓ by_adjusted_quarterly_annual_gdp_releases.csv (205 KB)
-✓ monthly_gdp_benchmark_releases.csv (192 KB)
-✓ quarterly_annual_gdp_benchmark_releases.csv (171 KB)
-✓ by_adjusted_monthly_gdp_benchmark_releases.csv (192 KB)
-✓ by_adjusted_quarterly_annual_gdp_benchmark_releases.csv (171 KB)
+✓ quarterly_gdp_releases.csv (186 KB)
+✓ monthly_gdp_releases_adjusted.csv (219 KB)
+✓ quarterly_gdp_releases_adjusted.csv (205 KB)
+✓ monthly_gdp_releases_benchmark.csv (192 KB)
+✓ quarterly_gdp_releases_benchmark.csv (171 KB)
+✓ monthly_gdp_releases_adjusted_benchmark.csv (192 KB)
+✓ quarterly_gdp_releases_adjusted_benchmark.csv (171 KB)
 
 README:
 ✓ ZENODO_README.md (8 pages, ready to upload)

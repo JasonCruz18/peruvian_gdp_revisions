@@ -117,24 +117,24 @@ git push origin main
 **Files to upload:**
 ```
 From data/output/vintages/:
-1. monthly_gdp_rtd.csv
-2. quarterly_annual_gdp_rtd.csv
-3. by_adjusted_monthly_gdp_rtd.csv
-4. by_adjusted_quarterly_annual_gdp_rtd.csv
-5. monthly_gdp_benchmark.csv
-6. quarterly_annual_gdp_benchmark.csv
-7. by_adjusted_monthly_gdp_benchmark.csv
-8. by_adjusted_quarterly_annual_gdp_benchmark.csv
+1. monthly_gdp_vintages.csv
+2. quarterly_gdp_vintages.csv
+3. monthly_gdp_vintages_adjusted.csv
+4. quarterly_gdp_vintages_adjusted.csv
+5. monthly_gdp_vintages_benchmark.csv
+6. quarterly_gdp_vintages_benchmark.csv
+7. monthly_gdp_vintages_adjusted_benchmark.csv
+8. quarterly_gdp_vintages_adjusted_benchmark.csv
 
 From data/output/releases/:
 9. monthly_gdp_releases.csv
-10. quarterly_annual_gdp_releases.csv
-11. by_adjusted_monthly_gdp_releases.csv
-12. by_adjusted_quarterly_annual_gdp_releases.csv
-13. monthly_gdp_benchmark_releases.csv
-14. quarterly_annual_gdp_benchmark_releases.csv
-15. by_adjusted_monthly_gdp_benchmark_releases.csv
-16. by_adjusted_quarterly_annual_gdp_benchmark_releases.csv
+10. quarterly_gdp_releases.csv
+11. monthly_gdp_releases_adjusted.csv
+12. quarterly_gdp_releases_adjusted.csv
+13. monthly_gdp_releases_benchmark.csv
+14. quarterly_gdp_releases_benchmark.csv
+15. monthly_gdp_releases_adjusted_benchmark.csv
+16. quarterly_gdp_releases_adjusted_benchmark.csv
 
 Plus:
 17. ZENODO_README.md (rename to README.md)

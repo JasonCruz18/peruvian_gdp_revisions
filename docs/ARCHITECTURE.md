@@ -218,8 +218,8 @@ BCRP Website
 [3. Data Cleaning] → Standardize tables → data/input/
     │
     ▼
-[4. Concatenation] → Merge vintages → monthly_gdp_rtd.csv
-    │                                   quarterly_annual_gdp_rtd.csv
+[4. Concatenation] → Merge vintages → monthly_gdp_vintages.csv
+    │                                   quarterly_gdp_vintages.csv
     ▼
 [5. Metadata] → Apply base-year info → by_adjusted_*.csv
     │                                   benchmark_*.csv
@@ -738,7 +738,7 @@ if 7 in steps_to_run:
 ```python
 # Memory-efficient CSV reading
 rtd = pd.read_csv(
-    'data/output/monthly_gdp_rtd.csv',
+    'data/output/monthly_gdp_vintages.csv',
     dtype={'vintage_id': 'str'},
     index_col=0,
 )

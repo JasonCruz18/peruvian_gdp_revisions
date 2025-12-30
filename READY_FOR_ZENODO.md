@@ -18,24 +18,24 @@ All files, documentation, and guides are ready. You can proceed with Zenodo uplo
 ### Verified: All 16 CSV Files Exist
 
 **Vintages Format (8 files):**
-- [x] monthly_gdp_rtd.csv (2.9 MB)
-- [x] quarterly_annual_gdp_rtd.csv (1.3 MB)
-- [x] by_adjusted_monthly_gdp_rtd.csv (2.9 MB)
-- [x] by_adjusted_quarterly_annual_gdp_rtd.csv (1.3 MB)
-- [x] monthly_gdp_benchmark.csv (2.9 MB)
-- [x] quarterly_annual_gdp_benchmark.csv (1.3 MB)
-- [x] by_adjusted_monthly_gdp_benchmark.csv (2.9 MB)
-- [x] by_adjusted_quarterly_annual_gdp_benchmark.csv (1.3 MB)
+- [x] monthly_gdp_vintages.csv (2.9 MB)
+- [x] quarterly_gdp_vintages.csv (1.3 MB)
+- [x] monthly_gdp_vintages_adjusted.csv (2.9 MB)
+- [x] quarterly_gdp_vintages_adjusted.csv (1.3 MB)
+- [x] monthly_gdp_vintages_benchmark.csv (2.9 MB)
+- [x] quarterly_gdp_vintages_benchmark.csv (1.3 MB)
+- [x] monthly_gdp_vintages_adjusted_benchmark.csv (2.9 MB)
+- [x] quarterly_gdp_vintages_adjusted_benchmark.csv (1.3 MB)
 
 **Releases Format (8 files):**
 - [x] monthly_gdp_releases.csv (212 KB)
-- [x] quarterly_annual_gdp_releases.csv (186 KB)
-- [x] by_adjusted_monthly_gdp_releases.csv (219 KB)
-- [x] by_adjusted_quarterly_annual_gdp_releases.csv (205 KB)
-- [x] monthly_gdp_benchmark_releases.csv (192 KB)
-- [x] quarterly_annual_gdp_benchmark_releases.csv (171 KB)
-- [x] by_adjusted_monthly_gdp_benchmark_releases.csv (192 KB)
-- [x] by_adjusted_quarterly_annual_gdp_benchmark_releases.csv (171 KB)
+- [x] quarterly_gdp_releases.csv (186 KB)
+- [x] monthly_gdp_releases_adjusted.csv (219 KB)
+- [x] quarterly_gdp_releases_adjusted.csv (205 KB)
+- [x] monthly_gdp_releases_benchmark.csv (192 KB)
+- [x] quarterly_gdp_releases_benchmark.csv (171 KB)
+- [x] monthly_gdp_releases_adjusted_benchmark.csv (192 KB)
+- [x] quarterly_gdp_releases_adjusted_benchmark.csv (171 KB)
 
 **README:**
 - [x] ZENODO_README.md (will be renamed to README.md during upload)

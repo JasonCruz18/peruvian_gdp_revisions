@@ -39,24 +39,24 @@ Both formats contain the same underlying information but organized differently t
 ```
 data/output/
 ├── vintages/           # Vintage format datasets (8 files)
-│   ├── monthly_gdp_rtd.csv
-│   ├── quarterly_annual_gdp_rtd.csv
-│   ├── by_adjusted_monthly_gdp_rtd.csv
-│   ├── by_adjusted_quarterly_annual_gdp_rtd.csv
-│   ├── monthly_gdp_benchmark.csv
-│   ├── quarterly_annual_gdp_benchmark.csv
-│   ├── by_adjusted_monthly_gdp_benchmark.csv
-│   └── by_adjusted_quarterly_annual_gdp_benchmark.csv
+│   ├── monthly_gdp_vintages.csv
+│   ├── quarterly_gdp_vintages.csv
+│   ├── monthly_gdp_vintages_adjusted.csv
+│   ├── quarterly_gdp_vintages_adjusted.csv
+│   ├── monthly_gdp_vintages_benchmark.csv
+│   ├── quarterly_gdp_vintages_benchmark.csv
+│   ├── monthly_gdp_vintages_adjusted_benchmark.csv
+│   └── quarterly_gdp_vintages_adjusted_benchmark.csv
 │
 └── releases/           # Releases format datasets (8 files)
     ├── monthly_gdp_releases.csv
-    ├── quarterly_annual_gdp_releases.csv
-    ├── by_adjusted_monthly_gdp_releases.csv
-    ├── by_adjusted_quarterly_annual_gdp_releases.csv
-    ├── monthly_gdp_benchmark_releases.csv
-    ├── quarterly_annual_gdp_benchmark_releases.csv
-    ├── by_adjusted_monthly_gdp_benchmark_releases.csv
-    └── by_adjusted_quarterly_annual_gdp_benchmark_releases.csv
+    ├── quarterly_gdp_releases.csv
+    ├── monthly_gdp_releases_adjusted.csv
+    ├── quarterly_gdp_releases_adjusted.csv
+    ├── monthly_gdp_releases_benchmark.csv
+    ├── quarterly_gdp_releases_benchmark.csv
+    ├── monthly_gdp_releases_adjusted_benchmark.csv
+    └── quarterly_gdp_releases_adjusted_benchmark.csv
 ```
 
 ### File Count
@@ -264,17 +264,17 @@ The dataset uses standardized English names. Original Spanish names from BCRP ar
 - Not directly comparable without rebasing
 
 **Files with Sentinel Values:**
-- `by_adjusted_monthly_gdp_rtd.csv`
-- `by_adjusted_quarterly_annual_gdp_rtd.csv`
-- `by_adjusted_monthly_gdp_benchmark.csv`
-- `by_adjusted_quarterly_annual_gdp_benchmark.csv`
+- `monthly_gdp_vintages_adjusted.csv`
+- `quarterly_gdp_vintages_adjusted.csv`
+- `monthly_gdp_vintages_adjusted_benchmark.csv`
+- `quarterly_gdp_vintages_adjusted_benchmark.csv`
 - All 4 corresponding releases format files
 
 **Files WITHOUT Sentinel Values (clean data):**
-- `monthly_gdp_rtd.csv`
-- `quarterly_annual_gdp_rtd.csv`
-- `monthly_gdp_benchmark.csv`
-- `quarterly_annual_gdp_benchmark.csv`
+- `monthly_gdp_vintages.csv`
+- `quarterly_gdp_vintages.csv`
+- `monthly_gdp_vintages_benchmark.csv`
+- `quarterly_gdp_vintages_benchmark.csv`
 - All 4 corresponding releases format files
 
 ---
@@ -427,7 +427,7 @@ After change (2007 base):
 
 #### **Option 1: Regular Files (no prefix)**
 
-Files: `monthly_gdp_rtd.csv`, `quarterly_annual_gdp_rtd.csv`, etc.
+Files: `monthly_gdp_vintages.csv`, `quarterly_gdp_vintages.csv`, etc.
 
 **Handling:** Clean data with all base year changes incorporated
 - Historical values rebased to current base year
@@ -437,7 +437,7 @@ Files: `monthly_gdp_rtd.csv`, `quarterly_annual_gdp_rtd.csv`, etc.
 
 #### **Option 2: Base-Year Adjusted Files (`by_adjusted_` prefix)**
 
-Files: `by_adjusted_monthly_gdp_rtd.csv`, etc.
+Files: `monthly_gdp_vintages_adjusted.csv`, etc.
 
 **Handling:** Original data preserved with sentinel values marking changes
 - Sentinel value `-999999.0` flags affected observations
@@ -447,7 +447,7 @@ Files: `by_adjusted_monthly_gdp_rtd.csv`, etc.
 
 #### **Option 3: Benchmark Files (`_benchmark` suffix)**
 
-Files: `monthly_gdp_benchmark.csv`, etc.
+Files: `monthly_gdp_vintages_benchmark.csv`, etc.
 
 **Handling:** Only observations from stable base year periods
 - Excludes observations around base year change points
@@ -468,7 +468,7 @@ Files: `monthly_gdp_benchmark.csv`, etc.
 ```python
 # In by_adjusted_* files
 import pandas as pd
-df = pd.read_csv('by_adjusted_monthly_gdp_rtd.csv')
+df = pd.read_csv('monthly_gdp_vintages_adjusted.csv')
 base_year_changes = df[df == -999999.0].dropna(how='all')
 ```
 
@@ -496,14 +496,14 @@ metadata:
 - NOT directly comparable across base year boundaries without adjustment
 
 **Files:**
-- `by_adjusted_monthly_gdp_rtd.csv`
-- `by_adjusted_quarterly_annual_gdp_rtd.csv`
-- `by_adjusted_monthly_gdp_benchmark.csv`
-- `by_adjusted_quarterly_annual_gdp_benchmark.csv`
-- `by_adjusted_monthly_gdp_releases.csv`
-- `by_adjusted_quarterly_annual_gdp_releases.csv`
-- `by_adjusted_monthly_gdp_benchmark_releases.csv`
-- `by_adjusted_quarterly_annual_gdp_benchmark_releases.csv`
+- `monthly_gdp_vintages_adjusted.csv`
+- `quarterly_gdp_vintages_adjusted.csv`
+- `monthly_gdp_vintages_adjusted_benchmark.csv`
+- `quarterly_gdp_vintages_adjusted_benchmark.csv`
+- `monthly_gdp_releases_adjusted.csv`
+- `quarterly_gdp_releases_adjusted.csv`
+- `monthly_gdp_releases_adjusted_benchmark.csv`
+- `quarterly_gdp_releases_adjusted_benchmark.csv`
 
 ---
 
@@ -517,14 +517,14 @@ metadata:
 - Suitable for econometric estimation without structural breaks
 
 **Files:**
-- `monthly_gdp_benchmark.csv`
-- `quarterly_annual_gdp_benchmark.csv`
-- `by_adjusted_monthly_gdp_benchmark.csv`
-- `by_adjusted_quarterly_annual_gdp_benchmark.csv`
-- `monthly_gdp_benchmark_releases.csv`
-- `quarterly_annual_gdp_benchmark_releases.csv`
-- `by_adjusted_monthly_gdp_benchmark_releases.csv`
-- `by_adjusted_quarterly_annual_gdp_benchmark_releases.csv`
+- `monthly_gdp_vintages_benchmark.csv`
+- `quarterly_gdp_vintages_benchmark.csv`
+- `monthly_gdp_vintages_adjusted_benchmark.csv`
+- `quarterly_gdp_vintages_adjusted_benchmark.csv`
+- `monthly_gdp_releases_benchmark.csv`
+- `quarterly_gdp_releases_benchmark.csv`
+- `monthly_gdp_releases_adjusted_benchmark.csv`
+- `quarterly_gdp_releases_adjusted_benchmark.csv`
 
 ---
 
@@ -565,8 +565,8 @@ metadata:
 - `[ext]`: `csv` or `parquet`
 
 **Examples:**
-- `monthly_gdp_rtd.csv` → Monthly RTD, vintage format, all data
-- `by_adjusted_monthly_gdp_benchmark_releases.csv` → Monthly benchmark, releases format, with base-year sentinels
+- `monthly_gdp_vintages.csv` → Monthly RTD, vintage format, all data
+- `monthly_gdp_releases_adjusted_benchmark.csv` → Monthly benchmark, releases format, with base-year sentinels
 - `quarterly_annual_gdp_rtd.parquet` → Quarterly/annual RTD, vintage format, Parquet file
 
 ---
@@ -579,7 +579,7 @@ metadata:
 import pandas as pd
 
 # Load monthly RTD (vintage format)
-df_vintage = pd.read_csv('data/output/vintages/monthly_gdp_rtd.csv', index_col=0)
+df_vintage = pd.read_csv('data/output/vintages/monthly_gdp_vintages.csv', index_col=0)
 
 # Filter to specific industry
 gdp_data = df_vintage[df_vintage['industry'] == 'gdp']
@@ -631,7 +631,7 @@ gdp_3   -15.7  (3rd release, 2nd revision)
 ```python
 import pandas as pd
 
-df = pd.read_csv('data/output/vintages/monthly_gdp_rtd.csv', index_col=0)
+df = pd.read_csv('data/output/vintages/monthly_gdp_vintages.csv', index_col=0)
 
 # Count missing values by vintage
 missing_by_vintage = df.groupby('vintage').apply(lambda x: x.isnull().sum().sum())
@@ -651,7 +651,7 @@ df_complete = df.dropna()
 import pandas as pd
 
 # Load base-year adjusted file
-df_adj = pd.read_csv('data/output/vintages/by_adjusted_monthly_gdp_rtd.csv', index_col=0)
+df_adj = pd.read_csv('data/output/vintages/monthly_gdp_vintages_adjusted.csv', index_col=0)
 
 # Find sentinel values
 sentinel = -999999.0
@@ -698,10 +698,10 @@ print(df['revision_1to2'].describe())
 import pandas as pd
 
 # Load monthly data
-df_monthly = pd.read_csv('data/output/vintages/monthly_gdp_rtd.csv', index_col=0)
+df_monthly = pd.read_csv('data/output/vintages/monthly_gdp_vintages.csv', index_col=0)
 
 # Load quarterly data
-df_quarterly = pd.read_csv('data/output/vintages/quarterly_annual_gdp_rtd.csv', index_col=0)
+df_quarterly = pd.read_csv('data/output/vintages/quarterly_gdp_vintages.csv', index_col=0)
 
 # Monthly columns: tp_2020m1, tp_2020m2, ...
 # Quarterly columns: tp_2020q1, tp_2020q2, ...

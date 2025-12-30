@@ -33,14 +33,14 @@ Files in **`vintages/`** directory use the **vintage format** where:
 - **Values** = GDP growth rates as published on that release date
 
 **Files:**
-1. `monthly_gdp_rtd.csv` (2.9 MB) – Monthly GDP growth rates, all vintages
-2. `quarterly_annual_gdp_rtd.csv` (1.3 MB) – Quarterly and annual GDP, all vintages
-3. `by_adjusted_monthly_gdp_rtd.csv` (2.9 MB) – Monthly GDP with base-year sentinel values
-4. `by_adjusted_quarterly_annual_gdp_rtd.csv` (1.3 MB) – Quarterly/annual with base-year adjustments
-5. `monthly_gdp_benchmark.csv` (2.9 MB) – Monthly GDP benchmark (pre base-year changes only)
-6. `quarterly_annual_gdp_benchmark.csv` (1.3 MB) – Quarterly/annual benchmark
-7. `by_adjusted_monthly_gdp_benchmark.csv` (2.9 MB) – Benchmark with base-year sentinel values
-8. `by_adjusted_quarterly_annual_gdp_benchmark.csv` (1.3 MB) – Benchmark quarterly/annual adjusted
+1. `monthly_gdp_vintages.csv` (2.9 MB) – Monthly GDP growth rates, all vintages
+2. `quarterly_gdp_vintages.csv` (1.3 MB) – Quarterly and annual GDP, all vintages
+3. `monthly_gdp_vintages_adjusted.csv` (2.9 MB) – Monthly GDP with base-year sentinel values
+4. `quarterly_gdp_vintages_adjusted.csv` (1.3 MB) – Quarterly/annual with base-year adjustments
+5. `monthly_gdp_vintages_benchmark.csv` (2.9 MB) – Monthly GDP benchmark (pre base-year changes only)
+6. `quarterly_gdp_vintages_benchmark.csv` (1.3 MB) – Quarterly/annual benchmark
+7. `monthly_gdp_vintages_adjusted_benchmark.csv` (2.9 MB) – Benchmark with base-year sentinel values
+8. `quarterly_gdp_vintages_adjusted_benchmark.csv` (1.3 MB) – Benchmark quarterly/annual adjusted
 
 ### 2. Releases Format Datasets (8 files)
 
@@ -51,13 +51,13 @@ Files in **`releases/`** directory use the **releases format** where:
 
 **Files:**
 1. `monthly_gdp_releases.csv` (212 KB) – Monthly GDP by revision sequence
-2. `quarterly_annual_gdp_releases.csv` (186 KB) – Quarterly/annual by revision sequence
-3. `by_adjusted_monthly_gdp_releases.csv` (219 KB) – Monthly with base-year adjustments
-4. `by_adjusted_quarterly_annual_gdp_releases.csv` (205 KB) – Quarterly/annual adjusted
-5. `monthly_gdp_benchmark_releases.csv` (192 KB) – Benchmark monthly releases
-6. `quarterly_annual_gdp_benchmark_releases.csv` (171 KB) – Benchmark quarterly/annual
-7. `by_adjusted_monthly_gdp_benchmark_releases.csv` (192 KB) – Benchmark monthly adjusted
-8. `by_adjusted_quarterly_annual_gdp_benchmark_releases.csv` (171 KB) – Benchmark quarterly/annual adjusted
+2. `quarterly_gdp_releases.csv` (186 KB) – Quarterly/annual by revision sequence
+3. `monthly_gdp_releases_adjusted.csv` (219 KB) – Monthly with base-year adjustments
+4. `quarterly_gdp_releases_adjusted.csv` (205 KB) – Quarterly/annual adjusted
+5. `monthly_gdp_releases_benchmark.csv` (192 KB) – Benchmark monthly releases
+6. `quarterly_gdp_releases_benchmark.csv` (171 KB) – Benchmark quarterly/annual
+7. `monthly_gdp_releases_adjusted_benchmark.csv` (192 KB) – Benchmark monthly adjusted
+8. `quarterly_gdp_releases_adjusted_benchmark.csv` (171 KB) – Benchmark quarterly/annual adjusted
 
 ---
 

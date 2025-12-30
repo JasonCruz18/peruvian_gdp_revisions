@@ -159,20 +159,20 @@ The dataset is organized into two directories:
 
 Each format contains four variants (2 formats × 4 variants = 8 files per directory):
 
-**A. Monthly RTD** (e.g., `monthly_gdp_rtd.csv`):
+**A. Monthly RTD** (e.g., `monthly_gdp_vintages.csv`):
 - Monthly GDP growth rates
 - Complete revision history
 - All base-year changes incorporated seamlessly
 
-**B. Quarterly/Annual RTD** (e.g., `quarterly_annual_gdp_rtd.csv`):
+**B. Quarterly/Annual RTD** (e.g., `quarterly_gdp_vintages.csv`):
 - Quarterly and annual GDP growth rates
 - Lower frequency, longer historical coverage
 
-**C. Base-Year Adjusted RTD** (e.g., `by_adjusted_monthly_gdp_rtd.csv`):
+**C. Base-Year Adjusted RTD** (e.g., `monthly_gdp_vintages_adjusted.csv`):
 - Same as (A) but with sentinel values (`-999999.0`) marking base-year affected observations
 - Preserves original revision patterns including methodological changes
 
-**D. Benchmark RTD** (e.g., `monthly_gdp_benchmark.csv`):
+**D. Benchmark RTD** (e.g., `monthly_gdp_vintages_benchmark.csv`):
 - Excludes observations around base-year change points
 - Suitable for econometric models requiring consistent methodology
 

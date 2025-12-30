@@ -130,10 +130,10 @@ The pipeline is idempotent - it will:
 All datasets are saved in `data/output/`:
 ```
 data/output/
-├── monthly_gdp_rtd.csv
-├── quarterly_annual_gdp_rtd.csv
+├── monthly_gdp_vintages.csv
+├── quarterly_gdp_vintages.csv
 ├── monthly_gdp_releases.csv
-├── quarterly_annual_gdp_releases.csv
+├── quarterly_gdp_releases.csv
 └── [8+ more dataset variants]
 ```
 

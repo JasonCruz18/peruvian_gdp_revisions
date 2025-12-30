@@ -519,7 +519,7 @@ from peru_gdp_rtd.config import get_settings
 import pandas as pd
 
 # Load RTD
-rtd = pd.read_csv('data/output/monthly_gdp_rtd.csv', index_col=0)
+rtd = pd.read_csv('data/output/monthly_gdp_vintages.csv', index_col=0)
 
 # Export to Excel
 rtd.to_excel('data/output/monthly_gdp_rtd.xlsx')
@@ -541,7 +541,7 @@ rtd.to_json('data/output/monthly_gdp_rtd.json', orient='index')
 ```r
 # Load RTD in R
 library(readr)
-monthly_rtd <- read_csv("data/output/monthly_gdp_rtd.csv")
+monthly_rtd <- read_csv("data/output/monthly_gdp_vintages.csv")
 
 # Analyze revisions
 library(dplyr)
@@ -559,7 +559,7 @@ ggplot(revisions, aes(x=vintage_id, y=`2020_01`)) +
 
 ```stata
 * Load RTD in Stata
-import delimited "data/output/monthly_gdp_rtd.csv", clear
+import delimited "data/output/monthly_gdp_vintages.csv", clear
 
 * Analyze revisions
 gen revision = second_release - first_release
