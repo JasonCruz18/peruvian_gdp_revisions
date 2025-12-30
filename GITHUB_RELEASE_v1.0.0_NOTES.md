@@ -96,7 +96,7 @@ If you use this code or dataset, please cite:
 }
 
 @dataset{cruz2024peru_gdp_data,
-  author = {Cruz, Jason},
+  author = {Cruz, Jason and Winkelried, Diego and Torres, Javier},
   title = {Peru GDP Real-Time Dataset (1994-present)},
   year = {2024},
   publisher = {Zenodo},
@@ -105,7 +105,7 @@ If you use this code or dataset, please cite:
 ```
 
 **Data Article (In Review):**
-Cruz, J. (2025). Peru GDP Real-Time Dataset (1994-present). *Data in Brief*.
+Cruz, J., Winkelried, D., & Torres, J. (2025). Peru GDP Real-Time Dataset (1994-present). *Data in Brief*.
 
 ### System Requirements
 

@@ -98,12 +98,25 @@ Peru GDP Real-Time Dataset (1994-present)
 ```
 
 ### Authors
-- [ ] Click **"Add creator"**
-- [ ] Enter your name: `[Family name], [Given names]`
-- [ ] Add **ORCID iD** (click "Lookup" if logged in with ORCID)
-- [ ] Add **Affiliation:** Your institution (e.g., "Universidad del Pacífico" or "CIUP")
+**Add all 3 authors in order:**
 
-**For multiple authors:** Click "Add creator" again
+**Author 1:**
+- [ ] Click **"Add creator"**
+- [ ] Name: `Cruz, Jason`
+- [ ] Add **ORCID iD** (click "Lookup" if logged in with ORCID)
+- [ ] Affiliation: `Universidad del Pacífico - CIUP`
+
+**Author 2:**
+- [ ] Click **"Add creator"** again
+- [ ] Name: `Winkelried, Diego`
+- [ ] Add **ORCID iD** (click "Lookup" if available)
+- [ ] Affiliation: `Universidad del Pacífico - CIUP`
+
+**Author 3:**
+- [ ] Click **"Add creator"** again
+- [ ] Name: `Torres, Javier`
+- [ ] Add **ORCID iD** (click "Lookup" if available)
+- [ ] Affiliation: `Universidad del Pacífico - CIUP`
 
 ### Description (Abstract)
 

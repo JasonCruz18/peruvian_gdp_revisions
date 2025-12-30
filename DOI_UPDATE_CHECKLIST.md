@@ -101,7 +101,7 @@ references:
 
 ```bibtex
 @dataset{cruz2024peru_gdp_data,
-  author = {Cruz, Jason},
+  author = {Cruz, Jason and Winkelried, Diego and Torres, Javier},
   title = {Peru GDP Real-Time Dataset (1994-present)},
   year = {2024},
   publisher = {Zenodo},

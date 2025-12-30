@@ -34,14 +34,20 @@ This draft contains all DIB manuscript sections. Complete the following before s
 **Peru GDP Real-Time Dataset (1994-present)**
 
 ### Author Information
-**Jason Cruz¹**
-**[ORCID]:** https://orcid.org/[YOUR_ORCID_ID]
+**Jason Cruz¹,***
+**[ORCID]:** https://orcid.org/[JASON_ORCID]
+
+**Diego Winkelried¹**
+**[ORCID]:** https://orcid.org/[DIEGO_ORCID]
+
+**Javier Torres¹**
+**[ORCID]:** https://orcid.org/[JAVIER_ORCID]
 
 **Affiliations:**
 ¹ Centro de Investigación (CIUP), Universidad del Pacífico, Lima, Peru
 
 **Corresponding Author:**
-Jason Cruz
+* Jason Cruz
 Email: jj.cruza@up.edu.pe
 Address: Universidad del Pacífico, Av. Salaverry 2020, Jesús María, Lima, Peru
 
@@ -630,7 +636,9 @@ The authors declare that they have no known competing financial interests or per
 
 **Jason Cruz:** Conceptualization, Data curation, Formal analysis, Investigation, Methodology, Software, Validation, Visualization, Writing - original draft, Writing - review & editing.
 
-[If multiple authors, add roles for each]
+**Diego Winkelried:** Conceptualization, Formal analysis, Methodology, Supervision, Writing - review & editing.
+
+**Javier Torres:** Conceptualization, Formal analysis, Methodology, Supervision, Writing - review & editing.
 
 ---
 
@@ -659,9 +667,9 @@ This research did not receive any specific grant from funding agencies in the pu
 
 [2] Banco Central de Reserva del Perú (BCRP). Weekly Reports Archive (Nota Semanal - Archivo). Available at: https://www.bcrp.gob.pe/publicaciones/nota-semanal/nota-semanal-archivo.html (accessed December 28, 2024).
 
-[3] Cruz, J. (2024). Peru GDP Real-Time Dataset (1994-present) [Data set]. Zenodo. https://doi.org/[DATA_DOI]
+[3] Cruz, J., Winkelried, D., & Torres, J. (2024). Peru GDP Real-Time Dataset (1994-present) [Data set]. Zenodo. https://doi.org/[DATA_DOI]
 
-[4] Cruz, J. (2024). Peru GDP RTD: Code Repository (v1.0.0) [Software]. Zenodo. https://doi.org/[CODE_DOI]
+[4] Cruz, J., Winkelried, D., & Torres, J. (2024). Peru GDP RTD: Code Repository (v1.0.0) [Software]. Zenodo. https://doi.org/[CODE_DOI]
 
 [OPTIONAL: Add references to related research papers, methodological papers, or similar RTD papers]
 

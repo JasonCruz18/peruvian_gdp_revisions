@@ -145,7 +145,7 @@ If you use this dataset in your research, please cite:
 ### Data Citation (BibTeX)
 ```bibtex
 @dataset{peru_gdp_rtd_2024,
-  author       = {[Your Name]},
+  author       = {Cruz, Jason and Winkelried, Diego and Torres, Javier},
   title        = {Peru GDP Real-Time Dataset (1994-present)},
   year         = {2024},
   publisher    = {Zenodo},

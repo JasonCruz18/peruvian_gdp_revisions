@@ -9,7 +9,7 @@ authors:
     given-names: "Jason"
     email: "jj.cruza@up.edu.pe"
     affiliation: "Universidad del Pacífico - CIUP"
-    orcid: "https://orcid.org/0000-0000-0000-0000"  # TODO: Add your ORCID
+    orcid: "https://orcid.org/0000-0000-0000-0000"  # TODO: Add ORCID
 repository-code: "https://github.com/JasonCruz18/peru_gdp_revisions"
 url: "https://github.com/JasonCruz18/peru_gdp_revisions"
 abstract: >-
@@ -32,6 +32,10 @@ preferred-citation:
   authors:
     - family-names: "Cruz"
       given-names: "Jason"
+    - family-names: "Winkelried"
+      given-names: "Diego"
+    - family-names: "Torres"
+      given-names: "Javier"
   year: 2025
-  journal: "TBD"  # TODO: Update with journal name
+  journal: "Data in Brief"  # Submitted
   institution: "Universidad del Pacífico - CIUP"
