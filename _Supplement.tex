@@ -121,8 +121,6 @@ Figures~\ref{fig:wr_2_2007_table_1} and \ref{fig:wr_2_2007_table_2} show example
 \footnotesize \textbf{Notes:} The low resolution, uneven lighting, and shadowing from the page fold in this figure illustrate common difficulties for OCR processing. Distortions in the horizontal and vertical alignment of cells, faint characters, and overlapping text reduce recognition accuracy. Highlighted values and residual marks (e.g., spots or smudges) can obscure digits or decimal points, leading to frequent misclassifications. In this specific case, blurred numbers in the central columns and shading near the binding make it particularly challenging to extract reliable machine-readable data without extensive manual correction.
 \end{figure}
 
-
-
 Given these limitations, data extraction was particularly demanding and did not provide definite results. We employed Optical Character Recognition (OCR) using the open-source \href{https://github.com/tesseract-ocr/tesseract}{\texttt{Tesseract}} engine in \texttt{Python}. Originally developed by Hewlett-Packard and now maintained by Google, \texttt{Tesseract} is widely used for digitizing printed material, including statistical reports.
 
 \newpage
@@ -283,8 +281,6 @@ The dataset comprises monthly, quarterly, and annual GDP growth series for \emph
 
 All industry-level series correspond to INEI’s level-9 classification, the most disaggregated level available in the official national accounts. Table~\ref{tab:rt_sum} reports the complete and exhaustive set of industries included in the RTD, together with their corresponding frequencies, target-period coverage, and revision horizons. No additional industry series beyond those listed in the table are included in the project.
 
-Table~\ref{tab:rt_sum} reports the complete and exhaustive set of sectors included in the RTD, together with their corresponding frequencies, target-period coverage, and revision horizons. No additional sectoral series beyond those listed in the table are included in the project.
-
 \begin{table}[b!]
 \caption{Sectoral GDP as a real-time indicator}
 \label{tab:rt_sum}
@@ -292,7 +288,7 @@ Table~\ref{tab:rt_sum} reports the complete and exhaustive set of sectors includ
 \input{tables/Tab_RT_Summarize}
 %
 }\\[2mm]
-\footnotesize \textbf{Notes:} The disaggregation of economic activities follows level 9 of INEI's official classification. Under this classification, the ``other services'' sector includes a diverse set of activities, such as real estate and personal services, including education and health (14.89\%). The following categories are also identified: transportation, storage, postal and courier services (4.97\%); accommodation and food services (2.86\%); telecommunications and other information services (2.66\%); financial and insurance services (3.22\%); business services (4.24\%); product taxes (8.29\%); and public administration and defense (4.29\%).
+\footnotesize \textbf{Notes:} The industry disaggregation follows level 9 of the official classification published by the National Institute of Statistics and Informatics (INEI) of Peru. Under this classification, the ``other services'' industry comprises a heterogeneous set of activities, including real estate and personal services, such as education and health. Additional components include transportation, storage, postal and courier services; accommodation and food services; telecommunications and other information services; financial and insurance services; business services; product taxes; and public administration and defense.
 \end{table}
 
 \clearpage
