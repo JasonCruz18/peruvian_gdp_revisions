@@ -594,6 +594,7 @@ def convert_to_benchmark_dataset(
     metadata_folder: str,
     wr_metadata_csv: str,
     benchmark_dataset_labels: List[str],
+    sentinel: Optional[float] = -999999.0,
     persist_format: str = "csv",
     force: bool = False,
 ) -> Dict[str, pd.DataFrame]:
@@ -607,6 +608,7 @@ def convert_to_benchmark_dataset(
     - 1.0 indicates a benchmark revision vintage
     - 0.0 indicates a non-benchmark vintage
     - NaN remains NaN
+    - Sentinel values (if provided) remain unchanged
 
     Benchmark revisions occur when BCRP revises both monthly (Table 1) and
     quarterly/annual (Table 2) estimates simultaneously, indicating a
@@ -618,6 +620,8 @@ def convert_to_benchmark_dataset(
         metadata_folder: Folder where metadata CSV is stored
         wr_metadata_csv: Metadata CSV filename
         benchmark_dataset_labels: List of output filenames (without .csv)
+        sentinel: Sentinel value to preserve (e.g., base-year discontinuities).
+            Set to None to disable preservation.
         force: If True, reprocess all files regardless of timestamps
 
     Returns:
@@ -742,6 +746,11 @@ def convert_to_benchmark_dataset(
 
         # Ensure numeric type
         df[tp_cols] = df[tp_cols].astype(float)
+        sentinel_value = None
+        sentinel_mask = None
+        if sentinel is not None:
+            sentinel_value = float(sentinel)
+            sentinel_mask = df[tp_cols].eq(sentinel_value)
 
         # 6.3) Diagnostic report
         vintages_df = set(df["vintage"].unique())
@@ -768,6 +777,10 @@ def convert_to_benchmark_dataset(
             df.loc[mask_benchmark, tp_cols] = df.loc[mask_benchmark, tp_cols].where(
                 df.loc[mask_benchmark, tp_cols].isna(), 1.0
             )
+
+        # Preserve sentinel values from base-year adjustments, if configured.
+        if sentinel_mask is not None:
+            df[tp_cols] = df[tp_cols].mask(sentinel_mask, sentinel_value)
 
         # Enforce float type
         df[tp_cols] = df[tp_cols].astype(float)

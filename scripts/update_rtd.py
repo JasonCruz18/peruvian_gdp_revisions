@@ -363,6 +363,7 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                         settings.output_files["monthly_benchmark"],
                         settings.output_files["quarterly_benchmark"],
                     ],
+                    sentinel=settings.benchmark.sentinel_value,
                     persist_format=settings.features.persist_format,
                     force=False,
                 )
@@ -380,6 +381,7 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                         settings.output_files["by_adjusted_monthly_benchmark"],
                         settings.output_files["by_adjusted_quarterly_benchmark"],
                     ],
+                    sentinel=settings.benchmark.sentinel_value,
                     persist_format=settings.features.persist_format,
                     force=False,
                 )
