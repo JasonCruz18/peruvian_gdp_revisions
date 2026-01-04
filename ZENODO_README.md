@@ -1,8 +1,8 @@
-# Peru GDP Real-Time Dataset (1994-present)
+# Peru GDP Real-Time Dataset (1994-2025)
 
 **Version:** 1.0.0
 **Last Updated:** January 2025
-**DOI:** https://doi.org/10.5281/zenodo.18099975
+**DOI:** [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18099975.svg)](https://doi.org/10.5281/zenodo.18099975)
 **License:** CC-BY-4.0
 **Related Code Repository:** https://github.com/JasonCruz18/peru_gdp_revisions
 
@@ -10,7 +10,7 @@
 
 ## Overview
 
-This dataset provides a comprehensive real-time database (RTD) of Peru's Gross Domestic Product (GDP) growth rates, tracking revisions from 1994 to the present. The data are sourced from the Central Reserve Bank of Peru (BCRP) Weekly Reports and systematically transformed into structured formats suitable for revision analysis, nowcasting, and forecasting research.
+This dataset provides a comprehensive real-time database (RTD) of Peru's Gross Domestic Product (GDP) growth rates, tracking revisions from 1994 to 2025. The accompanying code pipeline allows for updates to extend coverage to the present and beyond. The data are sourced from the Central Reserve Bank of Peru (BCRP) Weekly Reports and systematically transformed into structured formats suitable for revision analysis, nowcasting, and forecasting research.
 
 **Key Features:**
 - **Coverage:** Monthly, quarterly, and annual GDP growth rates (1994–2025)
@@ -236,7 +236,7 @@ For questions, issues, or collaboration inquiries:
 
 ### Version 1.0.0 (January 2025)
 - Initial public release
-- Coverage: 1994–2024
+- Coverage: 1994–2025
 - 16 datasets (8 vintage format + 8 releases format)
 - 1000+ vintages tracked
 - Comprehensive documentation
