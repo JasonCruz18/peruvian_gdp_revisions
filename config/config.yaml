@@ -218,5 +218,5 @@ logging:
 features:
   enable_alerts: false          # Play audio alerts after downloads (disabled for automated pipeline)
   persist_intermediate: true    # Save intermediate processing results
-  persist_format: "parquet"     # Options: csv, parquet
+  persist_format: "csv"     # Options: csv, parquet
   validate_data: true           # Run data validation checks
