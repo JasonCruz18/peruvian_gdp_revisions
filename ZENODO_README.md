@@ -1,10 +1,10 @@
 # Peru GDP Real-Time Dataset (1994-present)
 
 **Version:** 1.0.0
-**Last Updated:** December 2024
-**DOI:** [Will be assigned upon Zenodo publication]
+**Last Updated:** January 2025
+**DOI:** https://doi.org/10.5281/zenodo.18099975
 **License:** CC-BY-4.0
-**Related Code Repository:** https://github.com/yourusername/peru_gdp_revisions
+**Related Code Repository:** https://github.com/JasonCruz18/peru_gdp_revisions
 
 ---
 
@@ -150,10 +150,15 @@ If you use this dataset in your research, please cite:
   year         = {2024},
   publisher    = {Zenodo},
   version      = {1.0.0},
-  doi          = {[To be assigned]},
-  url          = {[Zenodo DOI URL]}
+  doi          = {10.5281/zenodo.18099975},
+  url          = {https://doi.org/10.5281/zenodo.18099975}
 }
 ```
+
+### Author ORCIDs
+- Jason Cruz: https://orcid.org/0009-0001-4640-5500
+- Diego Winkelried: https://orcid.org/0000-0002-9388-2617
+- Javier Torres: https://orcid.org/0000-0001-6850-1395
 
 ### Related Research Article
 [Optional: Add reference to your forthcoming research paper]
@@ -163,15 +168,15 @@ If you use this dataset in your research, please cite:
 ## Reproducibility
 
 This dataset is fully reproducible using the open-source code repository:
-- **Repository:** https://github.com/yourusername/peru_gdp_revisions
+- **Repository:** https://github.com/JasonCruz18/peru_gdp_revisions
 - **Code DOI:** [To be assigned via GitHub-Zenodo integration]
-- **Requirements:** Python 3.10+, 2GB disk space
-- **Installation:** `pip install -e .` or `conda env create -f environment.yml`
-- **Execution:** `python scripts/update_rtd.py`
+- **Requirements:** Python 3.9+, 2GB disk space
+- **Installation:** `pip install -e .`
+- **Execution:** `python scripts/run_full_pipeline.py`
 
 **System Requirements:**
 - Operating System: Windows, macOS, or Linux
-- Python 3.10 or higher
+- Python 3.9 or higher
 - Java 8+ (for Tabula-py PDF extraction)
 - Internet connection (for downloading source PDFs)
 
@@ -213,23 +218,30 @@ Under the following terms:
 ## Contact
 
 For questions, issues, or collaboration inquiries:
-- **Email:** [your.email@institution.edu]
-- **Institution:** [Your Institution]
-- **ORCID:** [Your ORCID ID]
 
-**Issue Tracking:** https://github.com/yourusername/peru_gdp_revisions/issues
+**Corresponding Author:** Jason Cruz
+- **Email:** jj.cruza@up.edu.pe
+- **Institution:** Universidad del Pacífico - Centro de Investigación (CIUP)
+- **ORCID:** https://orcid.org/0009-0001-4640-5500
+
+**Co-Authors:**
+- Diego Winkelried (ORCID: https://orcid.org/0000-0002-9388-2617)
+- Javier Torres (ORCID: https://orcid.org/0000-0001-6850-1395)
+
+**Issue Tracking:** https://github.com/JasonCruz18/peru_gdp_revisions/issues
 
 ---
 
 ## Version History
 
-### Version 1.0.0 (December 2024)
+### Version 1.0.0 (January 2025)
 - Initial public release
 - Coverage: 1994–2024
 - 16 datasets (8 vintage format + 8 releases format)
 - 1000+ vintages tracked
 - Comprehensive documentation
 - Fully reproducible pipeline
+- Published on Zenodo with DOI: 10.5281/zenodo.18099975
 
 ---
 
@@ -237,10 +249,12 @@ For questions, issues, or collaboration inquiries:
 
 Data sourced from the Banco Central de Reserva del Perú (BCRP). We thank the BCRP for maintaining the Weekly Reports archive and making economic data publicly accessible.
 
-This project was developed at [Your Institution]. [Optional: Add funding acknowledgments]
+This project was developed at Universidad del Pacífico - Centro de Investigación (CIUP), Lima, Peru.
+
+**Funding:** This work was funded by the Consejo Nacional de Ciencia, Tecnología e Innovación Tecnológica (CONCYTEC) and the Programa Nacional de Investigación Científica y Estudios Avanzados (PROCIENCIA) under the call "E041-2025-04 Proyectos de Investigación en Ciencias Sociales".
 
 ---
 
-**Last Updated:** December 28, 2024
+**Last Updated:** January 3, 2025
 **Dataset Version:** 1.0.0
 **README Version:** 1.0
