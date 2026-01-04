@@ -13,7 +13,7 @@
 This dataset provides a comprehensive real-time database (RTD) of Peru's Gross Domestic Product (GDP) growth rates, tracking revisions from 1994 to the present. The data are sourced from the Central Reserve Bank of Peru (BCRP) Weekly Reports and systematically transformed into structured formats suitable for revision analysis, nowcasting, and forecasting research.
 
 **Key Features:**
-- **Coverage:** Monthly, quarterly, and annual GDP growth rates (1994–present)
+- **Coverage:** Monthly, quarterly, and annual GDP growth rates (1994–2025)
 - **Vintages Tracked:** 1000+ data releases across 30+ years
 - **Sectors:** 8 economic sectors (Primary, Manufacturing, Construction, Commerce, etc.)
 - **Base-Year Adjustments:** Accounts for methodological changes (1990, 1994, 2007 base years)
@@ -111,7 +111,7 @@ All datasets include 8 economic sectors:
 - URL: https://www.bcrp.gob.pe/publicaciones/nota-semanal.html
 - Historical Archive: https://www.bcrp.gob.pe/publicaciones/nota-semanal/nota-semanal-archivo.html
 - Update Frequency: Weekly (every Friday)
-- Coverage: 1994–present
+- Coverage: 1994–2025
 
 ### Data Collection Method
 Data were collected using an automated pipeline:
