@@ -640,7 +640,7 @@ def convert_to_benchmark_dataset(
     Example:
         >>> benchmark_data = convert_to_benchmark_dataset(
         ...     output_data_subfolder="data/outputs",
-        ...     csv_file_labels=["monthly_gdp_rtd", "quarterly_annual_gdp_rtd"],
+        ...     csv_file_labels=["monthly_gdp_vintages", "quarterly_gdp_vintages"],
         ...     metadata_folder="data/metadata",
         ...     wr_metadata_csv="wr_metadata.csv",
         ...     benchmark_dataset_labels=["monthly_benchmark", "quarterly_benchmark"],

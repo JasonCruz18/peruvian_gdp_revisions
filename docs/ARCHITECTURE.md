@@ -744,8 +744,8 @@ rtd = pd.read_csv(
 )
 
 # Or use Parquet
-rtd.to_parquet('data/output/monthly_gdp_rtd.parquet')
-rtd = pd.read_parquet('data/output/monthly_gdp_rtd.parquet')
+rtd.to_parquet('data/output/vintages/monthly_gdp_vintages.parquet')
+rtd = pd.read_parquet('data/output/vintages/monthly_gdp_vintages.parquet')
 ```
 
 ### Execution Time

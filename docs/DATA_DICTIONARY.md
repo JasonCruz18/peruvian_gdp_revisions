@@ -567,7 +567,7 @@ metadata:
 **Examples:**
 - `monthly_gdp_vintages.csv` → Monthly RTD, vintage format, all data
 - `monthly_gdp_releases_adjusted_benchmark.csv` → Monthly benchmark, releases format, with base-year sentinels
-- `quarterly_annual_gdp_rtd.parquet` → Quarterly/annual RTD, vintage format, Parquet file
+- `quarterly_gdp_vintages.parquet` → Quarterly/annual RTD, vintage format, Parquet file
 
 ---
 

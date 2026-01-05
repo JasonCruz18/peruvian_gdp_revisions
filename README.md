@@ -188,24 +188,24 @@ The pipeline consists of 6 sequential steps:
 All outputs are written to `data/output/` with extension based on `features.persist_format`.
 
 ### Vintage datasets (`data/output/vintages/`)
-- `monthly_gdp_rtd.<ext>`
-- `quarterly_annual_gdp_rtd.<ext>`
-- `by_adjusted_monthly_gdp_rtd.<ext>`
-- `by_adjusted_quarterly_annual_gdp_rtd.<ext>`
-- `monthly_gdp_benchmark.<ext>`
-- `quarterly_annual_gdp_benchmark.<ext>`
-- `by_adjusted_monthly_gdp_benchmark.<ext>`
-- `by_adjusted_quarterly_annual_gdp_benchmark.<ext>`
+- `monthly_gdp_vintages.<ext>`
+- `quarterly_gdp_vintages.<ext>`
+- `monthly_gdp_vintages_adjusted.<ext>`
+- `quarterly_gdp_vintages_adjusted.<ext>`
+- `monthly_gdp_vintages_benchmark.<ext>`
+- `quarterly_gdp_vintages_benchmark.<ext>`
+- `monthly_gdp_vintages_adjusted_benchmark.<ext>`
+- `quarterly_gdp_vintages_adjusted_benchmark.<ext>`
 
 ### Releases datasets (`data/output/releases/`)
 - `monthly_gdp_releases.<ext>`
-- `quarterly_annual_gdp_releases.<ext>`
-- `by_adjusted_monthly_gdp_releases.<ext>`
-- `by_adjusted_quarterly_annual_gdp_releases.<ext>`
-- `monthly_gdp_benchmark_releases.<ext>`
-- `quarterly_annual_gdp_benchmark_releases.<ext>`
-- `by_adjusted_monthly_gdp_benchmark_releases.<ext>`
-- `by_adjusted_quarterly_annual_gdp_benchmark_releases.<ext>`
+- `quarterly_gdp_releases.<ext>`
+- `monthly_gdp_releases_adjusted.<ext>`
+- `quarterly_gdp_releases_adjusted.<ext>`
+- `monthly_gdp_releases_benchmark.<ext>`
+- `quarterly_gdp_releases_benchmark.<ext>`
+- `monthly_gdp_releases_adjusted_benchmark.<ext>`
+- `quarterly_gdp_releases_adjusted_benchmark.<ext>`
 
 ---
 

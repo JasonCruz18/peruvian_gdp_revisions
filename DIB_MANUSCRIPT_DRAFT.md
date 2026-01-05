@@ -189,9 +189,9 @@ Each variant exists in both vintage and releases formats, yielding 16 total file
 | File Name Pattern | Format | Frequency | Size Range | Rows | Columns |
 |-------------------|--------|-----------|------------|------|---------|
 | `monthly_gdp_*.csv` | Vintage | Monthly | 2.9-3.0 MB | ~5,000 | ~400 |
-| `quarterly_annual_gdp_*.csv` | Vintage | Quarterly/Annual | 1.3-1.4 MB | ~2,000 | ~170 |
+| `quarterly_gdp_*.csv` | Vintage | Quarterly/Annual | 1.3-1.4 MB | ~2,000 | ~170 |
 | `monthly_gdp_*_releases.csv` | Releases | Monthly | 192-219 KB | ~380 | ~150 |
-| `quarterly_annual_gdp_*_releases.csv` | Releases | Quarterly/Annual | 171-205 KB | ~130 | ~75 |
+| `quarterly_gdp_*_releases.csv` | Releases | Quarterly/Annual | 171-205 KB | ~130 | ~75 |
 
 ### Economic Sectors Covered
 
@@ -429,8 +429,8 @@ peru_gdp_rtd/cleaners/
 **Code:** `peru_gdp_rtd/transformers/concatenator.py` (368 lines)
 
 **Output:**
-- `data/output/vintages/monthly_gdp_rtd.parquet` (331 KB)
-- `data/output/vintages/quarterly_annual_gdp_rtd.parquet` (143 KB)
+- `data/output/vintages/monthly_gdp_vintages.parquet` (331 KB)
+- `data/output/vintages/quarterly_gdp_vintages.parquet` (143 KB)
 
 ### Stage 5: Metadata Handling and Base-Year Adjustments
 
@@ -472,8 +472,8 @@ peru_gdp_rtd/cleaners/
 - 2014m3 (WR 11): Reaffirmation of 2007 base year
 
 **Output:**
-- `by_adjusted_monthly_gdp_rtd.parquet` (328 KB)
-- `by_adjusted_quarterly_annual_gdp_rtd.parquet` (139 KB)
+- `monthly_gdp_vintages_adjusted.parquet` (328 KB)
+- `quarterly_gdp_vintages_adjusted.parquet` (139 KB)
 
 #### 5c. Benchmark Dataset Generation
 
@@ -485,8 +485,8 @@ peru_gdp_rtd/cleaners/
 3. Save as `*_benchmark` variants
 
 **Output:**
-- `monthly_gdp_benchmark.parquet` (246 KB)
-- `quarterly_annual_gdp_benchmark.parquet` (100 KB)
+- `monthly_gdp_vintages_benchmark.parquet` (246 KB)
+- `quarterly_gdp_vintages_benchmark.parquet` (100 KB)
 
 ### Stage 6: Releases Format Conversion
 
