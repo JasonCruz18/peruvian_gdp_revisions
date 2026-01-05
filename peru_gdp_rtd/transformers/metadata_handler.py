@@ -411,6 +411,7 @@ def apply_base_year_sentinel(
     sentinel: float = -999999.0,
     output_data_subfolder: str = ".",
     csv_file_labels: Optional[List[str]] = None,
+    adjusted_dataset_labels: Optional[List[str]] = None,
     persist_format: str = "csv",
     force: bool = False,
 ) -> Dict[str, pd.DataFrame]:
@@ -437,19 +438,21 @@ def apply_base_year_sentinel(
         sentinel: Numeric value to mark invalid entries (default: -999999.0)
         output_data_subfolder: Folder containing RTD CSV files
         csv_file_labels: List of CSV file labels to process
-            If None, defaults to ["monthly_gdp_rtd.csv", "quarterly_annual_gdp_rtd.csv"]
+            If None, defaults to ["monthly_gdp_vintages.csv", "quarterly_gdp_vintages.csv"]
+        adjusted_dataset_labels: Optional list of output labels to use for adjusted datasets.
+            If None, defaults to "by_adjusted_{input_label}" for each input.
         force: If True, reprocess all files regardless of timestamps
 
     Returns:
         Dictionary mapping adjusted filenames to DataFrames
-        Keys: "by_adjusted_{original_filename}"
+        Keys: adjusted dataset labels
 
     Example:
         >>> base_year_vintages = ["2017m20"]  # Base year changed in WR 20/2017
         >>> adjusted = apply_base_year_sentinel(
         ...     base_year_vintages=base_year_vintages,
         ...     output_data_subfolder="data/outputs",
-        ...     csv_file_labels=["monthly_gdp_rtd"],
+        ...     csv_file_labels=["monthly_gdp_vintages"],
         ...     force=False
         ... )
         >>> # Vintages before 2017m20 will have sentinel for tp_* columns
@@ -460,10 +463,17 @@ def apply_base_year_sentinel(
     print(f">> Output folder: {output_data_subfolder}")
 
     if csv_file_labels is None:
-        csv_file_labels = ["monthly_gdp_rtd", "quarterly_annual_gdp_rtd"]
+        csv_file_labels = ["monthly_gdp_vintages", "quarterly_gdp_vintages"]
 
     # Ensure labels don't have .csv extension
     csv_file_labels = [Path(lbl).stem for lbl in csv_file_labels]
+    if adjusted_dataset_labels is not None:
+        if len(adjusted_dataset_labels) != len(csv_file_labels):
+            raise ValueError("csv_file_labels and adjusted_dataset_labels must have same length")
+        adjusted_dataset_labels = [Path(lbl).stem for lbl in adjusted_dataset_labels]
+    else:
+        adjusted_dataset_labels = [f"by_adjusted_{lbl}" for lbl in csv_file_labels]
+    adjusted_label_map = dict(zip(csv_file_labels, adjusted_dataset_labels))
 
     processed_data = {}
     skipped_count = 0
@@ -502,7 +512,7 @@ def apply_base_year_sentinel(
     ):
 
         # 2) Determine output path and check if processing needed
-        adjusted_csv_label = f"by_adjusted_{csv_file_label}"
+        adjusted_csv_label = adjusted_label_map[csv_file_label]
         adjusted_csv_path = Path(output_data_subfolder) / f"{adjusted_csv_label}{csv_path.suffix}"
 
         # Timestamp-based check

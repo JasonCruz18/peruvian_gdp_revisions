@@ -345,6 +345,10 @@ def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> int:
                         settings.output_files["monthly_rtd"],
                         settings.output_files["quarterly_annual_rtd"],
                     ],
+                    adjusted_dataset_labels=[
+                        settings.output_files["by_adjusted_monthly"],
+                        settings.output_files["by_adjusted_quarterly"],
+                    ],
                     persist_format=settings.features.persist_format,
                     force=False,
                 )

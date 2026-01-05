@@ -18,6 +18,7 @@ This dataset provides a comprehensive real-time database (RTD) of Peru's Gross D
 - **Sectors:** 8 economic sectors (Primary, Manufacturing, Construction, Commerce, etc.)
 - **Base-Year Adjustments:** Accounts for methodological changes (1990, 1994, 2007 base years)
 - **Dual Formats:** Vintage format (columns = release dates) and Releases format (columns = revision sequences)
+- **Benchmark Indicators:** Files with "benchmark" in their names contain binary indicators (1.0 = benchmark revision with simultaneous update of monthly and quarterly/annual tables, 0.0 = otherwise) instead of growth rates
 
 ---
 
