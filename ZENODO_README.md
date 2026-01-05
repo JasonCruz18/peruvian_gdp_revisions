@@ -119,14 +119,34 @@ All datasets include 8 economic sectors:
 - Coverage: 2013–present
 
 ### Data Collection Method
-Data were collected using an automated pipeline:
-1. **Web Scraping:** Selenium-based scraper downloads PDF reports
-2. **PDF Extraction:** Tabula-py extracts GDP tables from PDFs
-3. **Data Cleaning:** 70+ cleaning functions standardize formats
+
+Data were collected using two distinct methodologies depending on the time period:
+
+#### Pre-2013 Data (Scanned PDFs - OCR-based Extraction)
+
+For the 1994-2012 period, Weekly Reports were only available as hardcover volumes at the BCRP's Renzo Rossini Library. The extraction process involved:
+
+1. **Physical Scanning:** Photocopying or photographing hardcover volumes to create scanned PDFs
+2. **OCR Processing:** Using Tesseract OCR engine with extensive pre-processing:
+   - Grayscale conversion and binarization
+   - Noise removal and skew correction
+   - Image scaling to ≥300 DPI resolution
+   - Contrast enhancement and border removal
+3. **Manual Verification:** Correcting OCR misclassifications and validating extracted data
+4. **Automated Cleaning:** Processing tables using specialized cleaning functions
+5. **Vintage Construction:** Systematic aggregation by release date
+
+#### Post-2013 Data (Digital PDFs - Automated Pipeline)
+
+Since 2013, Weekly Reports have been freely accessible online in digital PDF format, enabling automated extraction:
+
+1. **Web Scraping:** Selenium-based scraper downloads PDF reports from BCRP website
+2. **PDF Extraction:** Tabula-py extracts GDP tables from digital PDFs
+3. **Data Cleaning:** 70+ specialized cleaning functions standardize formats and handle irregularities
 4. **Vintage Construction:** Systematic aggregation by release date
 5. **Quality Validation:** Automated checks for continuity and monotonicity
 
-Full methodology documented in the accompanying research code repository.
+Both extraction methods feed into a unified data processing pipeline that generates the final RTD. Full methodology documented in the accompanying research code repository.
 
 ---
 
