@@ -15,7 +15,7 @@ This dataset provides a comprehensive real-time database (RTD) of Peru's Gross D
 **Key Features:**
 - **Coverage:** Monthly, quarterly, and annual GDP growth rates (1994–2025)
 - **Vintages Tracked:** 1000+ data releases across 30+ years
-- **Sectors:** 8 economic sectors (Primary, Manufacturing, Construction, Commerce, etc.)
+- **Industries:** 8 economic sectors or industries (Mining, Manufacturing, Construction, Commerce, etc.)
 - **Base-Year Adjustments:** Accounts for methodological changes (1990, 1994, 2007 base years)
 - **Dual Formats:** Vintage format (columns = release dates) and Releases format (columns = revision sequences)
 - **Benchmark Indicators:** Files with "benchmark" in their names contain binary indicators (1.0 = benchmark revision with simultaneous update of monthly and quarterly/annual tables, 0.0 = otherwise) instead of growth rates
@@ -67,8 +67,10 @@ Files in **`releases/`** directory use the **releases format** where:
 ### Column Naming Conventions
 
 #### Vintage Format:
-- **Index:** `period` (e.g., `2020m1`, `2020q1`, `2020`)
-- **Columns:** Release dates in `YYYY-MM-DD` format (e.g., `2020-01-17`)
+- **Index:** `vintages` (e.g., `2020m1`, `2020q1`, `2020`)
+- **Columns:** `target period (tp_)` (e.g., `tp_2020m3`, `tp_2020q3`, `tp_2022`)
+
+**Note:** We usually document this vintage data format in its reversed form, that is, columns as vintages and rows as target periods. However, for compactness when saving the dataset, this layout is preferable.
 
 #### Releases Format:
 - **Index:** `target_period` (e.g., `2020m1`)
@@ -83,14 +85,16 @@ All datasets include 8 economic sectors:
 
 | Code | English Name | Spanish Name |
 |------|-------------|--------------|
-| `primary_sector` | Primary Sector | Sector Primario |
+| `agriculture` | Agriculture | Agricultura |
+| `fishing` | Fishing | Pesca |
+| `mining` | Mining | Minería |
 | `manufacturing` | Manufacturing | Manufactura |
+| `electricity_water` | Electricity & Water | Electricidad y Agua |
 | `construction` | Construction | Construcción |
 | `commerce` | Commerce | Comercio |
-| `other_services` | Other Services | Otros Servicios |
+| `services` | Services | Servicios |
 | `gdp` | Total GDP | PBI Total |
-| `non_primary` | Non-Primary Sector | Sector No Primario |
-| `electricity_water` | Electricity & Water | Electricidad y Agua |
+
 
 ### Special Values
 
@@ -112,7 +116,7 @@ All datasets include 8 economic sectors:
 - URL: https://www.bcrp.gob.pe/publicaciones/nota-semanal.html
 - Historical Archive: https://www.bcrp.gob.pe/publicaciones/nota-semanal/nota-semanal-archivo.html
 - Update Frequency: Weekly (every Friday)
-- Coverage: 1994–2025
+- Coverage: 2013–present
 
 ### Data Collection Method
 Data were collected using an automated pipeline:
@@ -145,10 +149,10 @@ If you use this dataset in your research, please cite:
 
 ### Data Citation (BibTeX)
 ```bibtex
-@dataset{peru_gdp_rtd_2024,
+@dataset{peru_gdp_rtd_2025,
   author       = {Cruz, Jason and Winkelried, Diego and Torres, Javier},
-  title        = {Peru GDP Real-Time Dataset (1994-present)},
-  year         = {2024},
+  title        = {Peru GDP Real-Time Dataset (1994-2025)},
+  year         = {2025},
   publisher    = {Zenodo},
   version      = {1.0.0},
   doi          = {10.5281/zenodo.18099975},
@@ -162,7 +166,7 @@ If you use this dataset in your research, please cite:
 - Javier Torres: https://orcid.org/0000-0001-6850-1395
 
 ### Related Research Article
-[Optional: Add reference to your forthcoming research paper]
+Nowcasting GDP Using Data Revisions in an Emerging Economy
 
 ---
 
@@ -170,10 +174,7 @@ If you use this dataset in your research, please cite:
 
 This dataset is fully reproducible using the open-source code repository:
 - **Repository:** https://github.com/JasonCruz18/peru_gdp_revisions
-- **Code DOI:** [To be assigned via GitHub-Zenodo integration]
 - **Requirements:** Python 3.9+, 2GB disk space
-- **Installation:** `pip install -e .`
-- **Execution:** `python scripts/run_full_pipeline.py`
 
 **System Requirements:**
 - Operating System: Windows, macOS, or Linux
@@ -221,7 +222,7 @@ Under the following terms:
 For questions, issues, or collaboration inquiries:
 
 **Corresponding Author:** Jason Cruz
-- **Email:** jj.cruza@up.edu.pe
+- **Email:** jj.cruza@up.edu.pe | jjcruzampa@gmail.com
 - **Institution:** Universidad del Pacífico - Centro de Investigación (CIUP)
 - **ORCID:** https://orcid.org/0009-0001-4640-5500
 
