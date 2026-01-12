@@ -122,19 +122,30 @@ All datasets include 8 economic sectors:
 
 Data were collected using two distinct methodologies depending on the time period:
 
-#### Pre-2013 Data (Scanned PDFs - OCR-based Extraction)
+#### Pre-2013 Data (Scanned PDFs - OCR-based Initial Extraction + Manual Curation)
 
 For the 1994-2012 period, Weekly Reports were only available as hardcover volumes at the BCRP's Renzo Rossini Library. The extraction process involved:
 
-1. **Physical Scanning:** Photocopying or photographing hardcover volumes to create scanned PDFs
-2. **OCR Processing:** Using Tesseract OCR engine with extensive pre-processing:
-   - Grayscale conversion and binarization
-   - Noise removal and skew correction
-   - Image scaling to ≥300 DPI resolution
-   - Contrast enhancement and border removal
-3. **Manual Verification:** Correcting OCR misclassifications and validating extracted data
-4. **Automated Cleaning:** Processing tables using specialized cleaning functions
+1. **Physical Scanning:** Photocopying or photographing hardcover volumes to create scanned PDFs (~228 files)
+2. **OCR Pipeline (Demonstrated on Year 2001):** Using Tesseract OCR 5.x with 11-step preprocessing:
+   - PDF-to-PNG conversion at 300 DPI
+   - Grayscale conversion and adaptive binarization (Otsu's method)
+   - Median filtering for noise removal
+   - Skew detection and correction (with ±90° rejection for orientation issues)
+   - CLAHE contrast enhancement for poor-quality scans
+   - Border removal and morphological thinning
+   - Bilingual sector recognition (Spanish + English)
+   - Fuzzy matching to tolerate OCR errors (e.g., "agropeciano"→"agropecuario")
+   - **Result:** ~70% data completeness on automated extraction
+3. **Manual Review & Curation:** Human verification and correction of all OCR outputs
+   - Correcting OCR misclassifications (character recognition errors)
+   - Filling missing values from original scanned documents
+   - Validating sector names and numeric values
+   - **Final curated CSVs** stored in `data/raw/old_weekly_reports/` (code repository)
+4. **Automated Cleaning:** Processing curated tables using specialized cleaning functions
 5. **Vintage Construction:** Systematic aggregation by release date
+
+**Transparency Note:** The OCR pipeline code and documentation are publicly available in the code repository (`OCR/` directory) with year 2001 (12 PDFs) processed as a demonstration of the methodology. The final manually-curated CSVs represent the official "raw data" for pre-2013 periods. We chose not to include the 228 scanned PDFs in this Zenodo deposit to avoid redundancy, as the curated CSVs are the authoritative source.
 
 #### Post-2013 Data (Digital PDFs - Automated Pipeline)
 
