@@ -1,0 +1,30 @@
+# OCR Pipeline Dependencies
+# ==========================
+# For processing scanned Weekly Report PDFs (1994-2012)
+
+# Image processing
+Pillow>=10.0.0
+opencv-python>=4.8.0
+scikit-image>=0.21.0
+
+# PDF handling
+pdf2image>=1.16.3
+
+# OCR
+pytesseract>=0.3.10
+
+# Data processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Utilities
+tqdm>=4.65.0
+pyyaml>=6.0
+
+# System Requirements (install separately):
+# - Tesseract OCR 5.x: https://github.com/UB-Mannheim/tesseract/wiki
+#   * Must include Spanish (spa) and English (eng) language packs
+#   * Add to PATH: C:\Program Files\Tesseract-OCR
+#
+# - Poppler (for pdf2image): https://github.com/oschwartz10612/poppler-windows/releases
+#   * Extract and add bin/ to PATH

@@ -14,6 +14,7 @@ Key features:
 - Automated BCRP PDF download with record-based idempotency
 - Shortened PDFs with key GDP tables only
 - Table extraction and cleaning for old (CSV) and new (PDF) sources
+- **OCR pipeline for pre-2013 scanned documents** (demonstrated on year 2001, see `OCR/README.md`)
 - Vintage dataset construction and concatenation
 - Base-year and benchmark revision handling
 - Configuration-driven execution with a one-button CLI
@@ -112,12 +113,34 @@ peru_gdp_revisions/
 |       |-- data_manager.py
 |       |-- alerts.py
 |       `-- progress.py
+|-- OCR/                       # Standalone OCR pipeline (year 2001 demonstration)
+|   |-- ocr_config/
+|   |   |-- config.yaml
+|   |   `-- settings.py
+|   |-- ocr_processors/
+|   |   |-- image_preprocessor.py
+|   |   |-- table_extractor.py
+|   |   |-- ocr_engine.py
+|   |   |-- csv_converter.py
+|   |   `-- validator.py
+|   |-- ocr_utils/
+|   |   |-- logger.py
+|   |   |-- progress_tracker.py
+|   |   `-- file_manager.py
+|   |-- output/                # OCR results for year 2001
+|   |   `-- table_1/2001/
+|   |-- raw/                   # gitignored; scanned PDFs
+|   |   `-- 2001/
+|   |-- README.md
+|   |-- MANUAL_REVIEW_GUIDE.md
+|   `-- requirements.txt
 |-- config/
 |   |-- config.yaml
 |   `-- config.example.yaml
 |-- scripts/
 |   |-- update_rtd.py
-|   `-- validate_rtd.py
+|   |-- validate_rtd.py
+|   `-- run_ocr_pipeline.py   # OCR pipeline runner
 |-- data/                      # gitignored; shown for reference
 |   |-- raw/
 |   |   |-- new_weekly_reports/
@@ -125,7 +148,7 @@ peru_gdp_revisions/
 |   |   |   |-- ...
 |   |   |   |-- shortened_pdfs/
 |   |   |   `-- _quarantine/
-|   |   `-- old_weekly_reports/
+|   |   `-- old_weekly_reports/  # Manually-curated pre-2013 data
 |   |       |-- table_1/
 |   |       `-- table_2/
 |   |-- input/
