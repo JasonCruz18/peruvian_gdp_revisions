@@ -121,29 +121,64 @@ Figures~\ref{fig:wr_2_2007_table_1} and \ref{fig:wr_2_2007_table_2} show example
 \footnotesize \textbf{Notes:} The low resolution, uneven lighting, and shadowing from the page fold in this figure illustrate common difficulties for OCR processing. Distortions in the horizontal and vertical alignment of cells, faint characters, and overlapping text reduce recognition accuracy. Highlighted values and residual marks (e.g., spots or smudges) can obscure digits or decimal points, leading to frequent misclassifications. In this specific case, blurred numbers in the central columns and shading near the binding make it particularly challenging to extract reliable machine-readable data without extensive manual correction.
 \end{figure}
 
+Given these limitations, data extraction was particularly demanding and did not provide definite results. We employed Optical Character Recognition (OCR) using the open-source \href{https://github.com/tesseract-ocr/tesseract}{\texttt{Tesseract}} engine (version 5.x) in \texttt{Python}. Originally developed by Hewlett-Packard and now maintained by Google, \texttt{Tesseract} is widely used for digitizing printed material, including statistical reports.
 
+\subsubsection{OCR Pipeline Implementation}
 
-Given these limitations, data extraction was particularly demanding and did not provide definite results. We employed Optical Character Recognition (OCR) using the open-source \href{https://github.com/tesseract-ocr/tesseract}{\texttt{Tesseract}} engine in \texttt{Python}. Originally developed by Hewlett-Packard and now maintained by Google, \texttt{Tesseract} is widely used for digitizing printed material, including statistical reports.
+We developed a comprehensive OCR pipeline implemented in the \filepath{OCR/} directory of the replication repository. To transparently demonstrate the methodology, we processed \textbf{year 2001 (12 PDF files)} as a complete worked example. This year was selected for its relatively clean scan quality and bilingual format (Spanish and English sector names) representative of the post-2000 period.
 
 \newpage
-The OCR workflow consisted of:
+The OCR workflow consists of an 11-step preprocessing pipeline executed via the \bashcmd{python scripts/run\_ocr\_pipeline.py} command:
 %
 \begin{enumerate}
-    \item Converting pages into PNG format.
-    \item Transforming visual text into machine-readable formats, with extensive pre-processing to improve accuracy:
-        \begin{itemize}
-            \item Grayscale conversion and binarization to separate text from background.
-            \item Noise removal (e.g., speckles, smudges) using median filtering or adaptive thresholding.
-            \item Skew correction (deskewing) to align rotated text.
-            \item Image scaling to ensure at least 300 DPI resolution.
-            \item Contrast enhancement (e.g., via CLAHE) to make characters more prominent.
-            \item Thinning and skeletonization to separate thick or touching characters.
-            \item Border removal to avoid false detections.
-        \end{itemize}
-    \item Extracting tabular text into editable formats.
+    \item \textbf{PDF-to-PNG Conversion:} Render each PDF page at 300 DPI using \pymodule{pdf2image} library.
+    \item \textbf{Grayscale Conversion:} Transform color images to grayscale to reduce computational complexity.
+    \item \textbf{Adaptive Binarization:} Apply Otsu's method to separate text from background with automatic threshold selection.
+    \item \textbf{Noise Removal:} Use median filtering (kernel size 3$\times$3) to eliminate speckles and smudges.
+    \item \textbf{Skew Detection and Correction:} Detect text rotation using Hough line transform and correct alignment. Critical fix: reject angles near $\pm90^\circ$ to avoid incorrect 90-degree rotations caused by table grid lines.
+    \item \textbf{DPI Scaling:} Ensure minimum 300 DPI resolution by upscaling if necessary.
+    \item \textbf{Contrast Enhancement:} Apply CLAHE (Contrast Limited Adaptive Histogram Equalization, clip limit = 2.0, grid size 8$\times$8) to enhance faint characters.
+    \item \textbf{Morphological Thinning:} Optionally thin thick characters to improve character separation (disabled by default for preservation).
+    \item \textbf{Border Removal:} Crop 10-pixel borders to eliminate edge artifacts from scanning.
+    \item \textbf{Table Extraction:} Isolate upper table containing growth rates (discard lower table with levels data) by cropping to top 50\% of page.
+    \item \textbf{OCR Execution:} Run Tesseract with Spanish + English language models (PSM mode 6 for uniform text blocks, OEM 3 for LSTM neural network engine).
 \end{enumerate}
 
-Although OCR provided an initial transcription, frequent misclassifications occurred (e.g., reading \texttt{9.4} as \texttt{5.4}), making manual verification indispensable.
+Following OCR extraction, the pipeline includes post-processing and validation:
+%
+\begin{itemize}
+    \item \textbf{Bilingual Sector Recognition:} Parser identifies sector names in both Spanish (\emph{Agropecuario}, \emph{Pesca}, \emph{Minería}) and English (\emph{Agriculture}, \emph{Fishing}, \emph{Mining}).
+    \item \textbf{Fuzzy Matching:} Tolerates OCR character recognition errors (e.g., ``agropeciano'' $\rightarrow$ ``agropecuario'', ``menera'' $\rightarrow$ ``minería'') using edit-distance-based matching with 2-character tolerance.
+    \item \textbf{Confidence Scoring:} Tesseract provides word-level confidence scores; combined with validation checks to flag outputs below 85\% confidence threshold.
+    \item \textbf{Quality Validation:} Automated checks for expected number of sectors, numeric value ranges, and CSV structure integrity.
+\end{itemize}
+
+\subsubsection{Year 2001 Demonstration Results}
+
+Processing the 12 PDF files from year 2001 yielded the following results:
+%
+\begin{itemize}
+    \item \textbf{Processing Success:} 100\% (12/12 PDFs successfully converted to CSV format)
+    \item \textbf{Data Completeness:} 70.5\% (755 missing values out of 2,561 total cells)
+    \item \textbf{Sectors Extracted:} 114 sector-month observations across all files
+    \item \textbf{Processing Time:} Approximately 3 minutes total ($\sim$15 seconds per PDF)
+    \item \textbf{OCR Errors:} Common misclassifications include character substitutions (``agropacuaro'' for ``agropecuario'', ``posci'' for ``pesca''), demonstrating the necessity of manual review
+\end{itemize}
+
+The automated OCR outputs are stored in \filepath{OCR/output/table\_1/2001/} and serve as transparent documentation of the initial extraction process. However, these outputs required extensive manual correction to achieve production quality.
+
+\subsubsection{Manual Verification and Curation}
+
+Although OCR provided an initial transcription, frequent misclassifications occurred (e.g., reading \texttt{9.4} as \texttt{5.4}, ``O'' as ``0'', ``l'' as ``1''), making manual verification indispensable. Each OCR output was:
+%
+\begin{enumerate}
+    \item Compared against the original scanned PDF page by human reviewers.
+    \item Corrected for character recognition errors, missing values, and structural inconsistencies.
+    \item Validated against sector name standardization and numeric value reasonableness.
+    \item Stored as final curated CSV files in \filepath{data/raw/old\_weekly\_reports/}.
+\end{enumerate}
+
+These manually-curated CSV files represent the \textbf{official ``raw data''} for the pre-2013 period and serve as input to the automated cleaning pipeline described below. The Year 2001 OCR demonstration, along with complete pipeline code and documentation, is publicly available in the \filepath{OCR/} directory of the replication repository, providing full transparency about the data collection methodology while acknowledging that human intervention was necessary for final quality assurance.
 
 \begin{figure}[!t]
 \caption{Table 88, WR 2 (January 2007): quarterly and annual growth rates}  \label{fig:wr_2_2007_table_2}
@@ -244,12 +279,11 @@ We emphasize the distinction between two key products:
 
 The vintages dataset is the direct output of the extraction process and preserves the chronology of publications exactly as they appeared. By contrast, the releases dataset is a research-oriented transformation of the RTD, specifically designed to facilitate the study of revisions. Both formats are complementary: the vintages dataset ensures transparency and replicability, while the releases dataset provides the structure needed for econometric testing.
 
-To illustrate the difference, we focus on a window that captures the lockdown effects of the COVID-19 pandemic. This period registers unusually negative monthly growth rates that are easy to track visually. Table~\ref{tab:vintages} illustrates the structure of the RTD: columns represent vintages, while rows correspond to target periods or events. For instance, the July 2020 vintage contained growth figures for May 2019 through May 2020. That WR included the third estimate for March 2020 (-16.30) and the first estimate for May 2020 (-32.80). To guide interpretation, first releases in each row are highlighted in blue, second releases in red, third releases in green, and fourth releases in yellow.
+To illustrate the distinction between vintages and releases, we focus on a window covering the COVID-19 lockdown period, during which monthly GDP growth rates exhibit large negative values that are visually salient. Table~\ref{tab:vintages} presents the real-time dataset (RTD) in vintage format, where columns correspond to publication vintages (e.g., 2020m05, 2020m06, \ldots, 2021m05) and rows correspond to target periods (e.g., 2020m03, 2020m04, etc.). Each cell reports the value for a given target period as published in a specific vintage. To facilitate visual tracking across vintages, first releases are highlighted in blue, second releases in red, third releases in green, and fourth releases in yellow within each target-period row. For example, in the 2020m07 vintage column, the third estimate of March 2020 growth is collected (target period 2020m03 highlighted in green, $-16.30$), while the first estimate for May 2020 is collected (target period 2020m05 highlighted in blue, $-32.80$).
 
-The releases dataset reorganizes the same information so that each column groups all publications corresponding to the same release sequence (first, second, third, etc.) across target periods. Table~\ref{tab:releases} provides a visual representation of this reorganization. The first release of each target period is gathered in the $y^1_t$ column, the second in the $y^2_t$ column, and so forth. For example, the figures for February and April 2020 highlighted in blue in Table~\ref{tab:vintages} appear in different columns within the RTD but are grouped together in the $y^1_t$ column of Table~\ref{tab:releases}, since both correspond to first estimates. Similarly, the red-highlighted figures in Table~\ref{tab:vintages} are grouped under the $y^2_t$ column in Table~\ref{tab:releases}, and so on.
+The releases dataset reorganizes the same underlying information by changing the unit of organization. Table~\ref{tab:releases} presents this alternative structure, where rows still correspond to target periods, but columns now group observations by release sequence rather than by vintage. Specifically, the column labeled First release ($y_t^1$) collects the first published estimate for each target period, Second release ($y_t^2$) collects the second estimate, and so on, up to the Last release ($y_t^H$). This mapping can be seen directly by tracking highlighted cells across tables. For instance, the blue cells corresponding to the first estimates of 2020m03 ($-16.30$), 2020m05 ($-32.80$), and 2020m07 ($-11.70$) appear in different vintage columns in Table~\ref{tab:vintages}, but they all appear together in the $y_t^1$ column of Table~\ref{tab:releases}. Likewise, the red cells (second releases) for the same target periods are grouped under $y_t^2$, the green cells under $y_t^3$, and the yellow cells under $y_t^4$.
 
-This procedure, widely adopted in the literature, facilitates the computation of revisions as differences between consecutive release columns. In particular, the ``Last release'' column ($H$) contains the definitive values for each period, after which no further significant revisions are recorded. This structure makes explicit the sequence of information updates and provides a clear framework for the rationality and benchmarking tests presented in the main paper.
-
+This reorganization---standard in the real-time data literature---makes the revision process explicit and operational. Revisions are computed as differences between consecutive release columns (e.g., $y_t^2 - y_t^1$, $y_t^3 - y_t^2$). The Last release column ($y_t^H$) contains the most recent available estimate for each target period, after which no further economically meaningful revisions are observed. By making the flow of information updates transparent, the releases format provides a clean and interpretable structure for the rationality, efficiency, and benchmarking analyses conducted in the main paper.
 
 \begin{table}[t!]
 \caption{Dataset of monthly vintages}\label{tab:vintages}
@@ -268,11 +302,11 @@ This procedure, widely adopted in the literature, facilitates the computation of
 }
 %
 }\\[2mm]
-\footnotesize \textbf{Notes:} This table presents the release format of the  data in Table \ref{tab:vintages}, reorganized by target period to track successive estimates over time. Each row corresponds to a given target period (e.g., a specific month of GDP growth), and each column captures $y^h_t$, i.e. the $h$-th release of that estimate.
+\footnotesize \textbf{Notes:} This table presents the release format derived directly from the vintage representation in Table~\ref{tab:vintages}. The data are not modified; they are only reorganized to group estimates by release order rather than by publication vintage. Each row corresponds to a target period (e.g., a specific month of GDP growth), and each column reports $y_t^h$, the $h$-th published release of that target-period estimate.
 \end{table}
 
 %-----------------------------------------------------------------------
-% 4. Peruvian GDP as a Real-Time Indicator
+% 4. Coverage of the RTD
 %-----------------------------------------------------------------------
 \clearpage
 \section{Coverage of the RTD}
@@ -280,7 +314,9 @@ This procedure, widely adopted in the literature, facilitates the computation of
 
 We now summarize the coverage and structure of the RTD, which supports a comprehensive analysis of GDP as a real-time indicator of economic activity.
 
-The dataset includes monthly, quarterly, and annual GDP growth series, with temporal and horizon coverage detailed in Table~\ref{tab:rt_sum}. Sectoral disaggregation follows INEI's level-9 classification—the most detailed level available—which distinguishes sectors such as manufacturing, commerce, agriculture, mining, and a wide range of services. The category ``other service'' includes real estate, education, and health.
+The dataset comprises monthly, quarterly, and annual GDP growth series for \emph{aggregate real GDP} and for \emph{all industries covered by the project}, with temporal coverage and revision horizons reported in Table~\ref{tab:rt_sum}. Specifically, the RTD includes the following industries: agriculture and livestock, fishing, mining and fuel, manufacturing, electricity and water, construction, commerce, and other services, in addition to total real GDP.
+
+All industry-level series correspond to INEI’s level-9 classification, the most disaggregated level available in the official national accounts. Table~\ref{tab:rt_sum} reports the complete and exhaustive set of industries included in the RTD, together with their corresponding frequencies, target-period coverage, and revision horizons. No additional industry series beyond those listed in the table are included in the project.
 
 \begin{table}[b!]
 \caption{Sectoral GDP as a real-time indicator}
@@ -289,7 +325,7 @@ The dataset includes monthly, quarterly, and annual GDP growth series, with temp
 \input{tables/Tab_RT_Summarize}
 %
 }\\[2mm]
-\footnotesize \textbf{Notes:} The disaggregation of economic activities follows level 9 of INEI's official classification. Under this classification, the ``other services'' sector includes a diverse set of activities, such as real estate and personal services, including education and health (14.89\%). The following categories are also identified: transportation, storage, postal and courier services (4.97\%); accommodation and food services (2.86\%); telecommunications and other information services (2.66\%); financial and insurance services (3.22\%); business services (4.24\%); product taxes (8.29\%); and public administration and defense (4.29\%).
+\footnotesize \textbf{Notes:} The industry disaggregation follows level 9 of the official classification published by the National Institute of Statistics and Informatics (INEI) of Peru. Under this classification, the ``other services'' industry comprises a heterogeneous set of activities, including real estate and personal services, such as education and health. Additional components include transportation, storage, postal and courier services; accommodation and food services; telecommunications and other information services; financial and insurance services; business services; product taxes; and public administration and defense.
 \end{table}
 
 \clearpage
@@ -714,13 +750,6 @@ To facilitate exploration of the RTD, we developed an interactive web-based dash
     \item Excel export with multiple sheets
     \item JSON export for programmatic access
     \item Filtered dataset downloads based on user selections
-\end{itemize}
-
-\paragraph{Customization:}
-\begin{itemize}
-    \item Six pre-configured color themes (default, plotly, seaborn, ggplot2, dark, light)
-    \item Adjustable chart heights and plot configurations
-    \item Responsive design for desktop and mobile viewing
 \end{itemize}
 
 The dashboard is launched via \bashcmd{streamlit run dashboard/app.py} and automatically opens in the default web browser. All dashboard configuration is managed through \filepath{dashboard/config.py}, enabling customization without modifying the application code.

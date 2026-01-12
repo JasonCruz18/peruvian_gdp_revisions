@@ -18,6 +18,7 @@ Version: 1.0.0
 import os
 import re
 import time
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import fitz  # PyMuPDF
@@ -25,7 +26,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from peru_gdp_rtd.utils.data_manager import RecordManager
+from peru_gdp_rtd.utils.progress import progress_bar
 
 
 # ==============================================================================================
@@ -196,17 +197,19 @@ def mark_base_year_affected(df: pd.DataFrame) -> pd.DataFrame:
 def update_metadata(
     metadata_folder: str,
     input_pdf_folder: str,
-    record_folder: str,
-    record_txt: str,
     wr_metadata_csv: str,
     base_year_list: List[Dict[str, int]],
+    force: bool = False,
 ) -> pd.DataFrame:
     """
     Update metadata by processing new Weekly Report PDFs and applying base-year mappings.
 
+    Uses timestamp-based incremental processing: only processes year folders
+    with PDFs newer than the metadata CSV file.
+
     Workflow:
     1. Load existing metadata CSV (or create empty if none exists)
-    2. Identify unprocessed year folders
+    2. Identify year folders with PDFs newer than metadata CSV
     3. Extract revision data from PDF files
     4. Detect benchmark revisions (both tables reference same revision)
     5. Apply base-year mapping to new rows
@@ -217,10 +220,9 @@ def update_metadata(
     Args:
         metadata_folder: Folder where metadata CSV is stored
         input_pdf_folder: Folder where Weekly Report PDFs are organized by year
-        record_folder: Folder for processing records
-        record_txt: Record file name for tracking processed years
         wr_metadata_csv: Metadata CSV file name
         base_year_list: List of base-year change point dictionaries
+        force: If True, reprocess all years regardless of timestamps
 
     Returns:
         Updated DataFrame with columns:
@@ -241,19 +243,19 @@ def update_metadata(
         >>> metadata = update_metadata(
         ...     metadata_folder="data/metadata",
         ...     input_pdf_folder="data/inputs",
-        ...     record_folder="data/records",
-        ...     record_txt="metadata_processed.txt",
         ...     wr_metadata_csv="wr_metadata.csv",
-        ...     base_year_list=base_year_list
+        ...     base_year_list=base_year_list,
+        ...     force=False
         ... )
     """
     start_time = time.time()
-    print("\n🔄📋 Starting metadata update process...")
+    print("\n>> Starting metadata update process...")
 
     # 1) Read or initialize metadata
-    metadata_path = os.path.join(metadata_folder, wr_metadata_csv)
-    if os.path.exists(metadata_path):
+    metadata_path = Path(metadata_folder) / wr_metadata_csv
+    if metadata_path.exists():
         metadata = pd.read_csv(metadata_path)
+        metadata_mtime = metadata_path.stat().st_mtime
     else:
         metadata = pd.DataFrame(
             columns=[
@@ -267,78 +269,103 @@ def update_metadata(
                 "base_year_affected",
             ]
         )
+        metadata_mtime = 0  # Process all if metadata doesn't exist
 
-    # 2) Read processed years from record
-    record_manager = RecordManager(record_folder=record_folder, record_file=record_txt)
-    processed_years = record_manager.read_records()
-
-    # 3) List years to process
+    # 2) Identify year folders with newer PDFs (timestamp-based)
+    input_pdf_path = Path(input_pdf_folder)
     years = [
-        d
-        for d in sorted(os.listdir(input_pdf_folder))
-        if os.path.isdir(os.path.join(input_pdf_folder, d)) and d != "_quarantine"
+        d.name
+        for d in sorted(input_pdf_path.iterdir())
+        if d.is_dir() and d.name.isdigit() and d.name != "_quarantine"
     ]
-    years_to_process = [y for y in years if y not in processed_years]
+
+    years_to_process = []
+    for year in years:
+        year_folder = input_pdf_path / year
+        pdf_files = list(year_folder.glob("*.pdf"))
+
+        if not pdf_files:
+            continue
+
+        # Check if any PDF in this year is newer than metadata
+        if force:
+            years_to_process.append(year)
+        elif not metadata_path.exists():
+            years_to_process.append(year)
+        else:
+            # Get newest PDF in this year folder
+            newest_pdf_mtime = max(f.stat().st_mtime for f in pdf_files)
+            if newest_pdf_mtime > metadata_mtime:
+                years_to_process.append(year)
+
+    print(f">> Input PDF folder: {input_pdf_folder}")
+    print(f">> Metadata file: {metadata_path}")
 
     if not years_to_process:
-        print("✅ No new revisions to process.")
-        return metadata
+        print(">> No new revisions to process (metadata up-to-date).")
+        print(">> Refreshing base-year mapping from config.")
 
     new_rows = []
 
-    # 4) Extract revision data from PDF files
-    print(f"📂 Processing {len(years_to_process)} new year(s)...")
-    for year in tqdm(years_to_process, desc="Extracting metadata", colour="blue"):
-        year_folder = os.path.join(input_pdf_folder, year)
-        pdf_files = sorted(
-            [f for f in os.listdir(year_folder) if f.endswith(".pdf")],
-            key=lambda x: int(re.search(r"ns-(\d+)-", x).group(1)),
-        )
-
-        for month_idx, pdf_filename in enumerate(pdf_files, start=1):
-            pdf_path = os.path.join(year_folder, pdf_filename)
-
-            # Extract wr_number and year from filename
-            m = re.search(r"ns-(\d{1,2})-(\d{4})", pdf_filename)
-            if not m:
-                continue
-            wr_number = int(m.group(1))
-            year_int = int(m.group(2))
-
-            # Extract revision numbers from PDF pages
-            rev1, rev2 = extract_wr_update_from_pdf(pdf_path)
-
-            # Build row (base_year will be filled later)
-            new_rows.append(
-                {
-                    "year": year_int,
-                    "wr": wr_number,
-                    "month": month_idx,
-                    "revision_calendar_tab_1": (int(rev1) if str(rev1).isdigit() else np.nan),
-                    "revision_calendar_tab_2": (int(rev2) if str(rev2).isdigit() else np.nan),
-                    "benchmark_revision": (
-                        1
-                        if (str(rev1).isdigit() and str(rev2).isdigit() and int(rev1) == int(rev2))
-                        else 0
-                    ),
-                    "base_year": np.nan,
-                    "base_year_affected": 0,
-                }
+    # 3) Extract revision data from PDF files
+    if years_to_process:
+        print(f">> Processing {len(years_to_process)} new year(s)...")
+        for year in progress_bar(years_to_process, desc="Extracting metadata", unit="year"):
+            year_folder = input_pdf_path / year
+            pdf_files = sorted(
+                [f for f in year_folder.iterdir() if f.suffix == ".pdf"],
+                key=lambda x: int(re.search(r"ns-(\d+)-", x.name).group(1)),
             )
+
+            for month_idx, pdf_file in enumerate(pdf_files, start=1):
+                pdf_filename = pdf_file.name
+                pdf_path = str(pdf_file)
+
+                # Extract wr_number and year from filename
+                m = re.search(r"ns-(\d{1,2})-(\d{4})", pdf_filename)
+                if not m:
+                    continue
+                wr_number = int(m.group(1))
+                year_int = int(m.group(2))
+
+                # Extract revision numbers from PDF pages
+                rev1, rev2 = extract_wr_update_from_pdf(pdf_path)
+
+                # Build row (base_year will be filled later)
+                new_rows.append(
+                    {
+                        "year": year_int,
+                        "wr": wr_number,
+                        "month": month_idx,
+                        "revision_calendar_tab_1": (int(rev1) if str(rev1).isdigit() else np.nan),
+                        "revision_calendar_tab_2": (int(rev2) if str(rev2).isdigit() else np.nan),
+                        "benchmark_revision": (
+                            1
+                            if (
+                                str(rev1).isdigit()
+                                and str(rev2).isdigit()
+                                and int(rev1) == int(rev2)
+                            )
+                            else 0
+                        ),
+                        "base_year": np.nan,
+                        "base_year_affected": 0,
+                    }
+                )
 
     # 5) Build DataFrame for new rows
     new_df = pd.DataFrame(new_rows)
 
-    # 6) Apply base-year mapping to new rows
-    new_df = apply_base_years_block(new_df, base_year_list)
-
-    # 7) Mark base-year changes within new rows
-    new_df = mark_base_year_affected(new_df)
-
-    # 8) Concatenate with existing metadata
+    # 6) Concatenate with existing metadata
     updated = pd.concat([metadata, new_df], ignore_index=True)
 
-    # 9) Enforce dtypes
+    # 7) Recompute base-year mapping for all rows to reflect config
+    updated["base_year"] = pd.NA
+    updated["base_year_affected"] = 0
+    updated = apply_base_years_block(updated, base_year_list)
+    updated = mark_base_year_affected(updated)
+
+    # 8) Enforce dtypes
     int_cols = [
         "year",
         "wr",
@@ -356,21 +383,20 @@ def update_metadata(
             updated[col] = pd.to_numeric(updated[col], errors="coerce").astype("Int64")
 
     # 10) Save updated metadata
-    os.makedirs(metadata_folder, exist_ok=True)
+    metadata_path.parent.mkdir(parents=True, exist_ok=True)
     updated.to_csv(metadata_path, index=False)
-    print(f"💾 Updated metadata saved to {metadata_path}")
+    print(f">> Updated metadata saved to {metadata_path}")
 
-    # 11) Update processed records
-    record_manager.write_records(processed_years + years_to_process)
-
-    # 12) Summary
+    # 11) Summary
     elapsed_time = round(time.time() - start_time)
-    print(f"\n📊 Summary (Metadata Update):")
-    print(f"📂 {len(years)} total years in input folder")
-    print(f"🗃️ {len(processed_years)} already processed years")
-    print(f"🔹 {len(years_to_process)} new years processed")
-    print(f"📝 {len(new_rows)} new metadata rows extracted")
-    print(f"⏱️ Total elapsed time: {elapsed_time} seconds")
+    print("\n>> Summary (Metadata Update):")
+    print(f">> Input PDF folder: {input_pdf_folder}")
+    print(f">> Metadata file: {metadata_path}")
+    print(f">> Total years in input folder: {len(years)}")
+    print(f">> Years skipped (up-to-date): {len(years) - len(years_to_process)}")
+    print(f">> Years processed: {len(years_to_process)}")
+    print(f">> New metadata rows extracted: {len(new_rows)}")
+    print(f">> Time elapsed: {elapsed_time} seconds")
 
     return updated
 
@@ -385,9 +411,15 @@ def apply_base_year_sentinel(
     sentinel: float = -999999.0,
     output_data_subfolder: str = ".",
     csv_file_labels: Optional[List[str]] = None,
+    adjusted_dataset_labels: Optional[List[str]] = None,
+    persist_format: str = "csv",
+    force: bool = False,
 ) -> Dict[str, pd.DataFrame]:
     """
     Apply sentinel value to mark GDP estimates invalid due to base-year changes.
+
+    Uses timestamp-based processing: only processes if input RTD is newer
+    than output adjusted file or if output doesn't exist.
 
     When Peru's GDP undergoes base-year rebasing, estimates published before
     the change become incomparable with post-change estimates. This function
@@ -406,45 +438,102 @@ def apply_base_year_sentinel(
         sentinel: Numeric value to mark invalid entries (default: -999999.0)
         output_data_subfolder: Folder containing RTD CSV files
         csv_file_labels: List of CSV file labels to process
-            If None, defaults to ["monthly_gdp_rtd.csv", "quarterly_annual_gdp_rtd.csv"]
+            If None, defaults to ["monthly_gdp_vintages.csv", "quarterly_gdp_vintages.csv"]
+        adjusted_dataset_labels: Optional list of output labels to use for adjusted datasets.
+            If None, defaults to "by_adjusted_{input_label}" for each input.
+        force: If True, reprocess all files regardless of timestamps
 
     Returns:
         Dictionary mapping adjusted filenames to DataFrames
-        Keys: "by_adjusted_{original_filename}"
+        Keys: adjusted dataset labels
 
     Example:
         >>> base_year_vintages = ["2017m20"]  # Base year changed in WR 20/2017
         >>> adjusted = apply_base_year_sentinel(
         ...     base_year_vintages=base_year_vintages,
         ...     output_data_subfolder="data/outputs",
-        ...     csv_file_labels=["monthly_gdp_rtd"]
+        ...     csv_file_labels=["monthly_gdp_vintages"],
+        ...     force=False
         ... )
         >>> # Vintages before 2017m20 will have sentinel for tp_* columns
         >>> # that first appeared in 2017m20
     """
     start_time = time.time()
-    print("\n🔧 Starting base-year sentinel application...")
+    print("\n>> Starting base-year sentinel application...")
+    print(f">> Output folder: {output_data_subfolder}")
 
     if csv_file_labels is None:
-        csv_file_labels = ["monthly_gdp_rtd", "quarterly_annual_gdp_rtd"]
+        csv_file_labels = ["monthly_gdp_vintages", "quarterly_gdp_vintages"]
 
     # Ensure labels don't have .csv extension
-    csv_file_labels = [lbl.replace(".csv", "") for lbl in csv_file_labels]
+    csv_file_labels = [Path(lbl).stem for lbl in csv_file_labels]
+    if adjusted_dataset_labels is not None:
+        if len(adjusted_dataset_labels) != len(csv_file_labels):
+            raise ValueError("csv_file_labels and adjusted_dataset_labels must have same length")
+        adjusted_dataset_labels = [Path(lbl).stem for lbl in adjusted_dataset_labels]
+    else:
+        adjusted_dataset_labels = [f"by_adjusted_{lbl}" for lbl in csv_file_labels]
+    adjusted_label_map = dict(zip(csv_file_labels, adjusted_dataset_labels))
 
     processed_data = {}
+    skipped_count = 0
 
-    for csv_file_label in tqdm(csv_file_labels, desc="Applying sentinel", colour="yellow"):
-        # 1) Load CSV
-        csv_path = os.path.join(output_data_subfolder, f"{csv_file_label}.csv")
-        if not os.path.exists(csv_path):
-            print(f"⚠️ File not found, skipping: {csv_path}")
-            continue
+    available_inputs = []
+    missing_labels = []
 
-        df = pd.read_csv(csv_path)
+    for csv_file_label in csv_file_labels:
+        preferred = Path(output_data_subfolder) / f"{csv_file_label}.{persist_format}"
+        alternate_ext = "csv" if persist_format == "parquet" else "parquet"
+        alternate = Path(output_data_subfolder) / f"{csv_file_label}.{alternate_ext}"
+
+        if preferred.exists():
+            available_inputs.append((csv_file_label, preferred))
+        elif alternate.exists():
+            available_inputs.append((csv_file_label, alternate))
+            print(f"WARNING: File not found in preferred format, using fallback: {alternate}")
+        else:
+            missing_labels.append(csv_file_label)
+
+    if missing_labels:
+        print(
+            "WARNING: Missing input RTDs (skipping): "
+            + ", ".join(sorted(missing_labels))
+        )
+
+    if not available_inputs:
+        print(
+            f"WARNING: No RTD inputs found in {output_data_subfolder}. "
+            "Run step 4 to generate monthly/quarterly RTDs first."
+        )
+        return processed_data
+
+    for csv_file_label, csv_path in progress_bar(
+        available_inputs, desc="Applying sentinel", unit="file"
+    ):
+
+        # 2) Determine output path and check if processing needed
+        adjusted_csv_label = adjusted_label_map[csv_file_label]
+        adjusted_csv_path = Path(output_data_subfolder) / f"{adjusted_csv_label}{csv_path.suffix}"
+
+        # Timestamp-based check
+        if not force and adjusted_csv_path.exists():
+            input_mtime = csv_path.stat().st_mtime
+            output_mtime = adjusted_csv_path.stat().st_mtime
+
+            if input_mtime <= output_mtime:
+                print(f">> Skipping {csv_file_label} (output up-to-date)")
+                skipped_count += 1
+                continue
+
+        # 3) Load and process file
+        if csv_path.suffix == ".parquet":
+            df = pd.read_parquet(csv_path)
+        else:
+            df = pd.read_csv(csv_path)
 
         # 2) Validate required columns
         if "industry" not in df.columns or "vintage" not in df.columns:
-            raise ValueError(f"CSV must have 'industry' and 'vintage' columns: {csv_path}")
+            raise ValueError(f"File must have 'industry' and 'vintage' columns: {csv_path}")
 
         df["industry"] = df["industry"].astype(str)
         df["vintage"] = df["vintage"].astype(str)
@@ -481,19 +570,25 @@ def apply_base_year_sentinel(
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
         # 8) Save adjusted dataset
-        adjusted_csv_label = f"by_adjusted_{csv_file_label}"
-        adjusted_csv_path = os.path.join(output_data_subfolder, f"{adjusted_csv_label}.csv")
-        df.to_csv(adjusted_csv_path, index=False)
+        if adjusted_csv_path.suffix == ".parquet":
+            df.to_parquet(adjusted_csv_path, index=False)
+        else:
+            df.to_csv(adjusted_csv_path, index=False)
 
         processed_data[adjusted_csv_label] = df
-        print(f"💾 Saved: {adjusted_csv_label}.csv")
+        tqdm.write(f">> Saved: {adjusted_csv_path}")
 
     # 9) Summary
     elapsed_time = round(time.time() - start_time)
-    print(f"\n📊 Summary (Base-Year Sentinel Application):")
-    print(f"📂 {len(csv_file_labels)} files processed")
-    print(f"🔹 Sentinel value: {sentinel}")
-    print(f"⏱️ Total elapsed time: {elapsed_time} seconds")
+    outputs_created = ", ".join(sorted(processed_data.keys())) if processed_data else "None"
+    print("\n>> Summary (Base-Year Sentinel Application):")
+    print(f">> Output folder: {output_data_subfolder}")
+    print(f">> Total files: {len(available_inputs)}")
+    print(f">> Files skipped (up-to-date): {skipped_count}")
+    print(f">> Files processed: {len(processed_data)}")
+    print(f">> Output files created: {outputs_created}")
+    print(f">> Sentinel value: {sentinel}")
+    print(f">> Time elapsed: {elapsed_time} seconds")
 
     return processed_data
 
@@ -508,17 +603,22 @@ def convert_to_benchmark_dataset(
     csv_file_labels: List[str],
     metadata_folder: str,
     wr_metadata_csv: str,
-    record_folder: str,
-    record_txt: str,
     benchmark_dataset_labels: List[str],
+    sentinel: Optional[float] = -999999.0,
+    persist_format: str = "csv",
+    force: bool = False,
 ) -> Dict[str, pd.DataFrame]:
     """
     Generate benchmark revision indicator datasets from RTDs.
+
+    Uses timestamp-based processing: only processes if input RTD is newer
+    than output benchmark file or if output doesn't exist.
 
     Converts GDP growth rate RTDs into binary indicator datasets where:
     - 1.0 indicates a benchmark revision vintage
     - 0.0 indicates a non-benchmark vintage
     - NaN remains NaN
+    - Sentinel values (if provided) remain unchanged
 
     Benchmark revisions occur when BCRP revises both monthly (Table 1) and
     quarterly/annual (Table 2) estimates simultaneously, indicating a
@@ -529,9 +629,10 @@ def convert_to_benchmark_dataset(
         csv_file_labels: List of input CSV filenames (without .csv)
         metadata_folder: Folder where metadata CSV is stored
         wr_metadata_csv: Metadata CSV filename
-        record_folder: Folder for processing records
-        record_txt: Record filename for tracking processed files
         benchmark_dataset_labels: List of output filenames (without .csv)
+        sentinel: Sentinel value to preserve (e.g., base-year discontinuities).
+            Set to None to disable preservation.
+        force: If True, reprocess all files regardless of timestamps
 
     Returns:
         Dictionary mapping benchmark dataset labels to DataFrames
@@ -539,35 +640,33 @@ def convert_to_benchmark_dataset(
     Example:
         >>> benchmark_data = convert_to_benchmark_dataset(
         ...     output_data_subfolder="data/outputs",
-        ...     csv_file_labels=["monthly_gdp_rtd", "quarterly_annual_gdp_rtd"],
+        ...     csv_file_labels=["monthly_gdp_vintages", "quarterly_gdp_vintages"],
         ...     metadata_folder="data/metadata",
         ...     wr_metadata_csv="wr_metadata.csv",
-        ...     record_folder="data/records",
-        ...     record_txt="benchmark_processed.txt",
-        ...     benchmark_dataset_labels=["monthly_benchmark", "quarterly_benchmark"]
+        ...     benchmark_dataset_labels=["monthly_benchmark", "quarterly_benchmark"],
+        ...     force=False
         ... )
     """
     start_time = time.time()
-    print("\n🔄📊 Starting benchmark dataset generation...")
+    print("\n>> Starting benchmark dataset generation...")
+    print(f">> Output folder: {output_data_subfolder}")
 
     # 1) Validate input lengths
     if len(csv_file_labels) != len(benchmark_dataset_labels):
         raise ValueError("csv_file_labels and benchmark_dataset_labels must have same length")
 
-    # 2) Load processing records
-    record_manager = RecordManager(record_folder=record_folder, record_file=record_txt)
-    processed_files = record_manager.read_records()
     processed_results = {}
+    skipped_count = 0
 
-    # 3) Load and filter metadata
-    metadata_path = os.path.join(metadata_folder, wr_metadata_csv)
-    if not os.path.exists(metadata_path):
+    # 2) Load and filter metadata
+    metadata_path = Path(metadata_folder) / wr_metadata_csv
+    if not metadata_path.exists():
         raise FileNotFoundError(f"Metadata file not found: {metadata_path}")
 
     metadata = pd.read_csv(metadata_path)
     metadata_filtered = metadata[metadata["benchmark_revision"] == 1]
 
-    # 4) Build benchmark mapping dictionary
+    # 3) Build benchmark mapping dictionary
     benchmark_map = {
         f"{str(year)}m{str(month).zfill(2)}": True
         for year, month in zip(
@@ -576,7 +675,7 @@ def convert_to_benchmark_dataset(
         )
     }
 
-    # 5) Normalize benchmark keys (e.g., 1997m02 -> 1997m2)
+    # 4) Normalize benchmark keys (e.g., 1997m02 -> 1997m2)
     def normalize_key(v):
         match = re.match(r"^(\d{4})m0?(\d{1,2})$", v)
         if match:
@@ -586,24 +685,57 @@ def convert_to_benchmark_dataset(
 
     benchmark_map = {normalize_key(k): v for k, v in benchmark_map.items()}
 
-    # 6) Process each dataset
+    available_inputs = []
+    missing_labels = []
+
     for csv_label, benchmark_label in zip(csv_file_labels, benchmark_dataset_labels):
-        # Ensure labels don't have .csv extension
-        csv_label_clean = csv_label.replace(".csv", "")
-        benchmark_label_clean = benchmark_label.replace(".csv", "")
+        csv_label_clean = Path(csv_label).stem
+        benchmark_label_clean = Path(benchmark_label).stem
 
-        csv_path = os.path.join(output_data_subfolder, f"{csv_label_clean}.csv")
+        preferred = Path(output_data_subfolder) / f"{csv_label_clean}.{persist_format}"
+        alternate_ext = "csv" if persist_format == "parquet" else "parquet"
+        alternate = Path(output_data_subfolder) / f"{csv_label_clean}.{alternate_ext}"
 
-        if csv_label_clean in processed_files:
-            print(f"⏭️ Skipping already processed: {csv_label_clean}.csv")
+        if preferred.exists():
+            csv_path = preferred
+        elif alternate.exists():
+            csv_path = alternate
+            print(f"WARNING: File not found in preferred format, using fallback: {alternate}")
+        else:
+            missing_labels.append(csv_label_clean)
             continue
 
-        if not os.path.exists(csv_path):
-            print(f"⚠️ File not found, skipping: {csv_path}")
-            continue
+        output_path = Path(output_data_subfolder) / f"{benchmark_label_clean}{csv_path.suffix}"
+        available_inputs.append((csv_label_clean, benchmark_label_clean, csv_path, output_path))
 
-        print(f"\n🔹 Processing dataset: {csv_label_clean}.csv")
-        df = pd.read_csv(csv_path)
+    if missing_labels:
+        print(
+            "WARNING: Missing input RTDs (skipping): "
+            + ", ".join(sorted(missing_labels))
+        )
+
+    if not available_inputs:
+        print(
+            f"WARNING: No RTD inputs found in {output_data_subfolder}. "
+            "Run step 4 to generate monthly/quarterly RTDs first."
+        )
+        return processed_results
+
+    # 5) Process each dataset
+    for csv_label_clean, benchmark_label_clean, csv_path, output_path in available_inputs:
+
+        # Timestamp-based check
+        if not force and output_path.exists():
+            input_mtime = csv_path.stat().st_mtime
+            output_mtime = output_path.stat().st_mtime
+
+            if input_mtime <= output_mtime:
+                print(f">> Skipping {csv_label_clean} (output up-to-date)")
+                skipped_count += 1
+                continue
+
+        print(f"\n>> Processing dataset: {csv_label_clean}")
+        df = pd.read_parquet(csv_path) if csv_path.suffix == ".parquet" else pd.read_csv(csv_path)
 
         if "vintage" not in df.columns:
             raise ValueError(f"File must contain 'vintage' column: {csv_label_clean}")
@@ -624,6 +756,11 @@ def convert_to_benchmark_dataset(
 
         # Ensure numeric type
         df[tp_cols] = df[tp_cols].astype(float)
+        sentinel_value = None
+        sentinel_mask = None
+        if sentinel is not None:
+            sentinel_value = float(sentinel)
+            sentinel_mask = df[tp_cols].eq(sentinel_value)
 
         # 6.3) Diagnostic report
         vintages_df = set(df["vintage"].unique())
@@ -631,13 +768,13 @@ def convert_to_benchmark_dataset(
         matched = vintages_map.intersection(vintages_df)
         unmatched = vintages_map - vintages_df
 
-        print(f"🔍 Matching diagnostics for {csv_label_clean}.csv:")
-        print(f"   Total vintages in data: {len(vintages_df)}")
-        print(f"   Total benchmark vintages: {len(vintages_map)}")
-        print(f"   ✅ Matched vintages: {len(matched)} / {len(vintages_map)}")
-        print(f"   ⚠️ Unmatched vintages: {len(unmatched)}")
+        print(f">> Matching diagnostics for {csv_label_clean}.csv:")
+        print(f">>   Total vintages in data: {len(vintages_df)}")
+        print(f">>   Total benchmark vintages: {len(vintages_map)}")
+        print(f">>   Matched vintages: {len(matched)} / {len(vintages_map)}")
+        print(f">>   Unmatched vintages: {len(unmatched)}")
         if unmatched:
-            print(f"   Example unmatched: {list(sorted(unmatched))[:5]}")
+            print(f">>   Example unmatched: {list(sorted(unmatched))[:5]}")
 
         # 6.4) Apply vectorized replacement logic
         mask_benchmark = df["vintage"].isin(vintages_map)
@@ -651,26 +788,33 @@ def convert_to_benchmark_dataset(
                 df.loc[mask_benchmark, tp_cols].isna(), 1.0
             )
 
+        # Preserve sentinel values from base-year adjustments, if configured.
+        if sentinel_mask is not None:
+            df[tp_cols] = df[tp_cols].mask(sentinel_mask, sentinel_value)
+
         # Enforce float type
         df[tp_cols] = df[tp_cols].astype(float)
 
         # 6.5) Save processed dataset
-        output_path = os.path.join(output_data_subfolder, f"{benchmark_label_clean}.csv")
-        df.to_csv(output_path, index=False)
+        if output_path.suffix == ".parquet":
+            df.to_parquet(output_path, index=False)
+        else:
+            df.to_csv(output_path, index=False)
         processed_results[benchmark_label_clean] = df
 
-        processed_files.append(csv_label_clean)
-        print(f"💾 Saved benchmark dataset: {benchmark_label_clean}.csv")
+        print(f">> Saved benchmark dataset: {output_path.name}")
         print(f"   Rows: {len(df)}, Columns: {len(df.columns)}")
 
-    # 7) Update records and summarize
-    record_manager.write_records(processed_files)
-
+    # 6) Summary
     elapsed_time = round(time.time() - start_time)
-    print(f"\n📊 Summary (Benchmark Dataset Generation):")
-    print(f"📂 {len(csv_file_labels)} input files")
-    print(f"🔹 {len(processed_results)} benchmark datasets created")
-    print(f"🗃️ Record updated: {record_txt}")
-    print(f"⏱️ Total elapsed time: {elapsed_time} seconds")
+    outputs_created = ", ".join(sorted(processed_results.keys())) if processed_results else "None"
+    print("\n>> Summary (Benchmark Dataset Generation):")
+    print(f">> Output folder: {output_data_subfolder}")
+    print(f">> Metadata file: {metadata_path}")
+    print(f">> Total input files: {len(available_inputs)}")
+    print(f">> Files skipped (up-to-date): {skipped_count}")
+    print(f">> Benchmark datasets created: {len(processed_results)}")
+    print(f">> Output files created: {outputs_created}")
+    print(f">> Time elapsed: {elapsed_time} seconds")
 
     return processed_results

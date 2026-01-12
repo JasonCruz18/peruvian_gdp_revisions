@@ -1,6 +1,6 @@
-# Peru GDP Real-Time Dataset
+﻿# Peru GDP Real-Time Dataset
 
-> Automated construction pipeline for Peruvian GDP Real-Time Dataset from BCRP Weekly Reports
+> Automated pipeline for building Peruvian GDP real-time datasets from BCRP Weekly Reports
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -8,17 +8,16 @@
 
 ## Overview
 
-This project provides a comprehensive, production-ready pipeline for building Real-Time Datasets (RTD) of Peruvian GDP revisions. It automatically scrapes, processes, cleans, and transforms data from the Central Reserve Bank of Peru (BCRP) Weekly Reports into analysis-ready datasets.
+This project builds Real-Time Datasets (RTD) of Peruvian GDP revisions from the Central Reserve Bank of Peru (BCRP) Weekly Reports. The pipeline downloads PDFs, shortens them to key tables, cleans and structures the data, and produces vintage and release datasets for analysis.
 
-**Key Features:**
-- **Automated web scraping** from BCRP website using Selenium
-- **Robust PDF processing** with table extraction from scanned and digital PDFs
-- **Comprehensive data cleaning** with 70+ specialized transformation functions
-- **Real-time dataset construction** tracking GDP revisions over time
-- **Metadata management** for base-year changes and benchmark revisions
-- **One-button update** script for effortless dataset updates
-- **Configuration-driven** - no hardcoded values
-- **Fully replicable** - works from scratch for any user
+Key features:
+- Automated BCRP PDF download with record-based idempotency
+- Shortened PDFs with key GDP tables only
+- Table extraction and cleaning for old (CSV) and new (PDF) sources
+- **OCR pipeline for pre-2013 scanned documents** (demonstrated on year 2001, see `OCR/README.md`)
+- Vintage dataset construction and concatenation
+- Base-year and benchmark revision handling
+- Configuration-driven execution with a one-button CLI
 
 ---
 
@@ -26,26 +25,44 @@ This project provides a comprehensive, production-ready pipeline for building Re
 
 ### Installation
 
+Choose your preferred method (both are one-line simple):
+
+#### Option A: Conda (Recommended - Includes Java)
+
 ```bash
 # Clone the repository
 git clone https://github.com/JasonCruz18/peru_gdp_revisions.git
 cd peru_gdp_revisions
 
+# Create environment with all dependencies
+conda env create -f environment.yml
+
+# Activate environment
+conda activate peru_gdp_rtd
+```
+
+#### Option B: Pip + Virtual Environment
+
+```bash
+# Clone the repository
+git clone https://github.com/JasonCruz18/peru_gdp_revisions.git
+cd peru_gdp_revisions
+
+# Create and activate virtual environment
+python -m venv peru_gdp_rtd
+source peru_gdp_rtd/bin/activate  # On Windows: peru_gdp_rtd\Scripts\activate
+
 # Install dependencies
 pip install -r requirements.txt
-
-# Or install in development mode
-pip install -e .
 ```
+
+Note: Java (JRE) must be installed separately for PDF processing.
 
 ### Configuration
 
 ```bash
 # Copy example configuration
 cp config/config.example.yaml config/config.yaml
-
-# Edit configuration if needed (optional - defaults work out of the box)
-# nano config/config.yaml
 ```
 
 ### Run Pipeline
@@ -64,89 +81,93 @@ python scripts/update_rtd.py --skip-download
 python scripts/update_rtd.py --verbose
 ```
 
-That's it! The complete GDP RTD will be generated in `data/output/`.
+Outputs are written to `data/output/vintages/` and `data/output/releases/`. File extensions follow `features.persist_format` (csv or parquet).
 
 ---
 
 ## Project Structure
 
 ```
-peru_gdp_revisions/            # Root directory
-├── peru_gdp_rtd/              # Main Python package
-│   ├── config/
-│   │   ├── settings.py        # Type-safe Settings classes
-│   │   └── __init__.py
-│   │
-│   ├── scrapers/
-│   │   └── bcrp_scraper.py    # PDF downloader with Selenium
-│   │
-│   ├── processors/
-│   │   ├── pdf_processor.py   # PDF input generation
-│   │   ├── file_organizer.py  # Year-based file organization
-│   │   └── metadata.py        # Metadata parsing utilities
-│   │
-│   ├── cleaners/              # 70+ cleaning functions in 7 modules
-│   │   ├── old_table_cleaner.py    # OLD CSV cleaner class
-│   │   ├── new_table_cleaner.py    # NEW PDF cleaner class
-│   │   ├── text_cleaners.py        # 4 text normalization functions
-│   │   ├── table_cleaners.py       # 22 DataFrame operations
-│   │   ├── column_handlers.py      # 14 column manipulations
-│   │   ├── table1_cleaners.py      # 13 Table 1 specific functions
-│   │   └── table2_cleaners.py      # 13 Table 2 specific functions
-│   │
-│   ├── transformers/          # Data transformation and RTD construction
-│   │   ├── vintage_preparator.py   # VintagesPreparator class
-│   │   ├── concatenator.py         # RTD concatenation (372 lines)
-│   │   ├── metadata_handler.py     # Metadata & benchmarks (655 lines)
-│   │   └── releases_converter.py   # Release format converter (241 lines)
-│   │
-│   ├── orchestration/
-│   │   └── runners.py         # 4 high-level workflow runners
-│   │
-│   └── utils/
-│       ├── data_manager.py    # RecordManager for idempotency
-│       └── alerts.py          # Audio alert utilities
-│
-├── config/
-│   ├── config.yaml            # YAML configuration (231 lines)
-│   └── config.example.yaml    # Configuration template
-│
-├── scripts/
-│   └── update_rtd.py          # One-button update script ⭐
-│
-├── notebooks/                 # Educational Jupyter notebooks
-│   ├── new_gdp_rtd.ipynb      # Complete pipeline walkthrough (updated)
-│   ├── old_gdp_rtd.ipynb      # Legacy reference
-│   └── README.md              # Comprehensive notebook guide
-│
-├── data/                      # Generated datasets (gitignored)
-│   ├── input/                 # Intermediate data
-│   ├── output/                # Final RTD datasets ⭐
-│   │   ├── vintages/          # Vintage-format intermediate files
-│   │   ├── monthly_gdp_rtd.csv
-│   │   ├── quarterly_annual_gdp_rtd.csv
-│   │   └── [10+ dataset variants]
-│   └── records/               # Processing records for idempotency
-│
-├── metadata/
-│   └── wr_metadata.csv        # Revision metadata (tracked in git)
-│
-├── new_weekly_reports/        # Downloaded PDF files (gitignored)
-├── old_weekly_reports/        # Historical CSV files (gitignored)
-├── record/                    # Legacy progress tracking (gitignored)
-├── alert_track/               # Audio alerts (Beethoven.mp3)
-│
-├── tests/                     # Test suite
-│   └── test_smoke.py          # Smoke tests
-│
-├── docs/                      # Documentation
-│
-├── _Supplement.tex            # Publication-ready supplement (35 pages)
-├── pyproject.toml             # Modern Python packaging
-├── requirements.txt           # Dependencies
-├── requirements-dev.txt       # Development dependencies
-├── .gitignore                 # Ignore patterns
-└── README.md                  # This file
+peru_gdp_revisions/
+|-- peru_gdp_rtd/
+|   |-- config/
+|   |   |-- settings.py
+|   |   `-- __init__.py
+|   |-- scrapers/
+|   |   `-- bcrp_scraper.py
+|   |-- processors/
+|   |   |-- pdf_processor.py
+|   |   |-- file_organizer.py
+|   |   `-- metadata.py
+|   |-- cleaners/
+|   |   `-- ...
+|   |-- transformers/
+|   |   |-- vintage_preparator.py
+|   |   |-- concatenator.py
+|   |   |-- metadata_handler.py
+|   |   `-- releases_converter.py
+|   |-- orchestration/
+|   |   |-- runners.py
+|   |   `-- validation.py
+|   `-- utils/
+|       |-- data_manager.py
+|       |-- alerts.py
+|       `-- progress.py
+|-- OCR/                       # Standalone OCR pipeline (year 2001 demonstration)
+|   |-- ocr_config/
+|   |   |-- config.yaml
+|   |   `-- settings.py
+|   |-- ocr_processors/
+|   |   |-- image_preprocessor.py
+|   |   |-- table_extractor.py
+|   |   |-- ocr_engine.py
+|   |   |-- csv_converter.py
+|   |   `-- validator.py
+|   |-- ocr_utils/
+|   |   |-- logger.py
+|   |   |-- progress_tracker.py
+|   |   `-- file_manager.py
+|   |-- output/                # OCR results for year 2001
+|   |   `-- table_1/2001/
+|   |-- raw/                   # gitignored; scanned PDFs
+|   |   `-- 2001/
+|   |-- README.md
+|   |-- MANUAL_REVIEW_GUIDE.md
+|   `-- requirements.txt
+|-- config/
+|   |-- config.yaml
+|   `-- config.example.yaml
+|-- scripts/
+|   |-- update_rtd.py
+|   |-- validate_rtd.py
+|   `-- run_ocr_pipeline.py   # OCR pipeline runner
+|-- data/                      # gitignored; shown for reference
+|   |-- raw/
+|   |   |-- new_weekly_reports/
+|   |   |   |-- 2013/
+|   |   |   |-- ...
+|   |   |   |-- shortened_pdfs/
+|   |   |   `-- _quarantine/
+|   |   `-- old_weekly_reports/  # Manually-curated pre-2013 data
+|   |       |-- table_1/
+|   |       `-- table_2/
+|   |-- input/
+|   |   |-- table_1/
+|   |   `-- table_2/
+|   `-- output/
+|       |-- vintages/
+|       `-- releases/
+|-- metadata/
+|   `-- wr_metadata.csv
+|-- record/                    # gitignored
+|   |-- 1_downloaded_pdfs.txt
+|   `-- 2_shortened_pdfs.txt
+|-- docs/
+|-- notebooks/
+|-- tests/
+|-- requirements.txt
+|-- requirements-dev.txt
+`-- README.md
 ```
 
 ---
@@ -156,61 +177,58 @@ peru_gdp_revisions/            # Root directory
 The pipeline consists of 6 sequential steps:
 
 ### Step 1: Download PDFs
-- Automated web scraping from [BCRP Weekly Reports](https://www.bcrp.gob.pe/publicaciones/nota-semanal.html)
-- Selenium-based browser automation
-- Rate limiting to mimic human behavior
-- Retry logic with exponential backoff
+- Scrapes the BCRP Weekly Reports page
+- Downloads new PDFs to `data/raw/new_weekly_reports/`
+- Tracks downloads in `record/1_downloaded_pdfs.txt`
+- Organizes PDFs into year folders
 
-### Step 2: Generate Input PDFs
-- Extracts key pages containing GDP tables
-- Reduces file size by removing irrelevant pages
-- Keyword-based page detection
+### Step 2: Shorten PDFs
+- Extracts key pages with GDP tables
+- Writes shortened PDFs to `data/raw/new_weekly_reports/shortened_pdfs/<year>/`
+- Tracks processed files in `record/2_shortened_pdfs.txt`
 
-### Step 3: Clean Tables & Build RTD
-- Extracts tables from PDFs using Tabula
-- Applies 70+ cleaning transformations
-- Handles both OLD (CSV) and NEW (PDF) data sources
-- Normalizes sector names, removes noise, converts data types
-- Transforms to vintage format
+### Step 3: Clean Tables and Build Vintages
+- Extracts and cleans tables from old CSVs and shortened PDFs
+- Creates vintage-format files in `data/input/table_1/` and `data/input/table_2/`
 
-### Step 4: Concatenate RTD
-- Merges data across multiple years
-- Aligns columns by target period
-- Maintains chronological order
+### Step 4: Concatenate RTDs
+- Merges vintages across years
+- Outputs RTDs to `data/output/vintages/`
 
-### Step 5: Metadata & Benchmarking
-- Tracks base-year changes
-- Marks revisions affected by base-year updates
-- Generates benchmark datasets
+### Step 5: Metadata and Benchmarks
+- Updates `metadata/wr_metadata.csv`
+- Applies base-year sentinel adjustments
+- Generates benchmark datasets in `data/output/vintages/`
 
 ### Step 6: Convert to Releases
-- Transforms RTD to releases format
-- Aligns first, second, third... releases
-- Enables econometric analysis
+- Converts vintages to release-format datasets
+- Outputs to `data/output/releases/`
 
 ---
 
 ## Output Datasets
 
-All datasets are saved in `data/output/`:
+All outputs are written to `data/output/` with extension based on `features.persist_format`.
 
-**Real-Time Datasets (RTD):**
-- `monthly_gdp_rtd.csv` - Monthly GDP growth rates
-- `quarterly_annual_gdp_rtd.csv` - Quarterly/annual GDP growth rates
+### Vintage datasets (`data/output/vintages/`)
+- `monthly_gdp_vintages.<ext>`
+- `quarterly_gdp_vintages.<ext>`
+- `monthly_gdp_vintages_adjusted.<ext>`
+- `quarterly_gdp_vintages_adjusted.<ext>`
+- `monthly_gdp_vintages_benchmark.<ext>`
+- `quarterly_gdp_vintages_benchmark.<ext>`
+- `monthly_gdp_vintages_adjusted_benchmark.<ext>`
+- `quarterly_gdp_vintages_adjusted_benchmark.<ext>`
 
-**Base-Year Adjusted:**
-- `by_adjusted_monthly_gdp_rtd.csv`
-- `by_adjusted_quarterly_annual_gdp_rtd.csv`
-
-**Benchmark Datasets:**
-- `monthly_gdp_benchmark.csv`
-- `quarterly_annual_gdp_benchmark.csv`
-- (+ base-year adjusted versions)
-
-**Releases Datasets:**
-- `monthly_gdp_releases.csv`
-- `quarterly_annual_gdp_releases.csv`
-- (+ benchmark and adjusted versions)
+### Releases datasets (`data/output/releases/`)
+- `monthly_gdp_releases.<ext>`
+- `quarterly_gdp_releases.<ext>`
+- `monthly_gdp_releases_adjusted.<ext>`
+- `quarterly_gdp_releases_adjusted.<ext>`
+- `monthly_gdp_releases_benchmark.<ext>`
+- `quarterly_gdp_releases_benchmark.<ext>`
+- `monthly_gdp_releases_adjusted_benchmark.<ext>`
+- `quarterly_gdp_releases_adjusted_benchmark.<ext>`
 
 ---
 
@@ -222,7 +240,7 @@ All datasets are saved in `data/output/`:
 # Run complete pipeline
 python scripts/update_rtd.py
 
-# Run steps 3-6 only (skip download and input generation)
+# Run steps 3-6 only
 python scripts/update_rtd.py --steps 3,4,5,6
 
 # Use custom configuration
@@ -230,78 +248,59 @@ python scripts/update_rtd.py --config path/to/custom_config.yaml
 
 # Dry run (see what would be executed)
 python scripts/update_rtd.py --dry-run
-
-# Verbose mode for debugging
-python scripts/update_rtd.py --verbose
 ```
 
-### Python API (Future)
+### Validate Outputs
 
-```python
-from peru_gdp_rtd.config import get_settings
-from peru_gdp_rtd.orchestration.pipeline import GDPRTDPipeline
-
-# Initialize pipeline
-settings = get_settings('config/config.yaml')
-pipeline = GDPRTDPipeline(settings)
-
-# Run all steps
-pipeline.run_all()
-
-# Or run individual steps
-pipeline.run_step_1_download()
-pipeline.run_step_2_generate_inputs()
-pipeline.run_step_3_clean_and_build()
-# ...
+```bash
+python scripts/validate_rtd.py
 ```
 
 ### Jupyter Notebooks
 
-Open `notebooks/new_gdp_rtd.ipynb` for a complete, step-by-step walkthrough with explanations and visualizations.
+Open `notebooks/new_gdp_rtd.ipynb` for a full walkthrough with explanations and examples.
 
 ---
 
 ## Configuration
 
-All pipeline settings are managed in `config/config.yaml`. Key settings:
+Key settings in `config/config.yaml`:
 
 ```yaml
 scraper:
-  browser: "chrome"        # Browser: chrome, firefox, edge
-  headless: false          # Run in background
-  max_downloads: 60        # Maximum PDFs to download
-
-cleaning:
-  decimal_places: 1        # Precision for growth rates
+  browser: "chrome"     # chrome, firefox, edge
+  headless: false
+  max_downloads: 60
 
 features:
-  enable_alerts: true      # Play audio alerts
-  persist_format: "csv"    # Output format: csv or parquet
+  enable_alerts: false
+  persist_format: "parquet"   # csv or parquet
+  validate_data: true
+
+record_files:
+  downloaded_pdfs: "1_downloaded_pdfs.txt"
+  shortened_pdfs: "2_shortened_pdfs.txt"
 ```
 
-See `config/config.example.yaml` for all available options.
+See `config/config.example.yaml` for all options.
 
 ---
 
 ## Requirements
 
-- **Python**: 3.10 or higher
-- **Java Runtime Environment (JRE)**: Required for tabula-py (PDF processing)
-- **Browser**: Chrome, Firefox, or Edge (for Selenium web scraping)
-
-All Python dependencies are listed in `requirements.txt` and will be installed automatically.
+- Python 3.10 or higher
+- Java Runtime Environment (JRE) for tabula-py
+- Chrome, Firefox, or Edge for Selenium web scraping
 
 ---
 
 ## Data Sources
 
-**Main Source**: [BCRP Weekly Reports](https://www.bcrp.gob.pe/publicaciones/nota-semanal.html)
+Main source: [BCRP Weekly Reports](https://www.bcrp.gob.pe/publicaciones/nota-semanal.html)
 
 The pipeline processes two types of data:
-- **NEW data** (2013+): Digital PDFs with editable tables
-- **OLD data** (pre-2013): Scanned PDFs converted to CSV
-
-No external datasets required - everything is downloaded automatically!
+- New data (2013+): digital PDFs with editable tables
+- Old data (pre-2013): scanned PDFs converted to CSV
 
 ---
 
@@ -316,13 +315,8 @@ pip install -r requirements-dev.txt
 ### Code Formatting
 
 ```bash
-# Format code with Black
 black peru_gdp_rtd/
-
-# Sort imports
 isort peru_gdp_rtd/
-
-# Lint
 flake8 peru_gdp_rtd/
 ```
 
@@ -336,28 +330,11 @@ pytest tests/
 
 ## Documentation
 
-- **Installation Guide**: See [docs/INSTALLATION.md](docs/INSTALLATION.md) *(coming soon)*
-- **Usage Guide**: See [docs/USAGE.md](docs/USAGE.md) *(coming soon)*
-- **API Documentation**: See [docs/API.md](docs/API.md) *(coming soon)*
-- **Plan File**: See refactoring plan at `.claude/plans/witty-gathering-snail.md`
-
----
-
-## Project Status
-
-**Current Status**: ✅ Production Ready (Weeks 1-7 Complete)
-- [x] **Week 1**: Package structure, configuration system, dependencies
-- [x] **Weeks 2-3**: Scrapers, processors, cleaners (70+ functions in 7 modules)
-- [x] **Week 4**: Transformation layer, vintage preparation, orchestration
-- [x] **Week 5**: Concatenation module, RTD merging
-- [x] **Week 5-6**: Metadata handler, benchmark datasets, releases converter
-- [x] **Week 7**: Complete pipeline integration, one-button execution
-- [x] Documentation updates
-- [ ] **Week 8**: Integration testing, pytest suite *(optional)*
-
-**Architecture**: Transformed from 4,393-line monolithic script to 14+ focused modules with zero hardcoding.
-
-See the [refactoring plan](.claude/plans/witty-gathering-snail.md) for detailed implementation notes.
+- Installation Guide: [docs/INSTALLATION.md](docs/INSTALLATION.md)
+- Usage Guide: [docs/USAGE.md](docs/USAGE.md)
+- Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Data Availability: [docs/DATA_AVAILABILITY.md](docs/DATA_AVAILABILITY.md)
+- FAQ: [FAQ.md](FAQ.md)
 
 ---
 
@@ -365,8 +342,8 @@ See the [refactoring plan](.claude/plans/witty-gathering-snail.md) for detailed 
 
 This project supports the research paper:
 
-**"Rationality and Nowcasting on Peruvian GDP Revisions"**
-by Jason Cruz
+"Rationality and Nowcasting on Peruvian GDP Revisions"
+by Jason Cruz, Diego Winkelried, and Javier Torres (Universidad del Pacifico - CIUP)
 
 The datasets generated by this pipeline enable analysis of:
 - GDP revision patterns in emerging markets
@@ -377,7 +354,7 @@ The datasets generated by this pipeline enable analysis of:
 
 ## Contributing
 
-Contributions are welcome! Please:
+Contributions are welcome. Please:
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -391,14 +368,31 @@ Contributions are welcome! Please:
 
 ## Citation
 
-If you use this dataset or code in your research, please cite:
+### For the Research Paper & Dataset
+
+If you use this dataset or research in your work, please cite:
 
 ```bibtex
-@article{cruz2024gdp,
+@article{cruz_etal_2025,
   title={Rationality and Nowcasting on Peruvian GDP Revisions},
+  author={Cruz, Jason and Winkelried, Diego and Torres, Javier},
+  year={2025},
+  journal={Data in Brief},
+  institution={Universidad del Pacifico - CIUP}
+}
+```
+
+### For the Code/Software
+
+If you use this code repository or pipeline, please cite:
+
+```bibtex
+@software{cruz2024pipeline,
+  title={Peru GDP Real-Time Dataset Construction Pipeline},
   author={Cruz, Jason},
   year={2024},
-  institution={Universidad del Pac\'ifico - CIUP}
+  url={https://github.com/JasonCruz18/peru_gdp_revisions},
+  institution={Universidad del Pacifico - CIUP}
 }
 ```
 
@@ -412,52 +406,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- **Central Reserve Bank of Peru (BCRP)** for providing public access to Weekly Reports
-- **Universidad del Pacífico - CIUP** for research support
+- Central Reserve Bank of Peru (BCRP) for public access to Weekly Reports
+- Universidad del Pacifico - CIUP for research support
 
 ---
 
 ## Contact
 
-**Jason Cruz**
+Jason Cruz
 Email: jj.cruza@up.edu.pe
 GitHub: [@JasonCruz18](https://github.com/JasonCruz18)
 
 ---
 
-## Troubleshooting
+## Support
 
-### Common Issues
-
-**Problem**: `FileNotFoundError: config/config.yaml not found`
-**Solution**: Copy the example config: `cp config/config.example.yaml config/config.yaml`
-
-**Problem**: `tabula-py` errors
-**Solution**: Install Java Runtime Environment (JRE)
-
-**Problem**: Selenium browser errors
-**Solution**: Ensure Chrome/Firefox/Edge is installed and up to date
-
-For more help, open an issue on GitHub.
-
----
-
-## Architecture Highlights
-
-This project demonstrates professional software engineering practices:
-
-- **Modular Design**: 14+ focused modules instead of monolithic script
-- **Type Safety**: Complete type hints throughout codebase
-- **Configuration-Driven**: Zero hardcoded values, all settings in YAML
-- **Idempotent Operations**: RecordManager ensures safe re-execution
-- **Progress Tracking**: tqdm integration for user feedback
-- **Error Resilience**: Graceful handling with detailed summaries
-- **Separation of Concerns**: Clear boundaries between scraping, processing, cleaning, transformation
-- **Professional Quality**: Black-formatted, well-documented, maintainable
-
-**Transformation Stats:**
-- Before: 1 file (4,393 lines)
-- After: 14+ modules (~4,000+ lines)
-- Functions: 100+ specialized operations
-- Configuration: 231 lines (YAML)
-- Result: Production-ready, research-grade pipeline ✨
+For issues, questions, or contributions:
+- GitHub Issues: https://github.com/JasonCruz18/peru_gdp_revisions/issues
+- Email: jj.cruza@up.edu.pe
+- Documentation: [FAQ.md](FAQ.md) and [docs/](docs/)

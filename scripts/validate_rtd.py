@@ -52,10 +52,10 @@ class RTDValidator:
         """Log message."""
         if self.verbose or level in ["ERROR", "WARNING"]:
             prefix = {
-                "INFO": "ℹ️",
-                "SUCCESS": "✓",
-                "WARNING": "⚠️",
-                "ERROR": "✗",
+                "INFO": "INFO:",
+                "SUCCESS": "OK:",
+                "WARNING": "WARNING:",
+                "ERROR": "ERROR:",
             }.get(level, "")
             print(f"{prefix} {message}")
 
@@ -163,15 +163,23 @@ class RTDValidator:
         Returns:
             List of validation results
         """
+        settings = get_settings()
+        vintages_dir = self.data_dir / "vintages"
+        releases_dir = self.data_dir / "releases"
+        if not vintages_dir.exists():
+            vintages_dir = self.data_dir
+        if not releases_dir.exists():
+            releases_dir = self.data_dir
+
         datasets = {
-            "Monthly RTD": "monthly_gdp_rtd.csv",
-            "Quarterly RTD": "quarterly_annual_gdp_rtd.csv",
-            "Monthly Releases": "monthly_gdp_releases.csv",
-            "Quarterly Releases": "quarterly_annual_gdp_releases.csv",
-            "Monthly Benchmark": "monthly_gdp_benchmark.csv",
-            "Quarterly Benchmark": "quarterly_annual_gdp_benchmark.csv",
-            "BY-Adjusted Monthly RTD": "by_adjusted_monthly_gdp_rtd.csv",
-            "BY-Adjusted Quarterly RTD": "by_adjusted_quarterly_annual_gdp_rtd.csv",
+            "Monthly RTD": vintages_dir / settings.output_files["monthly_rtd"],
+            "Quarterly RTD": vintages_dir / settings.output_files["quarterly_annual_rtd"],
+            "Monthly Releases": releases_dir / settings.output_files["monthly_releases"],
+            "Quarterly Releases": releases_dir / settings.output_files["quarterly_releases"],
+            "Monthly Benchmark": vintages_dir / settings.output_files["monthly_benchmark"],
+            "Quarterly Benchmark": vintages_dir / settings.output_files["quarterly_benchmark"],
+            "BY-Adjusted Monthly RTD": vintages_dir / settings.output_files["by_adjusted_monthly"],
+            "BY-Adjusted Quarterly RTD": vintages_dir / settings.output_files["by_adjusted_quarterly"],
         }
 
         self.log("=" * 60, "INFO")
@@ -180,8 +188,7 @@ class RTDValidator:
 
         results = []
 
-        for name, filename in datasets.items():
-            filepath = self.data_dir / filename
+        for name, filepath in datasets.items():
             result = self.validate_dataset(name, filepath)
             results.append(result)
 
@@ -206,19 +213,19 @@ class RTDValidator:
         print(f"Valid datasets: {valid}/{exists}")
 
         if self.errors:
-            print(f"\n❌ Errors: {len(self.errors)}")
+            print(f"\nErrors: {len(self.errors)}")
             for error in self.errors:
                 print(f"  - {error}")
 
         if self.warnings:
-            print(f"\n⚠️  Warnings: {len(self.warnings)}")
+            print(f"\nWarnings: {len(self.warnings)}")
             for warning in self.warnings[:10]:  # Show first 10
                 print(f"  - {warning}")
             if len(self.warnings) > 10:
                 print(f"  ... and {len(self.warnings) - 10} more")
 
         if not self.errors and not self.warnings:
-            print("\n✅ All checks passed!")
+            print("\nAll checks passed!")
 
         print("\n" + "=" * 60)
 
@@ -275,7 +282,7 @@ def main():
     data_dir = PROJECT_ROOT / args.data_dir
 
     if not data_dir.exists():
-        print(f"❌ Data directory not found: {data_dir}")
+        print(f"ERROR: Data directory not found: {data_dir}")
         print(f"Please run the pipeline first: python scripts/update_rtd.py")
         sys.exit(1)
 

@@ -16,24 +16,8 @@ Comprehensive guide to the Peru GDP RTD pipeline architecture, design decisions,
 
 ## Overview
 
-### Project Transformation
-
-The Peru GDP RTD pipeline was transformed from a monolithic 4,393-line script into a modular, production-ready system:
-
-**Before (Monolithic)**:
-- 1 file: 4,393 lines of code
-- Hardcoded values throughout
-- Difficult to test and maintain
-- No separation of concerns
-
-**After (Modular)**:
-- 14+ focused modules
-- 28 Python files (~4,000+ lines)
-- 100+ specialized functions
-- Zero hardcoding (YAML-driven)
-- Clear separation of concerns
-- Type-safe with complete type hints
-- Black-formatted for consistency
+This document explains how the pipeline is organized, how modules interact,
+and how data flows from raw PDFs to final datasets.
 
 ### Core Components
 
@@ -105,7 +89,7 @@ max_downloads = settings.scraper.max_downloads  # Type: int
 
 **Benefits**:
 - Catch errors at development time
-- Better IDE support (autocomplete, refactoring)
+- Better IDE support (autocomplete, navigation)
 - Self-documenting code
 - Improved maintainability
 
@@ -225,17 +209,17 @@ class RecordManager:
 BCRP Website
     │
     ▼
-[1. Web Scraping] → PDFs downloaded to new_weekly_reports/
+[1. Web Scraping] → PDFs downloaded to data/raw/new_weekly_reports/
     │
     ▼
 [2. PDF Processing] → Extract relevant pages → data/input/
     │
     ▼
-[3. Data Cleaning] → Standardize tables → data/output/vintages/
+[3. Data Cleaning] → Standardize tables → data/input/
     │
     ▼
-[4. Concatenation] → Merge vintages → monthly_gdp_rtd.csv
-    │                                   quarterly_annual_gdp_rtd.csv
+[4. Concatenation] → Merge vintages → monthly_gdp_vintages.csv
+    │                                   quarterly_gdp_vintages.csv
     ▼
 [5. Metadata] → Apply base-year info → by_adjusted_*.csv
     │                                   benchmark_*.csv
@@ -445,7 +429,7 @@ def run_step1_download(settings: Settings) -> None:
     """Step 1: Download PDFs from BCRP."""
 
 def run_step2_generate_inputs(settings: Settings) -> None:
-    """Step 2: Generate input PDFs."""
+    """Step 2: Shorten PDFs (extract key tables)."""
 
 def run_step3_clean_and_build(settings: Settings) -> None:
     """Step 3: Clean tables and build RTD."""
@@ -504,15 +488,18 @@ Raw PDF from BCRP website
 #### Step 1: Web Scraping
 ```python
 # Input: BCRP website
-# Output: PDFs in new_weekly_reports/
+# Output: PDFs in data/raw/new_weekly_reports/
 
-new_weekly_reports/
-├── NS_01_enero_2020.pdf
-├── NS_02_enero_2020.pdf
-└── ...
+data/raw/new_weekly_reports/
+├── 2020/
+│   ├── NS_01_enero_2020.pdf
+│   ├── NS_02_enero_2020.pdf
+│   └── ...
+├── shortened_pdfs/
+└── _quarantine/
 ```
 
-#### Step 2: PDF Processing
+#### Step 2: PDF Shortening
 ```python
 # Input: Downloaded PDFs
 # Output: Extracted tables in data/input/
@@ -751,14 +738,14 @@ if 7 in steps_to_run:
 ```python
 # Memory-efficient CSV reading
 rtd = pd.read_csv(
-    'data/output/monthly_gdp_rtd.csv',
+    'data/output/monthly_gdp_vintages.csv',
     dtype={'vintage_id': 'str'},
     index_col=0,
 )
 
 # Or use Parquet
-rtd.to_parquet('data/output/monthly_gdp_rtd.parquet')
-rtd = pd.read_parquet('data/output/monthly_gdp_rtd.parquet')
+rtd.to_parquet('data/output/vintages/monthly_gdp_vintages.parquet')
+rtd = pd.read_parquet('data/output/vintages/monthly_gdp_vintages.parquet')
 ```
 
 ### Execution Time

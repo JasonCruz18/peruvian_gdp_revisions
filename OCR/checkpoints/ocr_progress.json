@@ -1,0 +1,83 @@
+{
+  "created": "2026-01-11T23:01:05.682203",
+  "last_updated": "2026-01-11T23:07:47.301434",
+  "total_pdfs": 12,
+  "processed": 12,
+  "successful": 12,
+  "needs_review": 0,
+  "failed": 0,
+  "files": {
+    "ns_04_2001.pdf": {
+      "status": "completed",
+      "confidence": 0.2717527777777778,
+      "table_type": null,
+      "timestamp": "2026-01-11T23:01:38.633701"
+    },
+    "ns_08_2001.pdf": {
+      "status": "completed",
+      "confidence": 0.2768306052781303,
+      "table_type": null,
+      "timestamp": "2026-01-11T23:02:11.520905"
+    },
+    "ns_13_2001.pdf": {
+      "status": "completed",
+      "confidence": 0.292672590966416,
+      "table_type": null,
+      "timestamp": "2026-01-11T23:02:50.338455"
+    },
+    "ns_16_2001.pdf": {
+      "status": "completed",
+      "confidence": 0.258925850340136,
+      "table_type": null,
+      "timestamp": "2026-01-11T23:03:30.662200"
+    },
+    "ns_20_2001.pdf": {
+      "status": "completed",
+      "confidence": 0.28365365988653657,
+      "table_type": null,
+      "timestamp": "2026-01-11T23:04:00.820019"
+    },
+    "ns_25_2001.pdf": {
+      "status": "completed",
+      "confidence": 0.3157569219705142,
+      "table_type": null,
+      "timestamp": "2026-01-11T23:04:35.295233"
+    },
+    "ns_28_2001.pdf": {
+      "status": "completed",
+      "confidence": 0.5231774702517915,
+      "table_type": null,
+      "timestamp": "2026-01-11T23:05:04.521224"
+    },
+    "ns_33_2001.pdf": {
+      "status": "completed",
+      "confidence": 0.5411858185134519,
+      "table_type": null,
+      "timestamp": "2026-01-11T23:05:37.051688"
+    },
+    "ns_37_2001.pdf": {
+      "status": "completed",
+      "confidence": 0.5895611637722271,
+      "table_type": null,
+      "timestamp": "2026-01-11T23:06:10.595127"
+    },
+    "ns_41_2001.pdf": {
+      "status": "completed",
+      "confidence": 0.5635691055745785,
+      "table_type": null,
+      "timestamp": "2026-01-11T23:06:40.941279"
+    },
+    "ns_45_2001.pdf": {
+      "status": "completed",
+      "confidence": 0.49736034988209804,
+      "table_type": null,
+      "timestamp": "2026-01-11T23:07:14.066563"
+    },
+    "ns_48_2001.pdf": {
+      "status": "completed",
+      "confidence": 0.46197208862933703,
+      "table_type": null,
+      "timestamp": "2026-01-11T23:07:47.301434"
+    }
+  }
+}

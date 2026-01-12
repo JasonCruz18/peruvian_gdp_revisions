@@ -47,14 +47,14 @@ def load_rtd_data():
     datasets = {}
 
     dataset_files = {
-        "Monthly RTD": "monthly_gdp_rtd.csv",
-        "Quarterly RTD": "quarterly_annual_gdp_rtd.csv",
-        "Monthly Releases": "monthly_gdp_releases.csv",
-        "Quarterly Releases": "quarterly_annual_gdp_releases.csv",
-        "Monthly Benchmark": "monthly_gdp_benchmark.csv",
-        "Quarterly Benchmark": "quarterly_annual_gdp_benchmark.csv",
-        "BY-Adjusted Monthly": "by_adjusted_monthly_gdp_rtd.csv",
-        "BY-Adjusted Quarterly": "by_adjusted_quarterly_annual_gdp_rtd.csv",
+        "Monthly RTD": "vintages/monthly_gdp_vintages.csv",
+        "Quarterly RTD": "vintages/quarterly_gdp_vintages.csv",
+        "Monthly Releases": "releases/monthly_gdp_releases.csv",
+        "Quarterly Releases": "releases/quarterly_gdp_releases.csv",
+        "Monthly Benchmark": "vintages/monthly_gdp_vintages_benchmark.csv",
+        "Quarterly Benchmark": "vintages/quarterly_gdp_vintages_benchmark.csv",
+        "BY-Adjusted Monthly": "vintages/monthly_gdp_vintages_adjusted.csv",
+        "BY-Adjusted Quarterly": "vintages/quarterly_gdp_vintages_adjusted.csv",
     }
 
     for name, filename in dataset_files.items():

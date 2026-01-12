@@ -16,13 +16,17 @@ paths:
   data_input: "data/input"
   data_output: "data/output"
 
-  # PDF directories
-  pdf_root: "new_weekly_reports"
-  pdf_raw: "new_weekly_reports/raw"
-  pdf_input: "new_weekly_reports/input"
+  # Output subdirectories (new v1.0.0 structure)
+  vintages: "data/output/vintages"
+  releases: "data/output/releases"
+
+  # PDF directories (raw data)
+  pdf_root: "data/raw/new_weekly_reports"
+  pdf_raw: "data/raw/new_weekly_reports"
+  pdf_input: "data/raw/new_weekly_reports/shortened_pdfs"
 
   # Old weekly reports (legacy data)
-  old_weekly_reports: "old_weekly_reports"
+  old_weekly_reports: "data/raw/old_weekly_reports"
 
   # Metadata and tracking
   metadata: "metadata"
@@ -151,9 +155,6 @@ metadata:
     - year: 2014
       wr: 11
       base_year: 2007
-    - year: 2022
-      wr: 20
-      base_year: 2019
 
 # ====================
 # BENCHMARK CONFIGURATION
@@ -172,44 +173,35 @@ benchmark:
 # ====================
 record_files:
   downloaded_pdfs: "1_downloaded_pdfs.txt"
-  generated_inputs: "2_generated_input_pdfs.txt"
-  created_new_rtd_tab_1: "3_created_new_rtd_tab_1.txt"
-  created_new_rtd_tab_2: "3_created_new_rtd_tab_2.txt"
-  created_old_rtd_tab_1: "3_created_old_rtd_tab_1.txt"
-  created_old_rtd_tab_2: "3_created_old_rtd_tab_2.txt"
-  concatenated_tab_1: "4_concatenated_rtd_tab_1.txt"
-  concatenated_tab_2: "4_concatenated_rtd_tab_2.txt"
-  metadata_updated: "5_weekly_report_metadata.txt"
-  benchmark_converted: "5_converted_to_benchmark.txt"
-  releases_converted: "6_converted_to_releases.txt"
+  shortened_pdfs: "2_shortened_pdfs.txt"
 
 # ====================
 # OUTPUT FILES CONFIGURATION
 # ====================
 output_files:
   # Real-time datasets
-  monthly_rtd: "monthly_gdp_rtd.csv"
-  quarterly_annual_rtd: "quarterly_annual_gdp_rtd.csv"
+  monthly_rtd: "monthly_gdp_vintages.csv"
+  quarterly_annual_rtd: "quarterly_gdp_vintages.csv"
 
   # Base-year adjusted datasets
-  by_adjusted_monthly: "by_adjusted_monthly_gdp_rtd.csv"
-  by_adjusted_quarterly: "by_adjusted_quarterly_annual_gdp_rtd.csv"
+  by_adjusted_monthly: "monthly_gdp_vintages_adjusted.csv"
+  by_adjusted_quarterly: "quarterly_gdp_vintages_adjusted.csv"
 
   # Benchmark datasets
-  monthly_benchmark: "monthly_gdp_benchmark.csv"
-  quarterly_benchmark: "quarterly_annual_gdp_benchmark.csv"
-  by_adjusted_monthly_benchmark: "by_adjusted_monthly_gdp_benchmark.csv"
-  by_adjusted_quarterly_benchmark: "by_adjusted_quarterly_annual_gdp_benchmark.csv"
+  monthly_benchmark: "monthly_gdp_vintages_benchmark.csv"
+  quarterly_benchmark: "quarterly_gdp_vintages_benchmark.csv"
+  by_adjusted_monthly_benchmark: "monthly_gdp_vintages_adjusted_benchmark.csv"
+  by_adjusted_quarterly_benchmark: "quarterly_gdp_vintages_adjusted_benchmark.csv"
 
   # Releases datasets
   monthly_releases: "monthly_gdp_releases.csv"
-  quarterly_releases: "quarterly_annual_gdp_releases.csv"
-  by_adjusted_monthly_releases: "by_adjusted_monthly_gdp_releases.csv"
-  by_adjusted_quarterly_releases: "by_adjusted_quarterly_annual_gdp_releases.csv"
-  monthly_benchmark_releases: "monthly_gdp_benchmark_releases.csv"
-  quarterly_benchmark_releases: "quarterly_annual_gdp_benchmark_releases.csv"
-  by_adjusted_monthly_benchmark_releases: "by_adjusted_monthly_gdp_benchmark_releases.csv"
-  by_adjusted_quarterly_benchmark_releases: "by_adjusted_quarterly_annual_gdp_benchmark_releases.csv"
+  quarterly_releases: "quarterly_gdp_releases.csv"
+  by_adjusted_monthly_releases: "monthly_gdp_releases_adjusted.csv"
+  by_adjusted_quarterly_releases: "quarterly_gdp_releases_adjusted.csv"
+  monthly_benchmark_releases: "monthly_gdp_releases_benchmark.csv"
+  quarterly_benchmark_releases: "quarterly_gdp_releases_benchmark.csv"
+  by_adjusted_monthly_benchmark_releases: "monthly_gdp_releases_adjusted_benchmark.csv"
+  by_adjusted_quarterly_benchmark_releases: "quarterly_gdp_releases_adjusted_benchmark.csv"
 
 # ====================
 # LOGGING CONFIGURATION
@@ -224,7 +216,7 @@ logging:
 # FEATURE FLAGS
 # ====================
 features:
-  enable_alerts: true           # Play audio alerts after downloads
+  enable_alerts: false          # Play audio alerts after downloads (disabled for automated pipeline)
   persist_intermediate: true    # Save intermediate processing results
-  persist_format: "csv"         # Options: csv, parquet
+  persist_format: "csv"     # Options: csv, parquet
   validate_data: true           # Run data validation checks
