@@ -89,7 +89,7 @@ CSV files \\
 \hline
 \textbf{Data collection} &
 % INSTRUCTION: Describe instruments and methods. Max 600 characters without spaces.
-Data collected from BCRP Weekly Reports (1994-2025). Pre-2013: scanned PDFs processed with Tesseract OCR, manual verification, 70+ cleaning functions. Post-2013: Selenium web scraping, Tabula-py PDF extraction, automated cleaning pipeline. Monthly GDP tables systematically extracted, standardized, and organized by release date. Python-based processing with quality validation checks. \\
+Data collected from BCRP Weekly Reports (1994-2025). Pre-2013: scanned PDFs processed with 11-step Tesseract OCR pipeline (demonstrated on year 2001, achieving 70.5\% completeness), extensive manual verification, 70+ cleaning functions. Post-2013: Selenium web scraping, Tabula-py PDF extraction, automated cleaning pipeline. Monthly GDP tables systematically extracted, standardized, and organized by release date. Python-based processing with quality validation checks. Complete OCR code and demonstration outputs publicly available. \\
 \hline
 \textbf{Data source location} &
 % INSTRUCTION: Where data were collected or stored
@@ -274,24 +274,57 @@ Data collection employed two distinct methodologies depending on time period:
 
 \subsubsection*{Pre-2013 Data (Scanned PDFs - OCR-based Extraction)}
 
-\textbf{Physical Access:} Hardcover Weekly Report volumes were consulted in-person at the BCRP Renzo Rossini Library. Volumes were photocopied or photographed (no removal permitted).
+\textbf{Physical Access:} Hardcover Weekly Report volumes were consulted in-person at the BCRP Renzo Rossini Library. Volumes were photocopied or photographed (no removal permitted), producing approximately 228 scanned PDF files covering 1994-2012.
 
-\textbf{OCR Processing:} Scanned PDFs were processed using Tesseract OCR engine (version 4.1+, maintained by Google) with extensive preprocessing:
+\textbf{OCR Pipeline Implementation:} To demonstrate methodology transparency, we developed a comprehensive OCR pipeline and processed \textbf{year 2001 (12 PDF files)} as a complete worked example. This year was selected for its relatively clean scan quality and bilingual format (Spanish/English) representative of post-2000 publications. The complete pipeline, implemented in the \texttt{OCR/} directory, consists of 11 preprocessing steps:
+
 \begin{enumerate}
-\item PNG conversion at minimum 300 DPI resolution
-\item Grayscale conversion and adaptive binarization
-\item Noise removal via median filtering
-\item Skew correction (deskewing) for rotated text
-\item Contrast enhancement using CLAHE algorithm
-\item Border removal to prevent false detections
-\item Character thinning and skeletonization
+\item \textbf{PDF-to-PNG Conversion:} Render pages at 300 DPI using \texttt{pdf2image} library
+\item \textbf{Grayscale Conversion:} Transform color images to reduce computational complexity
+\item \textbf{Adaptive Binarization:} Apply Otsu's method for text-background separation
+\item \textbf{Noise Removal:} Median filtering (3×3 kernel) to eliminate speckles and smudges
+\item \textbf{Skew Correction:} Hough line transform for rotation detection; critical fix to reject angles near ±90° (prevents incorrect rotations from table grid lines)
+\item \textbf{DPI Scaling:} Ensure minimum 300 DPI resolution
+\item \textbf{CLAHE Enhancement:} Contrast Limited Adaptive Histogram Equalization (clip=2.0, grid=8×8) for faint characters
+\item \textbf{Morphological Thinning:} Optional character separation (disabled by default)
+\item \textbf{Border Removal:} Crop 10-pixel borders to eliminate edge artifacts
+\item \textbf{Table Extraction:} Isolate upper table (growth rates) by cropping to top 50\% of page
+\item \textbf{OCR Execution:} Tesseract 5.x with Spanish + English models (PSM=6, OEM=3)
 \end{enumerate}
+
+\textbf{Post-Processing Enhancements:}
+\begin{itemize}
+\item \textbf{Bilingual Sector Recognition:} Parser identifies sectors in Spanish (\emph{Agropecuario}, \emph{Pesca}) and English (\emph{Agriculture}, \emph{Fishing})
+\item \textbf{Fuzzy Matching:} Tolerates OCR character errors (e.g., "agropeciano"→"agropecuario", "menera"→"minería") using edit-distance matching with 2-character tolerance
+\item \textbf{Confidence Scoring:} Tesseract word-level confidence combined with validation checks; outputs below 85\% threshold flagged for review
+\item \textbf{Quality Validation:} Automated checks for expected sector count, numeric ranges, CSV structure
+\end{itemize}
+
+\textbf{Year 2001 Demonstration Results:}
+\begin{itemize}
+\item Processing success: 100\% (12/12 PDFs converted to CSV)
+\item Data completeness: 70.5\% (755 missing / 2,561 total cells)
+\item Sectors extracted: 114 sector-month observations
+\item Processing time: ~3 minutes (~15 seconds per PDF)
+\item OCR errors: Common character substitutions documented (e.g., "agropacuaro", "posci") demonstrating need for manual review
+\end{itemize}
+
+Automated OCR outputs stored in \texttt{OCR/output/table\_1/2001/} serve as transparent documentation of initial extraction. However, extensive manual correction was required for production quality.
 
 \textbf{Quality Challenges:} Scanned sources exhibited warped text, misaligned tables, shadowing, blur, highlighted entries, inconsistent fonts, and residual marks obscuring digits/decimal points. These issues necessitated extensive manual verification.
 
-\textbf{Manual Verification:} Each OCR-extracted table was manually reviewed and corrected for misclassifications (e.g., 9.4 read as 5.4). Corrected data were stored in CSV format.
+\textbf{Manual Verification and Curation:} Each OCR-extracted table was:
+\begin{enumerate}
+\item Compared against original scanned PDF by human reviewers
+\item Corrected for character recognition errors (e.g., "9.4" read as "5.4", "O"→"0", "l"→"1")
+\item Validated for missing values and structural inconsistencies
+\item Standardized for sector names and numeric reasonableness
+\item Stored as final curated CSV in \texttt{data/raw/old\_weekly\_reports/}
+\end{enumerate}
 
-\textbf{Automated Cleaning:} Pre-2013 tables were processed using Python module \texttt{peru\_gdp\_rtd.cleaners.old\_table\_cleaner} with orchestration functions \texttt{old\_table\_1\_runner} and \texttt{old\_table\_2\_runner}.
+These manually-curated CSV files represent the \textbf{official "raw data"} for pre-2013 periods. The Year 2001 OCR demonstration, complete pipeline code, and documentation are publicly available in the \texttt{OCR/} directory, providing full transparency about data collection methodology while acknowledging that human intervention was necessary for quality assurance.
+
+\textbf{Automated Cleaning:} Curated pre-2013 tables were processed using Python module \texttt{peru\_gdp\_rtd.cleaners.old\_table\_cleaner} with orchestration functions \texttt{old\_table\_1\_runner} and \texttt{old\_table\_2\_runner}.
 
 \subsubsection*{Post-2013 Data (Digital PDFs - Automated Pipeline)}
 
@@ -410,7 +443,12 @@ Automated validation checks include:
 \item numpy 1.24+ (numerical computations)
 \item selenium 4.0+ (web scraping)
 \item tabula-py 2.5+ (PDF table extraction)
-\item tesseract-ocr 4.1+ (OCR engine for pre-2013 data)
+\item tesseract-ocr 5.x (OCR engine for pre-2013 data, with Spanish + English packs)
+\item pytesseract 0.3+ (Python wrapper for Tesseract)
+\item opencv-python 4.8+ (image preprocessing)
+\item scikit-image 0.21+ (advanced image processing algorithms)
+\item pdf2image 1.16+ (PDF-to-PNG conversion)
+\item Pillow 10.0+ (image manipulation)
 \item PyMuPDF 1.23+ (PDF metadata extraction)
 \item tqdm 4.65+ (progress tracking)
 \item pyyaml 6.0+ (configuration parsing)
@@ -458,7 +496,9 @@ Estimated runtime: 45-60 minutes for complete pipeline; 5-10 minutes for increme
 
 This dataset has several limitations stemming from source data characteristics and collection constraints:
 
-\textbf{OCR Accuracy:} Pre-2013 data extraction via OCR is subject to recognition errors despite extensive preprocessing and manual verification. Poor scan quality (warping, shadowing, blur) in some hardcover volumes may introduce residual errors in early vintages.
+\textbf{OCR Methodology Demonstration:} While the complete OCR pipeline is publicly available and was successfully demonstrated on year 2001 (12 PDFs achieving 70.5\% automated completeness), we provide the OCR code and year 2001 outputs as methodological documentation. The official raw data for all pre-2013 periods are the manually-curated CSV files in \texttt{data/raw/old\_weekly\_reports/}, which underwent extensive human verification after OCR extraction. Users should note that OCR accuracy varied across years depending on scan quality.
+
+\textbf{OCR Accuracy:} Pre-2013 data extraction via OCR is subject to recognition errors despite extensive preprocessing and manual verification. Poor scan quality (warping, shadowing, blur) in some hardcover volumes necessitated more intensive manual correction. All OCR outputs underwent human review before inclusion in the final dataset.
 
 \textbf{Publication Irregularities:} While we reconstructed a monthly revision calendar, actual Weekly Report publication was sometimes irregular, particularly in early years. Missing or incomplete reports may create gaps in vintage coverage.
 
