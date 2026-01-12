@@ -121,27 +121,64 @@ Figures~\ref{fig:wr_2_2007_table_1} and \ref{fig:wr_2_2007_table_2} show example
 \footnotesize \textbf{Notes:} The low resolution, uneven lighting, and shadowing from the page fold in this figure illustrate common difficulties for OCR processing. Distortions in the horizontal and vertical alignment of cells, faint characters, and overlapping text reduce recognition accuracy. Highlighted values and residual marks (e.g., spots or smudges) can obscure digits or decimal points, leading to frequent misclassifications. In this specific case, blurred numbers in the central columns and shading near the binding make it particularly challenging to extract reliable machine-readable data without extensive manual correction.
 \end{figure}
 
-Given these limitations, data extraction was particularly demanding and did not provide definite results. We employed Optical Character Recognition (OCR) using the open-source \href{https://github.com/tesseract-ocr/tesseract}{\texttt{Tesseract}} engine in \texttt{Python}. Originally developed by Hewlett-Packard and now maintained by Google, \texttt{Tesseract} is widely used for digitizing printed material, including statistical reports.
+Given these limitations, data extraction was particularly demanding and did not provide definite results. We employed Optical Character Recognition (OCR) using the open-source \href{https://github.com/tesseract-ocr/tesseract}{\texttt{Tesseract}} engine (version 5.x) in \texttt{Python}. Originally developed by Hewlett-Packard and now maintained by Google, \texttt{Tesseract} is widely used for digitizing printed material, including statistical reports.
+
+\subsubsection{OCR Pipeline Implementation}
+
+We developed a comprehensive OCR pipeline implemented in the \filepath{OCR/} directory of the replication repository. To transparently demonstrate the methodology, we processed \textbf{year 2001 (12 PDF files)} as a complete worked example. This year was selected for its relatively clean scan quality and bilingual format (Spanish and English sector names) representative of the post-2000 period.
 
 \newpage
-The OCR workflow consisted of:
+The OCR workflow consists of an 11-step preprocessing pipeline executed via the \bashcmd{python scripts/run\_ocr\_pipeline.py} command:
 %
 \begin{enumerate}
-    \item Converting pages into PNG format.
-    \item Transforming visual text into machine-readable formats, with extensive pre-processing to improve accuracy:
-        \begin{itemize}
-            \item Grayscale conversion and binarization to separate text from background.
-            \item Noise removal (e.g., speckles, smudges) using median filtering or adaptive thresholding.
-            \item Skew correction (deskewing) to align rotated text.
-            \item Image scaling to ensure at least 300 DPI resolution.
-            \item Contrast enhancement (e.g., via CLAHE) to make characters more prominent.
-            \item Thinning and skeletonization to separate thick or touching characters.
-            \item Border removal to avoid false detections.
-        \end{itemize}
-    \item Extracting tabular text into editable formats.
+    \item \textbf{PDF-to-PNG Conversion:} Render each PDF page at 300 DPI using \pymodule{pdf2image} library.
+    \item \textbf{Grayscale Conversion:} Transform color images to grayscale to reduce computational complexity.
+    \item \textbf{Adaptive Binarization:} Apply Otsu's method to separate text from background with automatic threshold selection.
+    \item \textbf{Noise Removal:} Use median filtering (kernel size 3$\times$3) to eliminate speckles and smudges.
+    \item \textbf{Skew Detection and Correction:} Detect text rotation using Hough line transform and correct alignment. Critical fix: reject angles near $\pm90^\circ$ to avoid incorrect 90-degree rotations caused by table grid lines.
+    \item \textbf{DPI Scaling:} Ensure minimum 300 DPI resolution by upscaling if necessary.
+    \item \textbf{Contrast Enhancement:} Apply CLAHE (Contrast Limited Adaptive Histogram Equalization, clip limit = 2.0, grid size 8$\times$8) to enhance faint characters.
+    \item \textbf{Morphological Thinning:} Optionally thin thick characters to improve character separation (disabled by default for preservation).
+    \item \textbf{Border Removal:} Crop 10-pixel borders to eliminate edge artifacts from scanning.
+    \item \textbf{Table Extraction:} Isolate upper table containing growth rates (discard lower table with levels data) by cropping to top 50\% of page.
+    \item \textbf{OCR Execution:} Run Tesseract with Spanish + English language models (PSM mode 6 for uniform text blocks, OEM 3 for LSTM neural network engine).
 \end{enumerate}
 
-Although OCR provided an initial transcription, frequent misclassifications occurred (e.g., reading \texttt{9.4} as \texttt{5.4}), making manual verification indispensable.
+Following OCR extraction, the pipeline includes post-processing and validation:
+%
+\begin{itemize}
+    \item \textbf{Bilingual Sector Recognition:} Parser identifies sector names in both Spanish (\emph{Agropecuario}, \emph{Pesca}, \emph{Minería}) and English (\emph{Agriculture}, \emph{Fishing}, \emph{Mining}).
+    \item \textbf{Fuzzy Matching:} Tolerates OCR character recognition errors (e.g., ``agropeciano'' $\rightarrow$ ``agropecuario'', ``menera'' $\rightarrow$ ``minería'') using edit-distance-based matching with 2-character tolerance.
+    \item \textbf{Confidence Scoring:} Tesseract provides word-level confidence scores; combined with validation checks to flag outputs below 85\% confidence threshold.
+    \item \textbf{Quality Validation:} Automated checks for expected number of sectors, numeric value ranges, and CSV structure integrity.
+\end{itemize}
+
+\subsubsection{Year 2001 Demonstration Results}
+
+Processing the 12 PDF files from year 2001 yielded the following results:
+%
+\begin{itemize}
+    \item \textbf{Processing Success:} 100\% (12/12 PDFs successfully converted to CSV format)
+    \item \textbf{Data Completeness:} 70.5\% (755 missing values out of 2,561 total cells)
+    \item \textbf{Sectors Extracted:} 114 sector-month observations across all files
+    \item \textbf{Processing Time:} Approximately 3 minutes total ($\sim$15 seconds per PDF)
+    \item \textbf{OCR Errors:} Common misclassifications include character substitutions (``agropacuaro'' for ``agropecuario'', ``posci'' for ``pesca''), demonstrating the necessity of manual review
+\end{itemize}
+
+The automated OCR outputs are stored in \filepath{OCR/output/table\_1/2001/} and serve as transparent documentation of the initial extraction process. However, these outputs required extensive manual correction to achieve production quality.
+
+\subsubsection{Manual Verification and Curation}
+
+Although OCR provided an initial transcription, frequent misclassifications occurred (e.g., reading \texttt{9.4} as \texttt{5.4}, ``O'' as ``0'', ``l'' as ``1''), making manual verification indispensable. Each OCR output was:
+%
+\begin{enumerate}
+    \item Compared against the original scanned PDF page by human reviewers.
+    \item Corrected for character recognition errors, missing values, and structural inconsistencies.
+    \item Validated against sector name standardization and numeric value reasonableness.
+    \item Stored as final curated CSV files in \filepath{data/raw/old\_weekly\_reports/}.
+\end{enumerate}
+
+These manually-curated CSV files represent the \textbf{official ``raw data''} for the pre-2013 period and serve as input to the automated cleaning pipeline described below. The Year 2001 OCR demonstration, along with complete pipeline code and documentation, is publicly available in the \filepath{OCR/} directory of the replication repository, providing full transparency about the data collection methodology while acknowledging that human intervention was necessary for final quality assurance.
 
 \begin{figure}[!t]
 \caption{Table 88, WR 2 (January 2007): quarterly and annual growth rates}  \label{fig:wr_2_2007_table_2}
