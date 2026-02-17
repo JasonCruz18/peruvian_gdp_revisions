@@ -7,6 +7,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18099975.svg)](https://doi.org/10.5281/zenodo.18099975)
 
+> **Published Dataset:** The complete Peru GDP Real-Time Dataset is openly available on Zenodo.
+> This repository contains the **code pipeline** that builds and updates the dataset.
+> To access the **ready-to-use data** (raw sources, intermediate tables, and final outputs), visit:
+>
+> **[Peru GDP Real-Time Dataset on Zenodo](https://doi.org/10.5281/zenodo.18099975)**
+
 ## Overview
 
 This project provides a comprehensive, production-ready pipeline for building Real-Time Datasets (RTD) of Peruvian GDP revisions. It automatically scrapes, processes, cleans, and transforms data from the Central Reserve Bank of Peru (BCRP) Weekly Reports into analysis-ready datasets.
