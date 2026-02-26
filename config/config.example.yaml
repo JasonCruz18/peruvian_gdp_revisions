@@ -18,13 +18,13 @@ paths:
   vintages: "data/output/vintages"
   releases: "data/output/releases"
 
-  # PDF directories
-  pdf_root: "new_weekly_reports"
-  pdf_raw: "new_weekly_reports/raw"
-  pdf_input: "new_weekly_reports/input"
+  # PDF directories (raw data)
+  pdf_root: "data/raw/new_weekly_reports"
+  pdf_raw: "data/raw/new_weekly_reports"  # Deprecated: kept for backward compatibility
+  pdf_input: "data/raw/new_weekly_reports/shortened_pdfs"
 
-  # Old weekly reports (legacy data)
-  old_weekly_reports: "old_weekly_reports"
+  # Old weekly reports (pre-2013 scanned PDFs)
+  old_weekly_reports: "data/raw/old_weekly_reports"
 
   # Metadata and tracking
   metadata: "metadata"
@@ -181,28 +181,28 @@ record_files:
 # ====================
 output_files:
   # Real-time datasets
-  monthly_rtd: "monthly_gdp_rtd.csv"
-  quarterly_annual_rtd: "quarterly_annual_gdp_rtd.csv"
+  monthly_rtd: "monthly_gdp_vintages.csv"
+  quarterly_annual_rtd: "quarterly_gdp_vintages.csv"
 
   # Base-year adjusted datasets
-  by_adjusted_monthly: "by_adjusted_monthly_gdp_rtd.csv"
-  by_adjusted_quarterly: "by_adjusted_quarterly_annual_gdp_rtd.csv"
+  by_adjusted_monthly: "monthly_gdp_vintages_adjusted.csv"
+  by_adjusted_quarterly: "quarterly_gdp_vintages_adjusted.csv"
 
   # Benchmark datasets
-  monthly_benchmark: "monthly_gdp_benchmark.csv"
-  quarterly_benchmark: "quarterly_annual_gdp_benchmark.csv"
-  by_adjusted_monthly_benchmark: "by_adjusted_monthly_gdp_benchmark.csv"
-  by_adjusted_quarterly_benchmark: "by_adjusted_quarterly_annual_gdp_benchmark.csv"
+  monthly_benchmark: "monthly_gdp_vintages_benchmark.csv"
+  quarterly_benchmark: "quarterly_gdp_vintages_benchmark.csv"
+  by_adjusted_monthly_benchmark: "monthly_gdp_vintages_adjusted_benchmark.csv"
+  by_adjusted_quarterly_benchmark: "quarterly_gdp_vintages_adjusted_benchmark.csv"
 
   # Releases datasets
   monthly_releases: "monthly_gdp_releases.csv"
-  quarterly_releases: "quarterly_annual_gdp_releases.csv"
-  by_adjusted_monthly_releases: "by_adjusted_monthly_gdp_releases.csv"
-  by_adjusted_quarterly_releases: "by_adjusted_quarterly_annual_gdp_releases.csv"
-  monthly_benchmark_releases: "monthly_gdp_benchmark_releases.csv"
-  quarterly_benchmark_releases: "quarterly_annual_gdp_benchmark_releases.csv"
-  by_adjusted_monthly_benchmark_releases: "by_adjusted_monthly_gdp_benchmark_releases.csv"
-  by_adjusted_quarterly_benchmark_releases: "by_adjusted_quarterly_annual_gdp_benchmark_releases.csv"
+  quarterly_releases: "quarterly_gdp_releases.csv"
+  by_adjusted_monthly_releases: "monthly_gdp_releases_adjusted.csv"
+  by_adjusted_quarterly_releases: "quarterly_gdp_releases_adjusted.csv"
+  monthly_benchmark_releases: "monthly_gdp_releases_benchmark.csv"
+  quarterly_benchmark_releases: "quarterly_gdp_releases_benchmark.csv"
+  by_adjusted_monthly_benchmark_releases: "monthly_gdp_releases_adjusted_benchmark.csv"
+  by_adjusted_quarterly_benchmark_releases: "quarterly_gdp_releases_adjusted_benchmark.csv"
 
 # ====================
 # LOGGING CONFIGURATION

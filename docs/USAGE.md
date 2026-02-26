@@ -323,8 +323,8 @@ Stored in `data/output/vintages/`.
 
 ```
 data/output/vintages/
-|-- monthly_gdp_rtd.parquet            # Monthly vintages (set to .csv if configured)
-`-- quarterly_annual_gdp_rtd.parquet   # Quarterly/annual vintages
+|-- monthly_gdp_vintages.parquet            # Monthly vintages (set to .csv if configured)
+`-- quarterly_gdp_vintages.parquet          # Quarterly/annual vintages
 ```
 
 Each row is a vintage, each column is a target period.
@@ -335,8 +335,8 @@ Also in `data/output/vintages/`.
 
 ```
 data/output/vintages/
-|-- by_adjusted_monthly_gdp_rtd.parquet
-`-- by_adjusted_quarterly_annual_gdp_rtd.parquet
+|-- monthly_gdp_vintages_adjusted.parquet
+`-- quarterly_gdp_vintages_adjusted.parquet
 ```
 
 ### Benchmark Datasets
@@ -345,10 +345,10 @@ Only vintages immediately before base-year changes, stored in `data/output/vinta
 
 ```
 data/output/vintages/
-|-- monthly_gdp_benchmark.parquet
-|-- quarterly_annual_gdp_benchmark.parquet
-|-- by_adjusted_monthly_gdp_benchmark.parquet
-`-- by_adjusted_quarterly_annual_gdp_benchmark.parquet
+|-- monthly_gdp_vintages_benchmark.parquet
+|-- quarterly_gdp_vintages_benchmark.parquet
+|-- monthly_gdp_vintages_adjusted_benchmark.parquet
+`-- quarterly_gdp_vintages_adjusted_benchmark.parquet
 ```
 
 ### Releases Datasets
@@ -358,7 +358,7 @@ Release format lives in `data/output/releases/`.
 ```
 data/output/releases/
 |-- monthly_gdp_releases.parquet
-`-- quarterly_annual_gdp_releases.parquet
+`-- quarterly_gdp_releases.parquet
 ```
 
 Each row is a target period; columns are release numbers.
@@ -383,8 +383,8 @@ Switch the extension to .csv when `features.persist_format: "csv"`.
 import pandas as pd
 
 # Load RTD (default parquet)
-monthly_rtd = pd.read_parquet('data/output/vintages/monthly_gdp_rtd.parquet')
-quarterly_rtd = pd.read_parquet('data/output/vintages/quarterly_annual_gdp_rtd.parquet')
+monthly_rtd = pd.read_parquet('data/output/vintages/monthly_gdp_vintages.parquet')
+quarterly_rtd = pd.read_parquet('data/output/vintages/quarterly_gdp_vintages.parquet')
 
 # Load releases format
 monthly_releases = pd.read_parquet('data/output/releases/monthly_gdp_releases.parquet')
@@ -519,19 +519,19 @@ from peru_gdp_rtd.config import get_settings
 import pandas as pd
 
 # Load RTD
-rtd = pd.read_csv('data/output/monthly_gdp_rtd.csv', index_col=0)
+rtd = pd.read_csv('data/output/monthly_gdp_vintages.csv', index_col=0)
 
 # Export to Excel
-rtd.to_excel('data/output/monthly_gdp_rtd.xlsx')
+rtd.to_excel('data/output/monthly_gdp_vintages.xlsx')
 
 # Export to Parquet (more efficient for large datasets)
-rtd.to_parquet('data/output/monthly_gdp_rtd.parquet')
+rtd.to_parquet('data/output/monthly_gdp_vintages.parquet')
 
 # Export to Stata
-rtd.to_stata('data/output/monthly_gdp_rtd.dta')
+rtd.to_stata('data/output/monthly_gdp_vintages.dta')
 
 # Export to JSON
-rtd.to_json('data/output/monthly_gdp_rtd.json', orient='index')
+rtd.to_json('data/output/monthly_gdp_vintages.json', orient='index')
 ```
 
 ### Integration with Statistical Software
@@ -541,7 +541,7 @@ rtd.to_json('data/output/monthly_gdp_rtd.json', orient='index')
 ```r
 # Load RTD in R
 library(readr)
-monthly_rtd <- read_csv("data/output/monthly_gdp_rtd.csv")
+monthly_rtd <- read_csv("data/output/monthly_gdp_vintages.csv")
 
 # Analyze revisions
 library(dplyr)
@@ -559,7 +559,7 @@ ggplot(revisions, aes(x=vintage_id, y=`2020_01`)) +
 
 ```stata
 * Load RTD in Stata
-import delimited "data/output/monthly_gdp_rtd.csv", clear
+import delimited "data/output/monthly_gdp_vintages.csv", clear
 
 * Analyze revisions
 gen revision = second_release - first_release

@@ -163,15 +163,23 @@ class RTDValidator:
         Returns:
             List of validation results
         """
+        settings = get_settings()
+        vintages_dir = self.data_dir / "vintages"
+        releases_dir = self.data_dir / "releases"
+        if not vintages_dir.exists():
+            vintages_dir = self.data_dir
+        if not releases_dir.exists():
+            releases_dir = self.data_dir
+
         datasets = {
-            "Monthly RTD": "monthly_gdp_rtd.csv",
-            "Quarterly RTD": "quarterly_annual_gdp_rtd.csv",
-            "Monthly Releases": "monthly_gdp_releases.csv",
-            "Quarterly Releases": "quarterly_annual_gdp_releases.csv",
-            "Monthly Benchmark": "monthly_gdp_benchmark.csv",
-            "Quarterly Benchmark": "quarterly_annual_gdp_benchmark.csv",
-            "BY-Adjusted Monthly RTD": "by_adjusted_monthly_gdp_rtd.csv",
-            "BY-Adjusted Quarterly RTD": "by_adjusted_quarterly_annual_gdp_rtd.csv",
+            "Monthly RTD": vintages_dir / settings.output_files["monthly_rtd"],
+            "Quarterly RTD": vintages_dir / settings.output_files["quarterly_annual_rtd"],
+            "Monthly Releases": releases_dir / settings.output_files["monthly_releases"],
+            "Quarterly Releases": releases_dir / settings.output_files["quarterly_releases"],
+            "Monthly Benchmark": vintages_dir / settings.output_files["monthly_benchmark"],
+            "Quarterly Benchmark": vintages_dir / settings.output_files["quarterly_benchmark"],
+            "BY-Adjusted Monthly RTD": vintages_dir / settings.output_files["by_adjusted_monthly"],
+            "BY-Adjusted Quarterly RTD": vintages_dir / settings.output_files["by_adjusted_quarterly"],
         }
 
         self.log("=" * 60, "INFO")
@@ -180,8 +188,7 @@ class RTDValidator:
 
         results = []
 
-        for name, filename in datasets.items():
-            filepath = self.data_dir / filename
+        for name, filepath in datasets.items():
             result = self.validate_dataset(name, filepath)
             results.append(result)
 

@@ -66,18 +66,18 @@ python scripts/update_rtd.py
 python scripts/update_rtd.py --steps 3,4,5,6
 ```
 
-The dashboard will look for datasets in `data/output/` directory.
+The dashboard will look for datasets in `data/output/vintages/` and `data/output/releases/`.
 
 ## Available Datasets
 
 The dashboard can visualize these datasets:
 
-1. **Monthly RTD** (`monthly_gdp_rtd.csv`)
-2. **Quarterly RTD** (`quarterly_annual_gdp_rtd.csv`)
+1. **Monthly RTD** (`monthly_gdp_vintages.csv`)
+2. **Quarterly RTD** (`quarterly_gdp_vintages.csv`)
 3. **Monthly Releases** (`monthly_gdp_releases.csv`)
-4. **Quarterly Releases** (`quarterly_annual_gdp_releases.csv`)
-5. **Monthly Benchmark** (`monthly_gdp_benchmark.csv`)
-6. **Quarterly Benchmark** (`quarterly_annual_gdp_benchmark.csv`)
+4. **Quarterly Releases** (`quarterly_gdp_releases.csv`)
+5. **Monthly Benchmark** (`monthly_gdp_vintages_benchmark.csv`)
+6. **Quarterly Benchmark** (`quarterly_gdp_vintages_benchmark.csv`)
 
 Plus base-year adjusted versions of each.
 

@@ -13,24 +13,24 @@ dependencies:
   # Configuration
   - pyyaml>=6.0
 
-  # HTTP and web scraping
-  - requests>=2.31.0
-  - urllib3>=2.0.0
-  - selenium>=4.0.0
+  # HTTP and web scraping (Security Update 2025-12-17)
+  - requests>=2.32.5
+  - urllib3>=2.6.2
+  - selenium>=4.39.0
 
-  # PDF processing
-  - pymupdf>=1.23.0
-  - pypdf2>=3.0.0
+  # PDF processing (Security Update 2025-12-17)
+  - pymupdf>=1.26.7
+  - pypdf>=6.4.2
 
   # Utilities
-  - pygame>=2.5.0
-  - tqdm>=4.65.0
+  - pygame>=2.5.2
+  - tqdm>=4.66.5
   - colorama>=0.4.6
 
-  # Jupyter support (optional for notebooks)
-  - ipywidgets>=8.0.0
+  # Jupyter support (Security Update 2025-12-17)
+  - ipywidgets>=8.1.8
   - jupyter>=1.0.0
-  - notebook>=7.0.0
+  - notebook>=7.5.1
 
   # Development tools (optional)
   - black>=23.0.0
@@ -46,5 +46,5 @@ dependencies:
   - pip
   - pip:
     - webdriver-manager>=4.0.0
-    - tabula-py>=2.8.0
-    - roman>=4.0
+    - tabula-py>=2.9.0
+    - roman>=4.1

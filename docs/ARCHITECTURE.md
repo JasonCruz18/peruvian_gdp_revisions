@@ -209,7 +209,7 @@ class RecordManager:
 BCRP Website
     │
     ▼
-[1. Web Scraping] → PDFs downloaded to new_weekly_reports/
+[1. Web Scraping] → PDFs downloaded to data/raw/new_weekly_reports/
     │
     ▼
 [2. PDF Processing] → Extract relevant pages → data/input/
@@ -218,8 +218,8 @@ BCRP Website
 [3. Data Cleaning] → Standardize tables → data/input/
     │
     ▼
-[4. Concatenation] → Merge vintages → monthly_gdp_rtd.csv
-    │                                   quarterly_annual_gdp_rtd.csv
+[4. Concatenation] → Merge vintages → monthly_gdp_vintages.csv
+    │                                   quarterly_gdp_vintages.csv
     ▼
 [5. Metadata] → Apply base-year info → by_adjusted_*.csv
     │                                   benchmark_*.csv
@@ -488,12 +488,15 @@ Raw PDF from BCRP website
 #### Step 1: Web Scraping
 ```python
 # Input: BCRP website
-# Output: PDFs in new_weekly_reports/
+# Output: PDFs in data/raw/new_weekly_reports/
 
-new_weekly_reports/
-├── NS_01_enero_2020.pdf
-├── NS_02_enero_2020.pdf
-└── ...
+data/raw/new_weekly_reports/
+├── 2020/
+│   ├── NS_01_enero_2020.pdf
+│   ├── NS_02_enero_2020.pdf
+│   └── ...
+├── shortened_pdfs/
+└── _quarantine/
 ```
 
 #### Step 2: PDF Shortening
@@ -735,14 +738,14 @@ if 7 in steps_to_run:
 ```python
 # Memory-efficient CSV reading
 rtd = pd.read_csv(
-    'data/output/monthly_gdp_rtd.csv',
+    'data/output/monthly_gdp_vintages.csv',
     dtype={'vintage_id': 'str'},
     index_col=0,
 )
 
 # Or use Parquet
-rtd.to_parquet('data/output/monthly_gdp_rtd.parquet')
-rtd = pd.read_parquet('data/output/monthly_gdp_rtd.parquet')
+rtd.to_parquet('data/output/vintages/monthly_gdp_vintages.parquet')
+rtd = pd.read_parquet('data/output/vintages/monthly_gdp_vintages.parquet')
 ```
 
 ### Execution Time

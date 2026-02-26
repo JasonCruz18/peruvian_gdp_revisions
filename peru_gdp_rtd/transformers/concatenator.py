@@ -103,7 +103,7 @@ def concatenate_table_1(
         input_data_subfolder: Root folder containing table_1/ subfolder with year folders.
         persist: If True, save unified RTD to disk.
         persist_folder: Folder for saving output (default: same as input_data_subfolder).
-        csv_file_label: Custom filename for output (default: 'gdp_rtd_table_1_unified.csv').
+        csv_file_label: Custom filename for output (default: 'monthly_gdp_vintages.csv').
         force: If True, reprocess all files regardless of timestamps.
 
     Returns:
@@ -125,7 +125,7 @@ def concatenate_table_1(
 
     # Determine output path
     output_folder = persist_folder or input_data_subfolder
-    output_filename = csv_file_label or "monthly_gdp_rtd.csv"
+    output_filename = csv_file_label or "monthly_gdp_vintages.csv"
     output_path = Path(output_folder) / output_filename
     if output_path.suffix:
         output_path = output_path.with_suffix(f".{persist_format}")
@@ -336,7 +336,7 @@ def concatenate_table_2(
         input_data_subfolder: Root folder containing table_2/ subfolder with year folders.
         persist: If True, save unified RTD to disk.
         persist_folder: Folder for saving output.
-        csv_file_label: Custom filename for output (default: 'quarterly_annual_gdp_rtd.csv').
+        csv_file_label: Custom filename for output (default: 'quarterly_gdp_vintages.csv').
         force: If True, reprocess all files regardless of timestamps.
 
     Returns:
@@ -357,7 +357,7 @@ def concatenate_table_2(
 
     # Determine output path
     output_folder = persist_folder or input_data_subfolder
-    output_filename = csv_file_label or "quarterly_annual_gdp_rtd.csv"
+    output_filename = csv_file_label or "quarterly_gdp_vintages.csv"
     output_path = Path(output_folder) / output_filename
     if output_path.suffix:
         output_path = output_path.with_suffix(f".{persist_format}")

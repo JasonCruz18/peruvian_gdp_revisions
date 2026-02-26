@@ -411,6 +411,7 @@ def apply_base_year_sentinel(
     sentinel: float = -999999.0,
     output_data_subfolder: str = ".",
     csv_file_labels: Optional[List[str]] = None,
+    adjusted_dataset_labels: Optional[List[str]] = None,
     persist_format: str = "csv",
     force: bool = False,
 ) -> Dict[str, pd.DataFrame]:
@@ -437,19 +438,21 @@ def apply_base_year_sentinel(
         sentinel: Numeric value to mark invalid entries (default: -999999.0)
         output_data_subfolder: Folder containing RTD CSV files
         csv_file_labels: List of CSV file labels to process
-            If None, defaults to ["monthly_gdp_rtd.csv", "quarterly_annual_gdp_rtd.csv"]
+            If None, defaults to ["monthly_gdp_vintages.csv", "quarterly_gdp_vintages.csv"]
+        adjusted_dataset_labels: Optional list of output labels to use for adjusted datasets.
+            If None, defaults to "by_adjusted_{input_label}" for each input.
         force: If True, reprocess all files regardless of timestamps
 
     Returns:
         Dictionary mapping adjusted filenames to DataFrames
-        Keys: "by_adjusted_{original_filename}"
+        Keys: adjusted dataset labels
 
     Example:
         >>> base_year_vintages = ["2017m20"]  # Base year changed in WR 20/2017
         >>> adjusted = apply_base_year_sentinel(
         ...     base_year_vintages=base_year_vintages,
         ...     output_data_subfolder="data/outputs",
-        ...     csv_file_labels=["monthly_gdp_rtd"],
+        ...     csv_file_labels=["monthly_gdp_vintages"],
         ...     force=False
         ... )
         >>> # Vintages before 2017m20 will have sentinel for tp_* columns
@@ -460,10 +463,17 @@ def apply_base_year_sentinel(
     print(f">> Output folder: {output_data_subfolder}")
 
     if csv_file_labels is None:
-        csv_file_labels = ["monthly_gdp_rtd", "quarterly_annual_gdp_rtd"]
+        csv_file_labels = ["monthly_gdp_vintages", "quarterly_gdp_vintages"]
 
     # Ensure labels don't have .csv extension
     csv_file_labels = [Path(lbl).stem for lbl in csv_file_labels]
+    if adjusted_dataset_labels is not None:
+        if len(adjusted_dataset_labels) != len(csv_file_labels):
+            raise ValueError("csv_file_labels and adjusted_dataset_labels must have same length")
+        adjusted_dataset_labels = [Path(lbl).stem for lbl in adjusted_dataset_labels]
+    else:
+        adjusted_dataset_labels = [f"by_adjusted_{lbl}" for lbl in csv_file_labels]
+    adjusted_label_map = dict(zip(csv_file_labels, adjusted_dataset_labels))
 
     processed_data = {}
     skipped_count = 0
@@ -502,7 +512,7 @@ def apply_base_year_sentinel(
     ):
 
         # 2) Determine output path and check if processing needed
-        adjusted_csv_label = f"by_adjusted_{csv_file_label}"
+        adjusted_csv_label = adjusted_label_map[csv_file_label]
         adjusted_csv_path = Path(output_data_subfolder) / f"{adjusted_csv_label}{csv_path.suffix}"
 
         # Timestamp-based check
@@ -594,6 +604,7 @@ def convert_to_benchmark_dataset(
     metadata_folder: str,
     wr_metadata_csv: str,
     benchmark_dataset_labels: List[str],
+    sentinel: Optional[float] = -999999.0,
     persist_format: str = "csv",
     force: bool = False,
 ) -> Dict[str, pd.DataFrame]:
@@ -607,6 +618,7 @@ def convert_to_benchmark_dataset(
     - 1.0 indicates a benchmark revision vintage
     - 0.0 indicates a non-benchmark vintage
     - NaN remains NaN
+    - Sentinel values (if provided) remain unchanged
 
     Benchmark revisions occur when BCRP revises both monthly (Table 1) and
     quarterly/annual (Table 2) estimates simultaneously, indicating a
@@ -618,6 +630,8 @@ def convert_to_benchmark_dataset(
         metadata_folder: Folder where metadata CSV is stored
         wr_metadata_csv: Metadata CSV filename
         benchmark_dataset_labels: List of output filenames (without .csv)
+        sentinel: Sentinel value to preserve (e.g., base-year discontinuities).
+            Set to None to disable preservation.
         force: If True, reprocess all files regardless of timestamps
 
     Returns:
@@ -626,7 +640,7 @@ def convert_to_benchmark_dataset(
     Example:
         >>> benchmark_data = convert_to_benchmark_dataset(
         ...     output_data_subfolder="data/outputs",
-        ...     csv_file_labels=["monthly_gdp_rtd", "quarterly_annual_gdp_rtd"],
+        ...     csv_file_labels=["monthly_gdp_vintages", "quarterly_gdp_vintages"],
         ...     metadata_folder="data/metadata",
         ...     wr_metadata_csv="wr_metadata.csv",
         ...     benchmark_dataset_labels=["monthly_benchmark", "quarterly_benchmark"],
@@ -742,6 +756,11 @@ def convert_to_benchmark_dataset(
 
         # Ensure numeric type
         df[tp_cols] = df[tp_cols].astype(float)
+        sentinel_value = None
+        sentinel_mask = None
+        if sentinel is not None:
+            sentinel_value = float(sentinel)
+            sentinel_mask = df[tp_cols].eq(sentinel_value)
 
         # 6.3) Diagnostic report
         vintages_df = set(df["vintage"].unique())
@@ -768,6 +787,10 @@ def convert_to_benchmark_dataset(
             df.loc[mask_benchmark, tp_cols] = df.loc[mask_benchmark, tp_cols].where(
                 df.loc[mask_benchmark, tp_cols].isna(), 1.0
             )
+
+        # Preserve sentinel values from base-year adjustments, if configured.
+        if sentinel_mask is not None:
+            df[tp_cols] = df[tp_cols].mask(sentinel_mask, sentinel_value)
 
         # Enforce float type
         df[tp_cols] = df[tp_cols].astype(float)

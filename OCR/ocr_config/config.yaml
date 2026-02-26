@@ -1,0 +1,68 @@
+# OCR Pipeline Configuration
+# ===========================
+# Configuration for processing 228 scanned Weekly Report PDFs (1994-2012)
+
+paths:
+  pdf_input_root: "OCR/raw"
+  csv_output_root: "OCR/output"
+  temp_images_dir: "OCR/temp_images"
+  review_dir: "OCR/review"
+  logs_dir: "OCR/logs"
+  checkpoints_dir: "OCR/checkpoints"
+
+preprocessing:
+  target_dpi: 300
+  grayscale: true
+  adaptive_binarization: true
+  noise_removal_method: "median"  # Options: median, gaussian, bilateral
+  median_kernel_size: 3
+  skew_correction: true
+  skew_angle_threshold: 0.5  # degrees - only correct if skew > this value
+  contrast_enhancement: true
+  clahe_clip_limit: 2.0
+  clahe_tile_grid_size: [8, 8]
+  thinning: false  # Optional morphological thinning (can hurt accuracy in some cases)
+  border_removal: true
+  border_size: 10  # pixels to remove from each edge
+
+tesseract:
+  language: "spa+eng"  # Spanish + English
+  psm: 6  # Page segmentation mode: Assume uniform block of text
+  oem: 3  # OCR Engine Mode: Default (LSTM + Legacy)
+  config_string: "--psm 6 --oem 3"
+
+table_extraction:
+  extract_upper_table_only: true
+  upper_table_region_ratio: [0.0, 0.5]  # Top 50% of page (growth rates table)
+
+pdf_structure:
+  # Years with 1-page PDFs (Table 1 monthly data only)
+  years_single_page: [1994, 1995, 1996]
+
+  # Years with 2-page PDFs (Table 1 + Table 2)
+  years_two_page: [1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012]
+
+  page_mapping:
+    table_1: 0  # First page (0-indexed)
+    table_2: 1  # Second page (0-indexed) - only for 1997+
+
+csv_output:
+  separator: ";"  # Semicolon separator (match existing CSV format)
+  encoding: "utf-8-sig"  # UTF-8 with BOM for Excel compatibility
+  na_rep: ""  # How to represent missing values
+
+validation:
+  confidence_threshold: 0.85  # Flag for manual review if OCR confidence < 85%
+  expected_min_sectors: 8  # Minimum number of sector rows
+  expected_columns_table1_range: [15, 30]  # Approximate for monthly data
+  expected_columns_table2_range: [8, 20]   # Approximate for quarterly data
+
+logging:
+  level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "OCR/logs/ocr_pipeline.log"
+
+progress:
+  checkpoint_file: "OCR/checkpoints/ocr_progress.json"
+  save_intermediate_images: false  # Set to true for debugging
+  auto_cleanup_temp: true  # Automatically delete temp files after processing

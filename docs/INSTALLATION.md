@@ -113,7 +113,52 @@ git --version
 
 ## Installation Methods
 
-### Method 1: Standard Installation (Recommended)
+### 🚀 Quick Install (One Command)
+
+**The simplest way to get started:**
+
+#### Option A: Conda (Recommended)
+
+```bash
+# Clone repository
+git clone https://github.com/JasonCruz18/peru_gdp_revisions.git
+cd peru_gdp_revisions
+
+# Create environment with ALL dependencies
+conda env create -f environment.yml
+
+# Activate environment
+conda activate peru_gdp_rtd
+
+# You're ready! Skip to Configuration section below.
+```
+
+**✅ Advantages:**
+- One command installs everything
+- Includes Java (OpenJDK 11) - no separate installation needed
+- Exact environment name: `peru_gdp_rtd`
+- Tested on Windows, macOS, Linux
+
+#### Option B: Pip + Virtual Environment
+
+```bash
+# Clone repository
+git clone https://github.com/JasonCruz18/peru_gdp_revisions.git
+cd peru_gdp_revisions
+
+# Create virtual environment
+python -m venv peru_gdp_rtd
+source peru_gdp_rtd/bin/activate  # Windows: peru_gdp_rtd\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+**⚠️ Note:** Java (JRE) must be installed separately (see Prerequisites above).
+
+---
+
+### Method 1: Standard Installation (Detailed)
 
 #### Step 1: Clone the Repository
 
@@ -167,30 +212,19 @@ cp config/config.example.yaml config/config.yaml
 nano config/config.yaml  # or use any text editor
 ```
 
-### Method 2: Conda Installation (Recommended for Conda Users)
+### Method 2: Conda Installation (Alternative Details)
 
-For users who prefer conda for environment management:
+**(See Quick Install above for the simplest approach)**
 
-#### Step 1: Clone the Repository
+For users who want more control over the conda environment:
+
+#### Manual Conda Environment Creation
 
 ```bash
+# Clone repository
 git clone https://github.com/JasonCruz18/peru_gdp_revisions.git
 cd peru_gdp_revisions
-```
 
-#### Step 2: Create Conda Environment from File
-
-```bash
-# Create environment from environment.yml (includes all dependencies)
-conda env create -f environment.yml
-
-# Activate the environment
-conda activate peru_gdp_rtd
-```
-
-**Alternative: Manual conda environment creation:**
-
-```bash
 # Create environment with Python 3.10
 conda create -n peru_gdp_rtd python=3.10
 
@@ -198,28 +232,24 @@ conda create -n peru_gdp_rtd python=3.10
 conda activate peru_gdp_rtd
 
 # Install dependencies via conda and pip
-conda install -c conda-forge pandas numpy pyyaml requests selenium openjdk
+conda install -c conda-forge pandas numpy pyyaml requests selenium openjdk pymupdf
 pip install -r requirements.txt
 ```
 
-#### Step 3: Configure the Pipeline
+#### Verify Conda Installation
 
 ```bash
-# Copy example configuration
-cp config/config.example.yaml config/config.yaml
-```
+# Activate environment
+conda activate peru_gdp_rtd
 
-#### Step 4: Verify Installation
-
-```bash
 # Test the installation
-python tests/test_smoke.py
+pytest tests/test_smoke.py -v
 
 # Check pipeline help
 python scripts/update_rtd.py --help
 ```
 
-**Note:** The conda environment includes Java (OpenJDK 11) automatically, so you don't need to install it separately.
+**💡 Tip:** The `environment.yml` file includes Java (OpenJDK 11) automatically, so you don't need to install it separately when using `conda env create -f environment.yml`.
 
 ### Method 3: Exact Version Reproducibility
 
