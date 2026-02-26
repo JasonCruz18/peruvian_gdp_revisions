@@ -7,22 +7,68 @@
 \usepackage{graphicx}
 \usepackage{longtable}
 \usepackage{booktabs}
-\usepackage{array}
+% \usepackage{array}
 \usepackage{enumitem}
 \usepackage{xcolor}
+\usepackage{natbib}
+\usepackage{array}
+
+\usepackage{float}
+\usepackage{comment}
+
+\usepackage{hyperref}
+\definecolor{azul}{rgb}{0, 0, 0.75}
+\hypersetup{
+    hypertexnames = false,
+    breaklinks    = true,
+    colorlinks    = true,
+    urlcolor      = azul,
+    linkcolor     = azul,
+    citecolor     = azul,
+    pdfstartview  = FitV,
+    bookmarksopen = true,
+    bookmarksopenlevel = 2,
+    pdfpagelayout = SinglePage,
+}
+
+% Define the colors with transparency
+\definecolor{smoke_white}{HTML}{F5F5F5}
+\definecolor{bubblegum_blue}{HTML}{3366FF}
+\definecolor{bubblegum_red}{HTML}{E6004C}
+\definecolor{light_jade}{HTML}{00DFA2}
+\definecolor{light_yellow}{HTML}{FFF183}
+\definecolor{light_black}{HTML}{292929}
+
+
+\newcommand{\highlightcell}[2]{%
+  \setlength\fboxrule{1.5pt}%
+  \fcolorbox{light_black}{#1}{\textcolor{smoke_white}{\textbf{#2}}}%
+}
+
+\begin{comment}
+\newcommand{\highlightcellyg}[2]{%
+  \setlength\fboxrule{1.5pt}%
+  \fcolorbox{#1}{light_black}{\textcolor{smoke_white}{\textbf{#2}}}%
+}
+\end{comment}
+
+\begin{comment}
+\newcommand{\highlightcell}[2]{%
+  \setlength\fboxrule{1.5pt}%
+  \fcolorbox{#1}{white}{\textcolor{black}{\textbf{#2}}}%
+}
+\end{comment}
+
+
+\newcommand{\highlightcellyg}[2]{%
+  \setlength\fboxrule{1.5pt}%
+  \fcolorbox{light_black}{#1}{\textcolor{light_black}{\textbf{#2}}}%
+}
 
 % Define colors for comments/instructions
 \definecolor{instructionblue}{RGB}{0,0,255}
 \newcommand{\instruction}[1]{\textcolor{instructionblue}{\emph{#1}}}
 
-% Hyperref setup
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,
-    urlcolor=cyan,
-    citecolor=blue,
-}
 
 \begin{document}
 
@@ -37,7 +83,7 @@ Peru GDP Real-Time Dataset (1994-2025): Tracking Three Decades of Revisions
 
 \author{%
 Jason Cruz\textsuperscript{1,*}, Diego Winkelried\textsuperscript{1}, Javier Torres\textsuperscript{1} \\[1mm]
-\small\textsuperscript{1}Centro de Investigación (CIUP), Universidad del Pacífico, \\
+\small\textsuperscript{1}{Universidad del Pacífico (Lima, Perú)}, \\
 \small Av. Salaverry 2020, Jesús María, Lima 15072, Peru \\[2mm]
 \small\textsuperscript{*}Corresponding author \\
 \small Email: jj.cruza@up.edu.pe
@@ -61,8 +107,7 @@ Real-time macroeconomic statistics; GDP revisions; Emerging markets; Nowcasting;
 % INSTRUCTION: 100-500 words. Describe data collection process, dataset, and reuse potential.
 % Do NOT provide conclusions or interpretations.
 
-This data article presents a comprehensive real-time dataset (RTD) of Peru's Gross Domestic Product (GDP) growth rates spanning 1994 to 2025, comprising over 1000 data releases across 30+ years. The dataset was constructed by systematically collecting and processing monthly GDP tables from the Central Reserve Bank of Peru (BCRP) Weekly Reports. For the 1994-2012 period, data were extracted from scanned hardcover volumes using Optical Character Recognition (OCR) techniques with extensive manual verification. From 2013 onwards, data were collected via automated web scraping and PDF table extraction from digital publications. The dataset includes monthly, quarterly, and annual GDP growth rates for aggregate GDP and 8 economic sectors, organized in two complementary formats: vintage format (columns = release dates) and releases format (columns = revision sequences). Additional variants account for base-year adjustments and identify benchmark revisions. All data are provided in CSV format with comprehensive documentation. An open-source Python pipeline enables full reproducibility and future updates. This dataset enables research on GDP revision patterns, real-time forecasting accuracy, nowcasting model evaluation, and cross-country comparisons of statistical practices in emerging economies.
-
+This data article introduces a comprehensive real-time dataset (RTD) of Peru's Gross Domestic Product (GDP) growth rates from 1994 to 2025, comprising over 1000 data releases. The dataset was constructed by systematically collecting and processing three decades of the Peruvian Central Reserve Bank (BCRP) Weekly Reports. For the 1994-2012 period, we employ Optical Character Recognition (OCR) with rigorous manual verification to digitize archival hardcover volumes. Post-2013 data were integrated via automated web-scraping and PDF extraction pipelines from digital publication. The resulting dataset includes monthly, quarterly, and annual growth rates for aggregate GDP and 8 economic sectors, organized in two complementary formats: vintage  (columns = release dates) and release (columns = revision sequences). The collection includes variants for base-year adjustments and identifies major benchmark revisions. All data are provided in CSV format with comprehensive documentation. An open-source Python pipeline enables full reproducibility and future updates. This RTD serves as important resources for researching GDP revision patterns, real-time forecasting accuracy, nowcasting model evaluation, and cross-country comparisons of statistical practices in emerging economies.
 \end{abstract}
 
 \newpage
@@ -93,19 +138,24 @@ Data collected from BCRP Weekly Reports (1994-2025). Pre-2013: scanned PDFs proc
 \hline
 \textbf{Data source location} &
 % INSTRUCTION: Where data were collected or stored
-Institution: Universidad del Pacífico - CIUP \\
+\begin{minipage}[t]{\linewidth}
+Institution: Universidad del Pacífico (Lima, Perú) \\
 City/Country: Lima, Peru \\
 Geographic coordinates: -12.0897°S, -77.0428°W \\
 Data source: Banco Central de Reserva del Perú (BCRP) \\
 URL: https://www.bcrp.gob.pe/publicaciones/nota-semanal.html \\
+\end{minipage}
+\\
 \hline
 \textbf{Data accessibility} &
-% INSTRUCTION: All data must be in a public repository BEFORE publication
+\begin{minipage}[t]{\linewidth}
 Repository name: Zenodo \\
 Data identification number: 10.5281/zenodo.18099975 \\
 Direct URL to data: https://doi.org/10.5281/zenodo.18099975 \\
 Related code repository: https://github.com/JasonCruz18/peru\_gdp\_revisions \\
-Instructions: Dataset freely accessible via DOI. 16 CSV files with README documentation. \\
+Instructions: Dataset freely accessible via DOI. 16 CSV files with README documentation.
+\end{minipage}
+\\
 \hline
 \textbf{Related research article} &
 % INSTRUCTION: Cite ONE related article. Upload a copy with submission. If none, state 'none'.
@@ -123,17 +173,17 @@ None \\
 
 \begin{itemize}[leftmargin=*]
 
-\item \textbf{First real-time GDP dataset for Peru and one of the few for emerging markets.} Existing real-time datasets focus primarily on advanced economies (US, Europe). This dataset fills a critical gap by providing systematic vintage data for an emerging market economy, enabling comparative studies of revision patterns across development levels and statistical capacity.
+\item This is the first real-time GDP dataset for Peru and one of the few available for emerging markets. By providing systematic vintage data for an emerging market economy, it extends the scope of real-time analysis beyond the advanced-economy focus of existing datasets.
 
-\item \textbf{Enables evaluation of real-time forecasting and nowcasting models.} Researchers can assess forecast accuracy using information available at the time predictions were made, rather than revised data. This is essential for developing robust nowcasting models for emerging economies where data quality and revision patterns differ substantially from advanced economies.
+\item The dataset enables evaluation of real-time forecasting and nowcasting methods, allowing researchers to assess forecast accuracy using  the information available at the time predictions were made rather than revised data. This is essential for developing robust nowcasting models for emerging economies, where data quality and revision patterns may differ substantially from those in advanced economies.
 
-\item \textbf{Supports revision analysis and statistical quality assessment.} The dataset allows investigation of revision properties (bias, efficiency, rationality), identification of benchmark revisions, and analysis of base-year adjustments. This informs best practices for data producers and helps researchers understand data generation processes.
+\item The dataset facilitates rigorous  analysis and statistical quality assessments by enabling the investigation of revision properties, such as bias, efficiency, and rationality. Furthermore, the longitudinal nature of the data allows for the clear identification of benchmark revisions and structural breaks caused by base-year adjustments. This informs best practices for data producers and helps researchers better understand data generation processes.
 
-\item \textbf{Fully reproducible and updatable.} Complete open-source Python pipeline enables exact replication and seamless extension as new data become available. Modular architecture supports adaptation to other countries or statistical agencies with minimal modifications.
+\item Through a complete open-source Python pipeline, the dataset can be exactly replicated and seamlessly extended as new data become available. Its modular architecture further allows straightforward adaptation to other countries or statistical agencies with minimal modifications.
 
-\item \textbf{Multiple formats optimized for different research applications.} Vintage format facilitates real-time analysis; releases format enables revision econometrics; benchmark indicators isolate methodological changes; base-year adjustments handle structural breaks. Researchers can select the appropriate variant for their specific analytical needs.
+\item By providing multiple formats structured for different research applications, the dataset accommodates a wide range of empirical strategies, allowing researchers to select the most appropriate variant for their specific analytical needs. The vintage format facilitates real-time analysis; the release format enables revision econometrics; benchmark indicators isolate methodological changes; and base-year adjustments account for structural breaks.
 
-\item \textbf{Comprehensive documentation and quality assurance.} Extensive metadata, cleaning procedures, and validation checks are fully documented. Dual OCR/automated extraction methods ensure coverage across three decades despite changing data formats. Dataset includes 1000+ vintages across 8 economic sectors.
+\item Comprehensive documentation and quality assurance are ensured through fully detailed metadata, cleaning procedures, and validation checks. Dual OCR and automated extraction methods provide consistent coverage across three decades despite changing data formats, resulting in more than 1,000 vintages spanning eight economic sectors.
 
 \end{itemize}
 
@@ -145,9 +195,11 @@ None \\
 % INSTRUCTION: Max 200 words. Describe motivation and context. No conclusions/interpretations.
 % If related to a research article, describe how this data article adds value.
 
-Real-time datasets preserve the actual information available to policymakers and forecasters at specific points in time, enabling accurate evaluation of forecast performance and analysis of data revision patterns. While such datasets are well-established for advanced economies, they remain scarce for emerging markets. Peru provides an ideal case study: it has maintained consistent GDP reporting through the Central Reserve Bank's Weekly Reports for over 30 years, yet no systematic real-time dataset existed.
+Real-time datasets preserve the information actually available to decision-makers at each specific time point, making them indispensable for forecast evaluation \citep{croushore:jel2011}, revision analysis \citep{mankiw:scb1986, aruoba:jmcb2008, strohsal:ijf2020}, and the identification of informational inefficiencies. While real-time data infrastructures based on the vintages framework \citep{croushore:je2001, croushore:hef2006} are well established for advanced economies, comparable resources remain scarce for emerging markets \citep{palis:brazilian2004}, particularly in Latin America.
 
-This dataset was compiled to address this gap and support research on GDP revisions, nowcasting, and forecast evaluation in emerging economies. The construction process required developing specialized methods to handle heterogeneous data formats: scanned documents (1994-2012) necessitating OCR techniques, and digital PDFs (2013-2025) amenable to automated extraction. The resulting dataset provides complete coverage of monthly, quarterly, and annual GDP growth rates across all major economic sectors, organized in formats suitable for both real-time forecasting applications and econometric analysis of revision properties. The accompanying open-source pipeline ensures reproducibility and facilitates future updates and extensions to other emerging market economies.
+Peru offers a compelling case study. The Central Reserve Bank of Peru (BCRP) has consistently published  GDP growth measures in its Weekly Reports for over three decades, spanning multiple commodity cycles, macroeconomic regimes, and institutional reforms. Despite this continuity, these releases had never been consolidated into a systematic real-time dataset, limiting empirical work on revision behavior and nowcasting performance for the Peruvian economy.
+
+This dataset was constructed to fill that gap, providing a complete, historically consistent real-time record of Peruvian GDP growth from 1994 to 2025. This repository supports the decomposition of revisions into news and noise components \citep{mankiw:scb1986}, and the back-testing of forecasting models \citep{clark:hef2013}. The construction required specialized procedures: pre-2013 releases, available only as scanned documents, required optical character recognition; post-2013 vintages were extracted automatically from digital archives.
 
 % ===================================================================
 % DATA DESCRIPTION
@@ -157,94 +209,255 @@ This dataset was compiled to address this gap and support research on GDP revisi
 % INSTRUCTION: Describe your dataset structure. Refer to all folders/subfolders/files individually.
 % Use visual aids (tables, graphs, figures with captions). No interpretations/conclusions.
 
-The dataset comprises 16 CSV files organized in two main formats (vintage and releases), each available in four variants to support different analytical needs. All files are hosted on Zenodo (DOI: 10.5281/zenodo.18099975) with accompanying README documentation.
+The dataset comprises 1,132 CSV files organized in a three-tier structure that reflects the complete data processing pipeline: raw data (420 files), intermediate input vintages (696 files), and final output datasets (16 files). This structure enables users to reproduce the entire data workflow or to directly access analysis-ready datasets. All files are hosted on Zenodo (DOI: \href{https://doi.org/10.5281/zenodo.18099975}{10.5281/zenodo.18099975}) with accompanying README documentation.
 
-\subsection*{File Organization}
+\subsection*{Dataset Overview and File Structure}
 
-Table \ref{tab:file_structure} presents the complete file structure. Files are named following a consistent convention: \texttt{[frequency]\_gdp\_[format]\_[modifier].csv}, where frequency is monthly or quarterly, format is vintages or releases, and optional modifiers indicate adjusted (base-year adjustments) or benchmark (methodological revision indicators) variants.
+Figure~\ref{fig:data_structure} presents the hierarchical organization of the dataset. The three tiers correspond to distinct stages in the data processing pipeline: (1) manually-curated raw data from pre-2013 scanned Weekly Reports, (2) cleaned and standardized input vintages organized by year, and (3) concatenated final output datasets in two complementary formats.
+
+\begin{figure}[H]
+\centering
+\caption{Dataset folder structure and file organization}
+\label{fig:data_structure}
+
+\begin{verbatim}
+data/
+|-- raw/                                    [Tier 1: 420 files, ~3.5 MB]
+|   |__ old_weekly_reports/
+|       |-- table_1/                        [Monthly GDP - 228 files]
+|       |   |-- 1994/                       [12 CSV files: ns-03-1994.csv, ...]
+|       |   |-- 1995/                       [12 CSV files]
+|       |   |-- ...                         [Years 1996--2011]
+|       |   |__ 2012/                       [12 CSV files]
+|       |__ table_2/                        [Quarterly/Annual GDP - 192 files]
+|           |-- 1997/                       [12 CSV files]
+|           |-- ...                         [Years 1998--2011]
+|           |__ 2012/                       [12 CSV files]
+|-- input/                                  [Tier 2: 696 files, ~12 MB]
+|   |-- table_1/                            [Monthly GDP - 366 files]
+|   |   |-- 1994/                           [~12 CSV files per year]
+|   |   |-- ...                             [Years 1995--2024]
+|   |   |__ 2025/                           [Files through current date]
+|   |__ table_2/                            [Quarterly/Annual GDP - 330 files]
+|       |-- 1997/                           [~12 CSV files per year]
+|       |-- ...                             [Years 1998--2024]
+|       |__ 2025/                           [Files through current date]
+|-- output/                                 [Tier 3: 16 files, ~20 MB]
+|   |-- vintages/                           [8 CSV files]
+|   |   |-- monthly_gdp_vintages.csv
+|   |   |-- monthly_gdp_vintages_adjusted.csv
+|   |   |-- monthly_gdp_vintages_benchmark.csv
+|   |   |-- monthly_gdp_vintages_adjusted_benchmark.csv
+|   |   |-- quarterly_gdp_vintages.csv
+|   |   |-- quarterly_gdp_vintages_adjusted.csv
+|   |   |-- quarterly_gdp_vintages_benchmark.csv
+|   |   |__ quarterly_gdp_vintages_adjusted_benchmark.csv
+|   |__ releases/                           [8 CSV files]
+|       |-- monthly_gdp_releases.csv
+|       |-- monthly_gdp_releases_adjusted.csv
+|       |-- monthly_gdp_releases_benchmark.csv
+|       |-- monthly_gdp_releases_adjusted_benchmark.csv
+|       |-- quarterly_gdp_releases.csv
+|       |-- quarterly_gdp_releases_adjusted.csv
+|       |-- quarterly_gdp_releases_benchmark.csv
+|       |__ quarterly_gdp_releases_adjusted_benchmark.csv
+|__ README.md
+\end{verbatim}
+
+\end{figure}
+
+Table~\ref{tab:tier_summary} summarizes the contents of each data tier.
+
+\setcounter{table}{0}
 
 \begin{table}[h]
 \centering
-\caption{Dataset file structure}
-\label{tab:file_structure}
-\begin{tabular}{lrrr}
-\toprule
-File Name & Rows & Columns & Size (MB) \\
-\midrule
-\multicolumn{4}{l}{\textbf{Monthly Data}} \\
-monthly\_gdp\_vintages.csv & 1000+ & 300+ & 3.0 \\
-monthly\_gdp\_vintages\_adjusted.csv & 1000+ & 300+ & 3.0 \\
-monthly\_gdp\_vintages\_benchmark.csv & 1000+ & 300+ & 3.0 \\
-monthly\_gdp\_releases.csv & 300+ & 72 & 0.4 \\
-monthly\_gdp\_releases\_adjusted.csv & 300+ & 72 & 0.5 \\
-monthly\_gdp\_releases\_benchmark.csv & 300+ & 72 & 0.4 \\
-\midrule
-\multicolumn{4}{l}{\textbf{Quarterly \& Annual Data}} \\
-quarterly\_gdp\_vintages.csv & 1000+ & 200+ & 2.5 \\
-quarterly\_gdp\_vintages\_adjusted.csv & 1000+ & 200+ & 2.5 \\
-quarterly\_gdp\_vintages\_benchmark.csv & 1000+ & 200+ & 2.5 \\
-quarterly\_gdp\_releases.csv & 200+ & 60 & 0.4 \\
-quarterly\_gdp\_releases\_adjusted.csv & 200+ & 60 & 0.4 \\
-quarterly\_gdp\_releases\_benchmark.csv & 200+ & 60 & 0.4 \\
-\bottomrule
-\end{tabular}
+\caption{Dataset tier summary}
+\label{tab:tier_summary}
+
+\resizebox{\textwidth}{!}{%
+\input{tables/Tab1_TierSummary}
+}
+
+\end{table}
+
+\subsection*{Tier 1: Raw Data (\texttt{raw/old\_weekly\_reports/})}
+
+The raw data tier contains 420 CSV files representing manually-curated data extracted from pre-2013 scanned Weekly Reports. These files are organized into two subdirectories by table type, with year-based subfolders.
+
+\textbf{Subdirectory \texttt{table\_1/} (Monthly GDP):} Contains 228 CSV files across 19 year folders (1994--2012), with approximately 12 files per year corresponding to monthly vintages. Each file is named following the convention \texttt{ns-[week]-[year].csv} (e.g., \texttt{ns-03-2001.csv} for Week 3 of 2001).
+
+\textbf{Subdirectory \texttt{table\_2/} (Quarterly/Annual GDP):} Contains 192 CSV files across 16 year folders (1997--2012). Coverage begins in 1997 due to the later introduction of quarterly reporting in the Weekly Reports.
+
+\textbf{File format:} Semicolon-separated values (CSV), UTF-8 encoding with BOM, bilingual headers (Spanish and English sector names).
+
+\textbf{Purpose:} These raw CSVs are \textbf{required} for pipeline execution. Users must download this tier to reproduce the complete data processing workflow.
+
+\subsection*{Tier 2: Input Vintages (\texttt{input/})}
+
+The input tier contains 696 cleaned and standardized CSV files, representing the intermediate stage between raw extraction and final concatenation. Files are organized by table type and year.
+
+\textbf{Subdirectory \texttt{table\_1/} (Monthly GDP):} Contains 366 CSV files across 32 year folders (1994--2025). Each year folder contains approximately 12 vintage files, one per month.
+
+\textbf{Subdirectory \texttt{table\_2/} (Quarterly/Annual GDP):} Contains 330 CSV files across 29 year folders (1997--2025).
+
+\textbf{File format:} Semicolon-separated values (CSV), wide format with target-period columns, standardized sector names.
+
+\textbf{Purpose:} Input vintages enable partial pipeline reproduction (skipping the cleaning step) and provide transparency into the annual vintage construction process.
+
+\subsection*{Tier 3: Final Output Datasets (\texttt{output/})}
+
+The output tier contains 16 analysis-ready CSV files organized into two subdirectories representing complementary data formats. Table~\ref{tab:output_files} presents the complete file specifications.
+
+\begin{table}[h]
+\centering
+\caption{Output dataset file specifications}
+\label{tab:output_files}
+
+\resizebox{\textwidth}{!}{%
+\input{tables/Tab2_OutputFiles}
+}
+
 \end{table}
 
 \subsection*{Data Formats}
 
-\textbf{Vintage Format:} Each row represents an economic sector; columns represent release dates (vintages). Cell values are GDP growth rates as published in that vintage. This format preserves the exact information available at any historical point in time, essential for real-time forecasting applications.
+The dataset is organized in two complementary formats that serve different analytical purposes:
 
-\textbf{Releases Format:} Each row represents a target period (reference month/quarter); columns represent revision sequences (1st release, 2nd release, etc.). This format facilitates analysis of revision patterns and computation of revision statistics.
+\begin{itemize}
+    \item \textbf{Vintage format:} Contains all successive records as originally published by BCRP. This constitutes the real-time dataset (RTD) and preserves the exact chronology of publications.
+    \item \textbf{Releases format:} Derived from vintages, reorganized by release sequence for revision analysis. This format facilitates the computation of revision statistics and econometric testing.
+\end{itemize}
+
+Both formats contain identical underlying data; only the organizational structure differs. The vintage format ensures transparency and replicability by preserving information as it appeared at each point in time, while the releases format provides the structure  for studying revision patterns.
+
+\subsubsection*{Vintage Format Structure}
+
+In the vintage format, each row represents a target period (the reference month, quarter, or year being measured). Each column represents a publication vintage---the set of estimates available from BCRP at the end of a given month. Cell values contain GDP growth rates as published in that specific vintage.
+
+Table~\ref{tab:vintages} illustrates this format using the COVID-19 lockdown period (2020--2021), during which monthly GDP growth rates exhibit large negative values that facilitate visual tracking. The table demonstrates how a single target period (e.g., 2020m03) receives multiple estimates across successive vintages. To aid interpretation, first releases are highlighted in blue, second releases in red, third releases in green, and fourth releases in yellow within each target-period row.
+
+\textbf{Reading the vintage table:} In the 2020m07 column (July 2020 vintage), the value $-16.30$ for target period 2020m03 (highlighted in green) represents the \emph{third} estimate of March 2020 GDP growth. In the same column, the value $-32.80$ for target period 2020m05 (highlighted in blue) represents the \emph{first} estimate of May 2020 GDP growth. As such, by reading vertically down a single column, researchers can reconstruct the exact information set available to a policymaker at that specific historical point in time. Conversely, reading horizontally through a row allows for the tracking of the life cycle of a single target period; from its initial estimate to its final value. 
+
+
+\begin{table}[t!]
+\caption{Dataset of monthly vintages (illustrative excerpt)}
+\label{tab:vintages}
+
+\centering
+\resizebox{\textwidth}{!}{%
+\input{tables/Tab_Vintages}
+}
+
+\medskip
+\footnotesize
+\textbf{Notes:} This table illustrates the vintage format of a real-time database. Each column corresponds to a specific data vintage — that is, the set of estimates available in the WR at the end of a given month. Each row corresponds to a target period (e.g., a specific month for which GDP growth is estimated). The publication lag of the first release is two months.
+\end{table}
+
+\subsubsection*{Releases Format Structure}
+
+The releases format reorganizes the same underlying data by changing the unit of organization. Rows still correspond to target periods, but columns now group observations by \emph{release sequence} rather than by publication vintage. The column labeled $y_t^1$ (First release) collects the first published estimate for each target period, $y_t^2$ (Second release) collects the second estimate, and so on, up to $y_t^H$ (Last release).
+
+Table~\ref{tab:releases} presents this alternative structure using the same COVID-19 period data. The mapping between formats can be traced by following the colored cells: the blue cells (first releases) from Table~\ref{tab:vintages}---which appear in different vintage columns---are collected together in the $y_t^1$ column of Table~\ref{tab:releases}. Similarly, red cells (second releases) appear under $y_t^2$, green cells under $y_t^3$, and yellow cells under $y_t^4$.
+
+\textbf{Computing revisions:} This reorganization makes revisions explicit and computable. The revision from first to second release is $r_t^{1 \rightarrow 2} = y_t^2 - y_t^1$; from second to third release, $r_t^{2 \rightarrow 3} = y_t^3 - y_t^2$; and so forth. The $y_t^H$ column (Last release) contains the most recent available estimate for each target period, after which no further economically meaningful revisions are observed.
+
+\begin{table}[!b]
+\caption{Dataset of monthly releases (illustrative excerpt)}
+\label{tab:releases}
+
+\centering
+\resizebox{\textwidth}{!}{%
+\input{tables/Tab_Releases}
+}
+
+\medskip
+\footnotesize
+\textbf{Notes:} This table presents the release format derived directly from the vintage representation in Table~\ref{tab:vintages}. The data are not modified; they are only reorganized to group estimates by release order rather than by publication vintage. Each row corresponds to a target period (e.g., a specific month of GDP growth), and each column reports $y_t^h$, the $h$-th published release of that target-period estimate.
+\end{table}
+
+\subsubsection*{Format Selection Guide}
+
+\begin{itemize}
+    \item \textbf{Use vintage format for:} Real-time forecasting exercises, nowcasting applications, simulating
+historical information sets, evaluating forecast performance with data actually available at the time.
+    \item \textbf{Use releases format for:} Revision analysis, testing rationality and efficiency of preliminary
+estimates, computing revision statistics, studying convergence patterns across release sequences.
+\end{itemize}
 
 \subsection*{Data Variants}
 
-\textbf{Base Variant:} Standard GDP growth rates as published, suitable for most applications.
+Each output file is available in four variants to support different analytical needs:
 
-\textbf{Adjusted Variant:} Applies sentinel value (-999999.0) to growth rates that become incomparable due to base-year changes (1994, 2007, 2019). Marks invalid observations without removing them, preserving complete revision history while flagging structural breaks.
+\textbf{Base Variant:} Standard GDP growth rates as published by BCRP, suitable for most applications.
 
-\textbf{Benchmark Variant:} Replaces growth rates with binary indicators (1.0 = benchmark revision with simultaneous update of monthly and quarterly/annual tables; 0.0 = routine update). Enables isolation of methodological revisions from standard data updates.
+\textbf{Adjusted Variant (suffix \texttt{\_adjusted}):} Applies sentinel value ($-999999.0$) to growth rates that become incomparable due to base-year methodological changes (1994, 2007, 2019). Marks invalid observations without removing them, preserving complete revision history while flagging structural breaks.
 
-\subsection*{Coverage}
+\textbf{Benchmark Variant (suffix \texttt{\_benchmark}):} Replaces growth rates with binary indicators (1.0 = benchmark revision with simultaneous update of monthly and quarterly/annual tables; 0.0 = routine update). Enables isolation of methodological revisions from standard data updates.
 
-\begin{itemize}
-\item \textbf{Temporal coverage:} 1994-2025 (31 years)
-\item \textbf{Frequencies:} Monthly, quarterly, annual
-\item \textbf{Vintages tracked:} 1000+ data releases
-\item \textbf{Economic sectors:} 9 total (aggregate GDP + 8 sectors)
-\begin{itemize}
-\item Agriculture and livestock
-\item Fishing
-\item Mining and fuel
-\item Manufacturing
-\item Electricity and water
-\item Construction
-\item Commerce
-\item Other services
-\end{itemize}
-\end{itemize}
+\textbf{Combined Variant (suffix \texttt{\_adjusted\_benchmark}):} Combines both adjustments for analyses requiring both base-year flagging and benchmark identification.
+
+\subsection*{Dataset Statistics}
+
+Table~\ref{tab:rt_sum} presents the complete coverage of the real-time dataset across all economic sectors and frequencies.
+
+\begin{table}[t!]
+\caption{Sectoral GDP coverage in the real-time dataset}
+\label{tab:rt_sum}
+\centering
+\resizebox{\textwidth}{!}{
+\input{tables/Tab_RT_Summarize}
+}\\[2mm]
+\footnotesize \textbf{Notes:} Industry disaggregation follows level 9 of the INEI official classification. ``Other
+services'' comprises transportation, telecommunications, financial services, real estate, public administration, and
+related activities.
+\end{table}
 
 \subsection*{Data Schema}
 
 \textbf{Vintage Format Schema:}
+
 \begin{itemize}
-\item \texttt{industry} (string): Sector name (standardized)
-\item \texttt{vintage} (string): Publication month in YYYYmM format (e.g., 2020m5)
-\item \texttt{tp\_YYYYmM} / \texttt{tp\_YYYYqN} / \texttt{tp\_YYYY} (float): Growth rate columns for each target period
+    \item \texttt{industry} (string): Standardized sector name (9 categories: agriculture, fishing, mining, manufacturing,
+   electricity, construction, commerce, services, gdp)
+    \item \texttt{vintage} (string): Publication month in \texttt{YYYYmM} format (e.g., \texttt{2020m5} for May 2020)
+    \item \texttt{tp\_YYYYmM}, \texttt{tp\_YYYYqN}, or \texttt{tp\_YYYY} (float): GDP growth rate columns for each target
+  period
 \end{itemize}
 
 \textbf{Releases Format Schema:}
+  
 \begin{itemize}
-\item \texttt{target\_period} (string): Reference period in YYYYmM/YYYYqN/YYYY format
-\item \texttt{industry\_h} (float): $h$-th release for each industry (e.g., \texttt{agriculture\_1}, \texttt{agriculture\_2}, etc.)
+    \item \texttt{target\_period} (string): Reference period in \texttt{YYYYmM}, \texttt{YYYYqN}, or \texttt{YYYY} format
+    \item \texttt{[sector]\_[h]} (float): The $h$-th release for each sector (e.g., \texttt{agriculture\_1},
+    \texttt{agriculture\_2}, ..., \texttt{gdp\_38})
 \end{itemize}
 
-\subsection*{Missing Values}
+\subsection*{File Naming Conventions}
 
-Missing values (NaN) occur legitimately in vintage format when:
+Files follow consistent naming conventions across all tiers:
+
+\textbf{Raw and Input files:} \texttt{ns-[week]-[year].csv}, where \texttt{ns} denotes ``Nota Semanal'' (Spanish for ``Weekly Report''), \texttt{week} is the report number (01--52), and \texttt{year} is the four-digit year.
+
+\textbf{Output files:} \texttt{[frequency]\_gdp\_[format]\_[modifiers].csv}, where:
+  
 \begin{itemize}
-\item Data not yet published for future periods (normal in real-time datasets)
-\item Historical data outside the reporting window in early vintages
-\item Sectoral data not available for certain periods
+    \item \texttt{frequency}: \texttt{monthly} or \texttt{quarterly}
+    \item \texttt{format}: \texttt{vintages} or \texttt{releases}
+    \item \texttt{modifiers} (optional): \texttt{adjusted}, \texttt{benchmark}, or \texttt{adjusted\_benchmark}
+\end{itemize}
+
+\subsection*{Technical Specifications}
+
+\begin{itemize}
+    \item \textbf{File format:} CSV (comma-separated for output, semicolon-separated for raw/input)
+    \item \textbf{Encoding:} UTF-8
+    \item \textbf{Missing values:} Empty cells or \texttt{NaN}
+    \item \textbf{Decimal separator:} Period (.)
+    \item \textbf{Temporal coverage:} 1994--2025 (31 years)
+    \item \textbf{Vintages tracked:} 310 monthly vintages (1994m1--2025m10)
+    \item \textbf{Economic sectors:} 9 (aggregate GDP + 8 industries)
+    \item \textbf{Total observations:} 2,561+ sector-period-vintage combinations per frequency
 \end{itemize}
 
 Sentinel value (-999999.0) in adjusted variants marks observations affected by base-year changes, not true missing values.
@@ -260,7 +473,7 @@ Sentinel value (-999999.0) in adjusted variants marks observations affected by b
 
 \subsection*{Data Sources}
 
-\textbf{Primary Source:} Banco Central de Reserva del Perú (BCRP) Weekly Reports (Nota Semanal), published every Friday since 1994. Each report reproduces GDP growth statistics from Peru's National Institute of Statistics and Informatics (INEI) in standardized tables.
+\textbf{Primary Source:} Banco Central de Reserva del Perú (BCRP) Weekly Reports (Nota Semanal, in Spanish), published every Friday since 1994. Each report reproduces GDP growth statistics from Peru's National Institute of Statistics and Informatics (INEI) in standardized tables.
 
 \textbf{Historical Context:} Prior to 2013, Weekly Reports existed only as hardcover volumes stored at the BCRP's Renzo Rossini Library (Lima, Peru). From 2013 onwards, reports became freely available as digital PDFs at \url{https://www.bcrp.gob.pe/publicaciones/nota-semanal.html}.
 
@@ -295,7 +508,7 @@ Data collection employed two distinct methodologies depending on time period:
 \textbf{Post-Processing Enhancements:}
 \begin{itemize}
 \item \textbf{Bilingual Sector Recognition:} Parser identifies sectors in Spanish (\emph{Agropecuario}, \emph{Pesca}) and English (\emph{Agriculture}, \emph{Fishing})
-\item \textbf{Fuzzy Matching:} Tolerates OCR character errors (e.g., "agropeciano"→"agropecuario", "menera"→"minería") using edit-distance matching with 2-character tolerance
+\item \textbf{Fuzzy Matching:} Tolerates OCR character errors (e.g., ``agropeciano''→``agropecuari'', ``menera''→``minería'') using edit-distance matching with 2-character tolerance
 \item \textbf{Confidence Scoring:} Tesseract word-level confidence combined with validation checks; outputs below 85\% threshold flagged for review
 \item \textbf{Quality Validation:} Automated checks for expected sector count, numeric ranges, CSV structure
 \end{itemize}
@@ -306,7 +519,7 @@ Data collection employed two distinct methodologies depending on time period:
 \item Data completeness: 70.5\% (755 missing / 2,561 total cells)
 \item Sectors extracted: 114 sector-month observations
 \item Processing time: ~3 minutes (~15 seconds per PDF)
-\item OCR errors: Common character substitutions documented (e.g., "agropacuaro", "posci") demonstrating need for manual review
+\item OCR errors: Common character substitutions documented (e.g., ``agropacuaro'', ``posci'') demonstrating need for manual review
 \end{itemize}
 
 Automated OCR outputs stored in \texttt{OCR/output/table\_1/2001/} serve as transparent documentation of initial extraction. However, extensive manual correction was required for production quality.
@@ -316,13 +529,13 @@ Automated OCR outputs stored in \texttt{OCR/output/table\_1/2001/} serve as tran
 \textbf{Manual Verification and Curation:} Each OCR-extracted table was:
 \begin{enumerate}
 \item Compared against original scanned PDF by human reviewers
-\item Corrected for character recognition errors (e.g., "9.4" read as "5.4", "O"→"0", "l"→"1")
+\item Corrected for character recognition errors (e.g., ``9.4'' read as ``5.4'', ``O''→``0'', ``l''→``1'')
 \item Validated for missing values and structural inconsistencies
 \item Standardized for sector names and numeric reasonableness
 \item Stored as final curated CSV in \texttt{data/raw/old\_weekly\_reports/}
 \end{enumerate}
 
-These manually-curated CSV files represent the \textbf{official "raw data"} for pre-2013 periods. The Year 2001 OCR demonstration, complete pipeline code, and documentation are publicly available in the \texttt{OCR/} directory, providing full transparency about data collection methodology while acknowledging that human intervention was necessary for quality assurance.
+These manually-curated CSV files represent the \textbf{official ``raw data''} for pre-2013 periods. The Year 2001 OCR demonstration, complete pipeline code, and documentation are publicly available in the \texttt{OCR/} directory, providing full transparency about data collection methodology while acknowledging that human intervention was necessary for quality assurance.
 
 \textbf{Automated Cleaning:} Curated pre-2013 tables were processed using Python module \texttt{peru\_gdp\_rtd.cleaners.old\_table\_cleaner} with orchestration functions \texttt{old\_table\_1\_runner} and \texttt{old\_table\_2\_runner}.
 
@@ -334,7 +547,8 @@ These manually-curated CSV files represent the \textbf{official "raw data"} for 
 
 \textbf{Common Extraction Issues:} Digital PDFs presented encoded characters (e.g., \texttt{(cid:101)}), incomplete table borders, duplicate documents, empty cells misinterpreted as headers, missing year labels, and fragmented borders.
 
-\textbf{Automated Cleaning:} Post-2013 tables processed using Python module \texttt{peru\_gdp\_rtd.cleaners.new\_table\_cleaner} with orchestration functions \texttt{new\_table\_1\_runner} and \texttt{new\_table\_2\_runner}.
+\textbf{Automated Cleaning:} Post-2013 tables processed using Python module \\
+\texttt{peru\_gdp\_rtd.cleaners.new\_table\_cleaner} with orchestration functions \texttt{new\_table\_1\_runner} and \texttt{new\_table\_2\_runner}.
 
 \subsection*{Data Processing Pipeline}
 
@@ -414,7 +628,7 @@ The complete pipeline is implemented in Python 3.10+ and organized into 14 speci
 
 \subsection*{Base-Year Adjustments}
 
-Peru's GDP series underwent three base-year changes (1994, 2007, 2019), creating structural breaks. We identify affected periods via metadata mapping and apply sentinel value (-999999.0) to mark incomparable observations. This preserves complete revision history while flagging invalid comparisons.
+Over the 30-year sample period, Peru's GDP series underwent three base-year changes (1994, 2007, 2019), creating structural breaks. We identify affected periods via metadata mapping and apply sentinel value (-999999.0) to mark incomparable observations. This preserves complete revision history while flagging invalid comparisons.
 
 \subsection*{Benchmark Indicators}
 
@@ -529,9 +743,9 @@ The authors confirm that this work does not involve human subjects, animal exper
 
 \textbf{Jason Cruz:} Conceptualization, Data curation, Formal analysis, Investigation, Methodology, Software, Validation, Visualization, Writing - original draft, Writing - review \& editing.
 
-\textbf{Diego Winkelried:} Conceptualization, Formal analysis, Methodology, Supervision, Writing - review \& editing.
+\textbf{Diego Winkelried:} Conceptualization, Formal analysis, Investigation, Methodology, Validation, Visualization, Writing - original draft, Supervision, Writing - review \& editing, Funding acquisition.
 
-\textbf{Javier Torres:} Conceptualization, Formal analysis, Methodology, Supervision, Writing - review \& editing.
+\textbf{Javier Torres:} Conceptualization, Formal analysis, Writing - original draft, Supervision, Writing - review \& editing, Funding acquisition.
 
 % ===================================================================
 % ACKNOWLEDGEMENTS
@@ -557,25 +771,27 @@ The authors declare that they have no known competing financial interests or per
 % ===================================================================
 % REFERENCES
 % ===================================================================
-\section*{References}
 
 % INSTRUCTION: Maximum 20 references. Format as numbered list.
 % In-text citations: number(s) in square brackets [1], [2-4], etc.
 % If supporting a research article, cite it first.
 % MUST cite your dataset in the repository.
 
+\small
+\bibliographystyle{apalike}
+\bibliography{CWT_Bibliography}
+\normalsize
+
+\textbf{Sources of statistical information}
+
 \begin{enumerate}
 
-\item Cruz J, Winkelried D, Torres J. Peru GDP Real-Time Dataset (1994-2025). Zenodo; 2025. DOI: 10.5281/zenodo.18099975. Available from: \url{https://doi.org/10.5281/zenodo.18099975}
-
-\item Croushore D, Stark T. A Real-Time Data Set for Macroeconomists. Journal of Econometrics. 2001;105(1):111-130. DOI: 10.1016/S0304-4076(01)00072-0
-
-\item Croushore D. Frontiers of Real-Time Data Analysis. Journal of Economic Literature. 2011;49(1):72-100. DOI: 10.1257/jel.49.1.72
-
-\item Banco Central de Reserva del Perú. Weekly Reports (Nota Semanal). Available from: \url{https://www.bcrp.gob.pe/publicaciones/nota-semanal.html} [Accessed 2025-12-31]
-
-\item Instituto Nacional de Estadística e Informática (INEI). National Accounts Methodology. Available from: \url{https://www.inei.gob.pe/estadisticas/indice-tematico/economia/} [Accessed 2025-12-31]
-
+    \item Cruz J, Winkelried D, Torres J. Peru GDP Real-Time Dataset (1994-2025). Zenodo; 2025. DOI: 10.5281/zenodo.18099975. Available from: \url{https://doi.org/10.5281/zenodo.18099975}
+    
+    \item Banco Central de Reserva del Perú. Weekly Reports (Nota Semanal). Available from: \url{https://www.bcrp.gob.pe/publicaciones/nota-semanal.html} [Accessed 2025-12-31]
+    
+    \item Instituto Nacional de Estadística e Informática (INEI). National Accounts Methodology. Available from: \url{https://www.inei.gob.pe/estadisticas/indice-tematico/economia/} [Accessed 2025-12-31]
+    
 \end{enumerate}
 
 \end{document}

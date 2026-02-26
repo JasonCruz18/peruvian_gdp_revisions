@@ -6,10 +6,20 @@ version: "1.0.0"
 date-released: "2024-12-28"
 authors:
   - family-names: "Cruz"
-    given-names: "Jason"
+    given-names: "Jason Josue"
     email: "jj.cruza@up.edu.pe"
     affiliation: "Universidad del Pacífico - CIUP"
-    orcid: "https://orcid.org/0000-0000-0000-0000"  # TODO: Add ORCID
+    orcid: "https://orcid.org/0009-0001-4640-5500"
+  - family-names: "Winkelried"
+    given-names: "Diego"
+    email: "winkelried_dm@up.edu.pe"
+    affiliation: "School of Economics and Finance, Universidad del Pacífico"
+    orcid: "https://orcid.org/0000-0002-9388-2617"
+  - family-names: "Torres"
+    given-names: "Javier"
+    email: "J.TorresGomez@up.edu.pe"
+    affiliation: "School of Economics and Finance, Universidad del Pacífico"
+    orcid: "https://orcid.org/0000-0001-6850-1395"
 repository-code: "https://github.com/JasonCruz18/peru_gdp_revisions"
 url: "https://github.com/JasonCruz18/peru_gdp_revisions"
 abstract: >-
@@ -28,14 +38,17 @@ keywords:
 license: MIT
 preferred-citation:
   type: article
-  title: "Rationality and Nowcasting on Peruvian GDP Revisions"
+  title: "Peru GDP Real-Time Dataset (1994-2025): Tracking Three Decades of Revisions"
   authors:
     - family-names: "Cruz"
-      given-names: "Jason"
+      given-names: "Jason Josue"
+      orcid: "https://orcid.org/0009-0001-4640-5500"
     - family-names: "Winkelried"
       given-names: "Diego"
+      orcid: "https://orcid.org/0000-0002-9388-2617"
     - family-names: "Torres"
       given-names: "Javier"
+      orcid: "https://orcid.org/0000-0001-6850-1395"
   year: 2025
-  journal: "Data in Brief"  # Submitted
+  journal: "Data in Brief"
   institution: "Universidad del Pacífico - CIUP"
