@@ -18,7 +18,7 @@ This is the primary educational notebook for users who want to understand and ru
 **Features:**
 - Step-by-step execution of the complete pipeline
 - Detailed explanations of each processing stage
-- Visual progress indicators and audio alerts (via `alert_track/`)
+- Visual progress indicators and optional audio alerts
 - Interactive cells for exploring intermediate results
 - Comprehensive documentation of data transformations
 - **Uses production-quality modular code** (same as `scripts/update_rtd.py`)
@@ -113,14 +113,14 @@ Planned step-by-step tutorial notebooks to cover specific topics:
 
 These tutorials will demonstrate specific aspects of the modular architecture in focused, digestible notebooks.
 
-## Alert Tracking
+## Optional Audio Alerts
 
-The notebooks use audio alerts (`../alert_track/musica-Beethoven-Oda-a-la-alegria.mp3`) to notify users when long-running operations complete. This enhances the user experience during interactive sessions.
+The notebooks can use audio alerts to notify users when long-running operations complete. This is optional convenience functionality for interactive sessions.
 
 **Audio alert functions** (from `peru_gdp_rtd.utils`):
 ```python
 init_audio()              # Initialize pygame mixer
-load_alert_track()        # Load the alert sound
+load_alert_track()        # Load an alert sound from alert_track/
 play_alert_track()        # Play the alert
 stop_alert_track()        # Stop playback
 ```

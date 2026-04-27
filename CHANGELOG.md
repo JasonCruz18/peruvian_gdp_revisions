@@ -147,6 +147,10 @@ peru_gdp_revisions/
 
 ## [Unreleased]
 
+### Changed
+- Repository cleanup to keep the public codebase focused on reproducible dataset construction
+- Removed bundled dashboard code and internal publication/support artifacts from the main repository
+
 ### Planned Features
 - Docker containerization for simplified deployment
 - PostgreSQL database backend option
