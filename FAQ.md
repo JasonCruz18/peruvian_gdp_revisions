@@ -1,4 +1,4 @@
-# Frequently Asked Questions (FAQ)
+﻿# Frequently Asked Questions (FAQ)
 
 Common questions and answers about the Peru GDP Real-Time Dataset project.
 
@@ -126,15 +126,7 @@ The pipeline is idempotent - it will:
 
 ### Where are the output files?
 
-All datasets are saved in `data/output/`:
-```
-data/output/
-├── monthly_gdp_vintages.csv
-├── quarterly_gdp_vintages.csv
-├── monthly_gdp_releases.csv
-├── quarterly_gdp_releases.csv
-└── [8+ more dataset variants]
-```
+Final datasets are saved in `data/output/vintages/` and `data/output/releases/`. Stage-3 intermediate files are saved in `data/input/`.
 
 ### Can I use the code as a Python package?
 
@@ -356,3 +348,5 @@ Then import in `__init__.py` and use in cleaner classes.
 ---
 
 *Last updated: December 15, 2025*
+
+

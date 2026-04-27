@@ -120,7 +120,6 @@ peru_gdp_revisions/
 |   |   `-- validation.py
 |   `-- utils/
 |       |-- data_manager.py
-|       |-- alerts.py
 |       `-- progress.py
 |-- OCR/                       # Standalone OCR pipeline (year 2001 demonstration)
 |   |-- ocr_config/
@@ -282,7 +281,6 @@ scraper:
   max_downloads: 60
 
 features:
-  enable_alerts: false
   persist_format: "parquet"   # csv or parquet
   validate_data: true
 

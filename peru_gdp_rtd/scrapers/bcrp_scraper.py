@@ -8,7 +8,6 @@ The scraper:
 - Downloads PDFs with retry logic and error handling
 - Tracks downloaded files to avoid duplicates
 - Respects rate limits to mimic human behavior
-- Provides audio alerts for long-running downloads
 """
 
 import os
@@ -37,12 +36,6 @@ from webdriver_manager.microsoft import EdgeChromiumDriverManager
 
 # Local imports
 from peru_gdp_rtd.scrapers.utils import get_http_session, random_wait
-from peru_gdp_rtd.utils.alerts import (
-    init_audio,
-    load_alert_track,
-    play_alert_track,
-    stop_alert_track,
-)
 from peru_gdp_rtd.utils.progress import progress_bar
 from peru_gdp_rtd.config import Settings
 
@@ -229,8 +222,7 @@ def pdf_downloader(
     2. Reverses the order to download from oldest -> newest for stable local numbering
     3. Skips any file already present in the record file (no re-download)
     4. Streams each PDF to disk and appends its filename to the record (chronological)
-    5. Optionally pauses after each batch with a short alert track and user prompt
-    6. Prints a final summary (total links, skipped, new, elapsed time)
+    5. Prints a final summary (total links, skipped, new, elapsed time)
 
     Assumptions:
     - The site structures monthly WR links under the CSS selector from settings
@@ -265,7 +257,6 @@ def pdf_downloader(
 
     raw_pdf_folder = str(settings.paths.pdf_raw)
     record_folder = str(settings.paths.record)
-    alert_folder = str(settings.paths.alert_track)
     record_txt = settings.record_files["downloaded_pdfs"]
 
     min_wait = settings.scraper.min_wait
@@ -277,16 +268,7 @@ def pdf_downloader(
     chunk_size = settings.scraper.http.chunk_size
     http_timeout = settings.scraper.http.timeout
 
-    enable_alerts = settings.features.enable_alerts
-
     print("\n>> Starting PDF download (BCRP Weekly Reports)...")
-
-    # Initialize audio if enabled
-    _last_alert = None
-    if enable_alerts:
-        init_audio()
-        alert_track_path = load_alert_track(alert_folder, _last_alert)
-        _last_alert = alert_track_path
 
     # Load existing download record
     record_path = os.path.join(record_folder, record_txt)
@@ -342,16 +324,11 @@ def pdf_downloader(
             else:
                 new_downloads.append((link, file_name))
 
-        # Download queue (chronological), with optional batch pauses and pacing
+        # Download queue (chronological), with pacing between files
         for i, (link, file_name) in enumerate(
             progress_bar(new_downloads, desc="Downloading PDFs", unit="PDF"),
             start=1,
         ):
-            # Load a new random alert for each batch start
-            if enable_alerts and i % downloads_per_batch == 1:
-                alert_track_path = load_alert_track(alert_folder, _last_alert)
-                _last_alert = alert_track_path
-
             ok = download_pdf(
                 driver=driver,
                 pdf_link=link,
@@ -367,16 +344,6 @@ def pdf_downloader(
             if ok:
                 downloaded_files.add(file_name)
                 new_counter += 1
-
-            # Optional checkpoint every N downloads
-            if enable_alerts and (i % downloads_per_batch == 0) and alert_track_path:
-                play_alert_track()
-                user_input = input("Continue? (y = yes, any other key = stop): ")
-                stop_alert_track()
-
-                if user_input.lower() != "y":
-                    print(">> Download stopped by user.")
-                    break
 
             # Respect a global cap if provided
             if max_downloads and new_counter >= max_downloads:

@@ -26,7 +26,6 @@ class PathConfig:
     old_weekly_reports: Path
     metadata: Path
     record: Path
-    alert_track: Path
 
 
 @dataclass
@@ -122,7 +121,6 @@ class LoggingConfig:
 class FeaturesConfig:
     """Feature flags configuration."""
 
-    enable_alerts: bool
     persist_intermediate: bool
     persist_format: str
     validate_data: bool
@@ -233,7 +231,6 @@ class Settings:
             old_weekly_reports=root_dir / paths_dict["old_weekly_reports"],
             metadata=root_dir / paths_dict["metadata"],
             record=root_dir / paths_dict["record"],
-            alert_track=root_dir / paths_dict["alert_track"],
         )
 
         # Parse scraper config
@@ -301,7 +298,6 @@ class Settings:
             self.paths.pdf_input,
             self.paths.metadata,
             self.paths.record,
-            self.paths.alert_track,
         ]
 
         for directory in directories:

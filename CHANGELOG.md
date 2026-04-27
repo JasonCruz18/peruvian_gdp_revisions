@@ -40,7 +40,6 @@ First stable release of the Peru GDP Real-Time Dataset Construction Pipeline. Th
 - **Python Support**: Compatible with Python 3.10, 3.11, 3.12
 
 #### Interactive Features
-- **Audio Alerts**: Optional completion alerts for long-running operations
 - **Progress Tracking**: tqdm-based progress bars for all processing steps
 
 ### Security
@@ -90,7 +89,7 @@ peru_gdp_revisions/
 - **Configuration**: pyyaml 6.0.3
 - **Web Scraping**: selenium 4.39.0, webdriver-manager 4.0.2, requests 2.32.5, urllib3 2.6.2
 - **PDF Processing**: PyMuPDF 1.26.7, pypdf 6.4.2, tabula-py 2.9.0
-- **Utilities**: pygame 2.5.2, roman 4.1, tqdm 4.66.5, colorama 0.4.6
+- **Utilities**: roman 4.1, tqdm 4.66.5, colorama 0.4.6
 
 #### Development Dependencies
 - **Notebooks**: jupyter 1.0.0, notebook 7.5.1, ipywidgets 8.1.8
@@ -147,6 +146,7 @@ peru_gdp_revisions/
 ### Changed
 - Repository cleanup to keep the public codebase focused on reproducible dataset construction
 - Removed bundled dashboard code and internal publication/support artifacts from the main repository
+- Removed the unused audio-alert feature and its `pygame` dependency
 
 ### Planned Features
 - Docker containerization for simplified deployment
