@@ -104,7 +104,7 @@ Now that Zenodo is watching your repository, create a release:
    - **70+ cleaning functions** for data standardization
    - **Base-year adjustment** handling (1990, 1994, 2007)
    - **Multiple output formats** (RTD, releases, benchmark)
-   - **Interactive dashboard** for data exploration
+   - Reproducible code pipeline for dataset construction
    - **Complete documentation** and tutorial notebooks
    - **CI/CD pipeline** with cross-platform testing
 
@@ -139,7 +139,7 @@ Now that Zenodo is watching your repository, create a release:
 
    - Repository: https://github.com/JasonCruz18/peru_gdp_revisions
    - Documentation: https://github.com/JasonCruz18/peru_gdp_revisions/tree/main/docs
-   - Dashboard: Run `streamlit run dashboard/app.py`
+   - Main pipeline: Run `python scripts/update_rtd.py`
 
    ---
 

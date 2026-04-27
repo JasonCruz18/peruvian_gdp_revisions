@@ -62,8 +62,9 @@ venv.bak/
 /data/input/
 /pdfs/
 /record/
-/alert_track/*.mp3
 /logs/
+/OCR/checkpoints/
+/OCR/review/
 
 # Keep raw data structure but ignore large files
 !/data/raw/
@@ -79,16 +80,19 @@ venv.bak/
 *.temp
 *.log
 *.bak
+*.orig
 
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
 .tox/
+.nox/
 .hypothesis/
 coverage.xml
 *.cover
 .cache
+.ruff_cache/
 nosetests.xml
 
 # OS-specific

@@ -172,7 +172,7 @@ class RecordManager:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     User Interface                          │
-│  (CLI: scripts/update_rtd.py, Notebooks, Dashboard)         │
+│      (CLI: scripts/update_rtd.py, Notebooks)                │
 └────────────────────────┬────────────────────────────────────┘
                          │
 ┌────────────────────────▼────────────────────────────────────┐
@@ -239,34 +239,31 @@ Final Datasets in data/output/
 **Purpose**: Type-safe configuration management.
 
 **Files**:
-- `settings.py` - Pydantic models for type-safe settings
+- `settings.py` - Dataclass-based settings and YAML loader
 - `__init__.py` - Exports `get_settings()` function
 
 **Key Classes**:
 ```python
-class ProjectSettings(BaseModel):
-    """Project metadata."""
-    name: str
-    version: str
-    author: str
+@dataclass
+class PathConfig:
+    data_root: Path
+    data_input: Path
+    data_output: Path
 
-class ScraperSettings(BaseModel):
-    """Web scraping configuration."""
+@dataclass
+class ScraperConfig:
     browser: str
     headless: bool
     max_downloads: int
-    download_timeout: int
-    rate_limit_min: float
-    rate_limit_max: float
 
-class Settings(BaseModel):
-    """Main settings container."""
-    project: ProjectSettings
-    scraper: ScraperSettings
-    paths: PathSettings
-    cleaning: CleaningSettings
-    metadata: MetadataSettings
-    features: FeaturesSettings
+@dataclass
+class Settings:
+    project: Dict[str, Any]
+    paths: PathConfig
+    scraper: ScraperConfig
+    cleaning: CleaningConfig
+    metadata: MetadataConfig
+    features: FeaturesConfig
 ```
 
 **Usage**:
@@ -450,7 +447,7 @@ def run_step6_releases(settings: Settings) -> None:
 
 **Files**:
 - `data_manager.py` - RecordManager for idempotency
-- `alerts.py` - Audio alert utilities
+- `progress.py` - Shared progress bar helpers
 
 **Key Classes**:
 ```python
@@ -462,9 +459,6 @@ class RecordManager:
     def get_all_processed(self) -> Set[str]
     def save(self) -> None
     def load(self) -> None
-
-def play_alert_track(audio_file: Path) -> None:
-    """Play audio alert using pygame."""
 ```
 
 ---
@@ -578,19 +572,15 @@ releases = converter.convert(rtd)
 
 ## Key Design Decisions
 
-### 1. Why Pydantic for Configuration?
+### 1. Why Dataclass-Based Configuration?
 
-**Decision**: Use Pydantic models instead of plain dictionaries.
+**Decision**: Use typed dataclasses and a YAML loader instead of plain dictionaries.
 
 **Rationale**:
-- Type safety at runtime
-- Automatic validation
-- Clear error messages
+- Type-safe access to configuration sections
+- Centralized defaults and path resolution
+- Clear, maintainable structure without extra runtime dependencies
 - IDE autocomplete support
-- Self-documenting schemas
-
-**Alternative Considered**: dataclasses
-**Why Pydantic Won**: Built-in validation and YAML integration
 
 ### 2. Why Class-Based Cleaners?
 

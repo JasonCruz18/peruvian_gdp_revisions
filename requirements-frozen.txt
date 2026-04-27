@@ -24,7 +24,6 @@ tabula-py==2.9.0
 # Note: tabula-py requires Java Runtime Environment (JRE) to be installed
 
 # Utilities
-pygame==2.5.2
 roman==4.1
 tqdm==4.66.5
 

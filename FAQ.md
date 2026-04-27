@@ -1,4 +1,4 @@
-# Frequently Asked Questions (FAQ)
+﻿# Frequently Asked Questions (FAQ)
 
 Common questions and answers about the Peru GDP Real-Time Dataset project.
 
@@ -9,10 +9,9 @@ Common questions and answers about the Peru GDP Real-Time Dataset project.
 1. [General Questions](#general-questions)
 2. [Installation](#installation)
 3. [Usage](#usage)
-4. [Dashboard](#dashboard)
-5. [Data Quality](#data-quality)
-6. [Troubleshooting](#troubleshooting)
-7. [Contributing](#contributing)
+4. [Data Quality](#data-quality)
+5. [Troubleshooting](#troubleshooting)
+6. [Contributing](#contributing)
 
 ---
 
@@ -127,15 +126,7 @@ The pipeline is idempotent - it will:
 
 ### Where are the output files?
 
-All datasets are saved in `data/output/`:
-```
-data/output/
-├── monthly_gdp_vintages.csv
-├── quarterly_gdp_vintages.csv
-├── monthly_gdp_releases.csv
-├── quarterly_gdp_releases.csv
-└── [8+ more dataset variants]
-```
+Final datasets are saved in `data/output/vintages/` and `data/output/releases/`. Stage-3 intermediate files are saved in `data/input/`.
 
 ### Can I use the code as a Python package?
 
@@ -149,57 +140,6 @@ Then import:
 from peru_gdp_rtd.config import get_settings
 from peru_gdp_rtd.scrapers import pdf_downloader
 # ... etc
-```
-
----
-
-## Dashboard
-
-### How do I run the dashboard?
-
-```bash
-# Install dashboard dependencies
-pip install -r dashboard/requirements.txt
-
-# Run dashboard
-streamlit run dashboard/app.py
-```
-
-The dashboard will open in your browser at `http://localhost:8501`.
-
-### Can I customize the dashboard colors?
-
-Yes! Edit `dashboard/config.py` and change the `THEME_PRESET`:
-```python
-THEME_PRESET = "academic"  # or "ocean", "forest", "sunset", "custom"
-```
-
-Or define custom colors in the `"custom"` theme section.
-
-### How do I add my project logo?
-
-1. Save your logo as PNG: `dashboard/assets/logo.png`
-2. Set in `dashboard/config.py`:
-```python
-USE_LOGO = True
-LOGO_WIDTH = 200  # Adjust width as needed
-```
-
-### Can I deploy the dashboard online?
-
-Yes! Options:
-1. **Streamlit Cloud** (easiest, free)
-2. **Heroku**
-3. **AWS/GCP/Azure**
-4. **Your own server**
-
-See `dashboard/README.md` for deployment guides.
-
-### The dashboard shows "No datasets found"
-
-Run the pipeline first to generate datasets:
-```bash
-python scripts/update_rtd.py
 ```
 
 ---
@@ -318,20 +258,6 @@ pip install -r requirements.txt
 python tests/test_smoke.py
 ```
 
-### The dashboard won't start
-
-**Solution**:
-```bash
-# Install dashboard dependencies
-pip install streamlit plotly pandas
-
-# Or
-pip install -r dashboard/requirements.txt
-
-# Run dashboard
-streamlit run dashboard/app.py
-```
-
 ---
 
 ## Contributing
@@ -422,3 +348,5 @@ Then import in `__init__.py` and use in cleaner classes.
 ---
 
 *Last updated: December 15, 2025*
+
+

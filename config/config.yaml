@@ -31,7 +31,6 @@ paths:
   # Metadata and tracking
   metadata: "metadata"
   record: "record"
-  alert_track: "alert_track"
 
 # ====================
 # SCRAPER CONFIGURATION
@@ -216,7 +215,6 @@ logging:
 # FEATURE FLAGS
 # ====================
 features:
-  enable_alerts: false          # Play audio alerts after downloads (disabled for automated pipeline)
   persist_intermediate: true    # Save intermediate processing results
   persist_format: "csv"     # Options: csv, parquet
   validate_data: true           # Run data validation checks

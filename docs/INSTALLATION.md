@@ -328,7 +328,6 @@ cleaning:
 
 # Feature flags
 features:
-  enable_alerts: true         # Play audio alerts
   persist_format: "csv"       # Output format: csv or parquet
 ```
 

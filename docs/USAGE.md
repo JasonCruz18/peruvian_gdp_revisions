@@ -124,11 +124,7 @@ from peru_gdp_rtd.config import get_settings
 settings = get_settings('config/config.yaml')
 
 # Download PDFs from BCRP
-pdf_downloader(
-    browser=settings.scraper.browser,
-    headless=settings.scraper.headless,
-    max_downloads=settings.scraper.max_downloads,
-)
+pdf_downloader(settings=settings)
 ```
 
 ### PDF Processing
@@ -141,8 +137,8 @@ settings = get_settings('config/config.yaml')
 
 # Organize downloaded files by year
 organize_files_by_year(
-    new_wr_folder=settings.paths.new_wr,
-    old_wr_folder=settings.paths.old_wr,
+    new_wr_folder=settings.paths.pdf_raw,
+    old_wr_folder=settings.paths.old_weekly_reports,
 )
 
 # Extract tables from a PDF
@@ -438,7 +434,6 @@ cleaning:
 #### Feature Flags
 ```yaml
 features:
-  enable_alerts: true            # Play audio alerts
   persist_format: "csv"          # Output format: csv or parquet
 ```
 
@@ -588,7 +583,6 @@ reg revision first_release
 - **Explore notebooks**: Interactive tutorials in `notebooks/`
 - **Review architecture**: [docs/ARCHITECTURE.md](ARCHITECTURE.md)
 - **Contribute**: [docs/CONTRIBUTING.md](CONTRIBUTING.md)
-- **Run dashboard**: `streamlit run dashboard/app.py` (if available)
 
 ---
 

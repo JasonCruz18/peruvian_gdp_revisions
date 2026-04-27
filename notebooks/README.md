@@ -18,7 +18,7 @@ This is the primary educational notebook for users who want to understand and ru
 **Features:**
 - Step-by-step execution of the complete pipeline
 - Detailed explanations of each processing stage
-- Visual progress indicators and audio alerts (via `alert_track/`)
+- Visual progress indicators
 - Interactive cells for exploring intermediate results
 - Comprehensive documentation of data transformations
 - **Uses production-quality modular code** (same as `scripts/update_rtd.py`)
@@ -30,7 +30,7 @@ peru_gdp_rtd.scrapers       # Web scraping and PDF downloading
 peru_gdp_rtd.processors     # PDF processing and table extraction
 peru_gdp_rtd.cleaners       # Data cleaning and normalization
 peru_gdp_rtd.transformers   # RTD construction and transformations
-peru_gdp_rtd.utils          # Utilities (alerts, data management)
+peru_gdp_rtd.utils          # Utilities (data management, progress)
 ```
 
 **Recommended for:**
@@ -112,18 +112,6 @@ Planned step-by-step tutorial notebooks to cover specific topics:
 6. **06_releases_datasets.ipynb** - Converting vintages to releases format
 
 These tutorials will demonstrate specific aspects of the modular architecture in focused, digestible notebooks.
-
-## Alert Tracking
-
-The notebooks use audio alerts (`../alert_track/musica-Beethoven-Oda-a-la-alegria.mp3`) to notify users when long-running operations complete. This enhances the user experience during interactive sessions.
-
-**Audio alert functions** (from `peru_gdp_rtd.utils`):
-```python
-init_audio()              # Initialize pygame mixer
-load_alert_track()        # Load the alert sound
-play_alert_track()        # Play the alert
-stop_alert_track()        # Stop playback
-```
 
 ## Contributing
 

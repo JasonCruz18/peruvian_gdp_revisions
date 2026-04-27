@@ -29,7 +29,6 @@ paths:
   # Metadata and tracking
   metadata: "metadata"
   record: "record"
-  alert_track: "alert_track"
 
 # ====================
 # SCRAPER CONFIGURATION
@@ -217,7 +216,6 @@ logging:
 # FEATURE FLAGS
 # ====================
 features:
-  enable_alerts: true           # Play audio alerts after downloads
   persist_intermediate: true    # Save intermediate processing results
   persist_format: "parquet"     # Options: csv, parquet
   validate_data: true           # Run data validation checks
