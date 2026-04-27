@@ -28,7 +28,6 @@ First stable release of the Peru GDP Real-Time Dataset Construction Pipeline. Th
 - **Base-Year Adjusted**: Datasets adjusted for structural breaks (1990, 1994, 2007, 2019)
 
 #### Documentation
-- **Technical Supplement**: 35-page LaTeX document (`_Supplement.tex`) with methodology
 - **Comprehensive Guides**: Installation, usage, architecture, and contributing docs
 - **Tutorial Notebooks**: 6 step-by-step Jupyter notebooks covering all pipeline stages
 - **Data Availability Statement**: Journal-ready AEA-compliant statement
@@ -41,7 +40,6 @@ First stable release of the Peru GDP Real-Time Dataset Construction Pipeline. Th
 - **Python Support**: Compatible with Python 3.10, 3.11, 3.12
 
 #### Interactive Features
-- **Streamlit Dashboard**: Web-based interactive data exploration and visualization
 - **Audio Alerts**: Optional completion alerts for long-running operations
 - **Progress Tracking**: tqdm-based progress bars for all processing steps
 
@@ -72,7 +70,6 @@ peru_gdp_revisions/
 ├── peru_gdp_rtd/          # Main Python package (7 modules, 2,435 lines)
 ├── scripts/               # Execution scripts
 ├── notebooks/             # 8 tutorial notebooks
-├── dashboard/             # Interactive Streamlit dashboard
 ├── docs/                  # Comprehensive documentation
 ├── data/
 │   ├── input/            # Intermediate processing data
