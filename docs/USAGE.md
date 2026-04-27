@@ -588,7 +588,6 @@ reg revision first_release
 - **Explore notebooks**: Interactive tutorials in `notebooks/`
 - **Review architecture**: [docs/ARCHITECTURE.md](ARCHITECTURE.md)
 - **Contribute**: [docs/CONTRIBUTING.md](CONTRIBUTING.md)
-- **Run dashboard**: `streamlit run dashboard/app.py` (if available)
 
 ---
 

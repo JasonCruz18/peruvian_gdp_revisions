@@ -2,7 +2,7 @@
 Image Preprocessing Module
 
 Implements complete 11-step image preprocessing pipeline for OCR quality enhancement.
-Based on methodology described in _Supplement.tex (lines 127-142).
+Based on the OCR preprocessing workflow used in this project.
 
 Steps:
 1. PDF to PNG conversion (300 DPI)

@@ -4,7 +4,7 @@
 
 ## Overview
 
-This OCR (Optical Character Recognition) pipeline extracts GDP growth rate tables from scanned PDF documents and converts them to structured CSV files. It implements a complete 11-step image preprocessing workflow based on the methodology described in the project's technical supplement (_Supplement.tex).
+This OCR (Optical Character Recognition) pipeline extracts GDP growth rate tables from scanned PDF documents and converts them to structured CSV files. It implements a complete 11-step image preprocessing workflow for scanned historical weekly reports.
 
 **Important Note:** This pipeline was developed and tested on **year 2001 (12 PDFs)** as a methodological demonstration for the Data in Brief manuscript. It shows the transparent process used for initial data extraction from scanned documents, followed by manual human curation. The final curated CSVs in `data/raw/old_weekly_reports/` represent the official raw data.
 
@@ -400,7 +400,7 @@ paths:
 
 ### Success Metrics
 
-Based on the challenges described in _Supplement.tex (warped text, shadows, blur, highlighted entries):
+Based on common scanned-document challenges such as warped text, shadows, blur, and highlighted entries:
 
 | Metric | Target | Notes |
 |--------|--------|-------|
