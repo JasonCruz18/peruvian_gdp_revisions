@@ -240,6 +240,36 @@ All outputs are written to `data/output/` with extension based on `features.pers
 
 ---
 
+## Visual Guide
+
+The files below provide quick visual guidance on what the pipeline builds and what source material it processes.
+
+### 1. Output Structure: Vintages
+
+In the vintage-format dataset, each column is a release vintage and each row is a target period, which is useful for tracking how a given GDP figure changes over time.
+
+![Vintage-format sample](docs/images/vintages.png)
+
+### 2. Output Structure: Releases
+
+In the releases-format dataset, each row is a target period and the columns follow first release, second release, third release, and later revisions.
+
+![Releases-format sample](docs/images/releases.png)
+
+### 3. Source Example: Scanned Weekly Report Table
+
+This pre-2013 scanned Weekly Report table illustrates why the project includes OCR and additional cleaning steps for older source material.
+
+![Scanned Weekly Report table example](docs/images/wr_2_2007_table_1.png)
+
+### 4. Source Example: Digital Weekly Report Table
+
+This post-2013 digital Weekly Report table is more structured and supports automated table extraction with fewer preprocessing steps.
+
+![Digital Weekly Report table example](docs/images/wr_28_2013_table_1.png)
+
+---
+
 ## Usage Examples
 
 ### Command-Line Interface
