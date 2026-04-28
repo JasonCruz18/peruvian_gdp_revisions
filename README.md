@@ -242,31 +242,37 @@ All outputs are written to `data/output/` with extension based on `features.pers
 
 ## Visual Guide
 
-The files below provide quick visual guidance on what the pipeline builds and what source material it processes.
+The pipeline starts from BCRP Weekly Reports, extracts monthly and quarterly/annual tables, cleans and standardizes them, builds vintages, and finally converts them into releases datasets.
 
-### 1. Output Structure: Vintages
+`Weekly Reports -> extract monthly + quarterly/annual tables -> clean -> build vintages -> convert to releases`
 
-In the vintage-format dataset, each column is a release vintage and each row is a target period, which is useful for tracking how a given GDP figure changes over time.
+### 1. Source Formats: Weekly Reports
 
-![Vintage-format sample](docs/images/vintages.png)
+The pipeline works with two source formats. Older Weekly Reports require OCR and heavier cleaning, while newer digital reports support more direct table extraction.
 
-### 2. Output Structure: Releases
-
-In the releases-format dataset, each row is a target period and the columns follow first release, second release, third release, and later revisions.
-
-![Releases-format sample](docs/images/releases.png)
-
-### 3. Source Example: Scanned Weekly Report Table
-
-This pre-2013 scanned Weekly Report table illustrates why the project includes OCR and additional cleaning steps for older source material.
+**Pre-2013 scanned Weekly Report table**
 
 ![Scanned Weekly Report table example](docs/images/wr_2_2007_table_1.png)
 
-### 4. Source Example: Digital Weekly Report Table
-
-This post-2013 digital Weekly Report table is more structured and supports automated table extraction with fewer preprocessing steps.
+**Post-2013 digital Weekly Report table**
 
 ![Digital Weekly Report table example](docs/images/wr_28_2013_table_1.png)
+
+### 2. Output Structure: Vintages
+
+After extraction and cleaning, the pipeline builds vintage-format datasets. In this structure, each column is a release vintage and each row is a target period, which makes it possible to track how a given GDP figure changes over time.
+
+![Vintage-format sample](docs/images/vintages.png)
+
+### 3. Output Structure: Releases
+
+The final step converts vintages into releases-format datasets. In this structure, each row is a target period and the columns follow first release, second release, third release, and later revisions.
+
+![Releases-format sample](docs/images/releases.png)
+
+### 4. Why `wr_metadata.csv` Matters
+
+The file `metadata/wr_metadata.csv` records release-level information that the pipeline uses to handle base-year changes, benchmark revisions, and release tracking. It is a core operational input for constructing consistent vintages and releases across methodological breaks.
 
 ---
 
