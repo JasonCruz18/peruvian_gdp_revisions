@@ -13,13 +13,13 @@ pyyaml==6.0.3
 
 # HTTP and web scraping
 requests==2.32.5
-urllib3==2.6.2
+urllib3==2.6.3
 selenium==4.39.0
 webdriver-manager==4.0.2
 
 # PDF processing
 PyMuPDF==1.26.7
-pypdf==6.4.2
+pypdf==6.10.2
 tabula-py==2.9.0
 # Note: tabula-py requires Java Runtime Environment (JRE) to be installed
 
@@ -30,7 +30,7 @@ tqdm==4.66.5
 # Jupyter support (optional for notebooks)
 ipywidgets==8.1.8
 jupyter==1.0.0
-notebook==7.5.1
+notebook==7.5.5
 
 # Optional: Progress bars and UI
 colorama==0.4.6
