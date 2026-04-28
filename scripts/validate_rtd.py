@@ -80,7 +80,7 @@ class RTDValidator:
             }
 
         try:
-            df = pd.read_csv(filepath, index_col=0)
+            df = pd.read_csv(filepath)
         except Exception as e:
             self.log(f"Error reading file: {e}", "ERROR")
             return {
@@ -138,17 +138,31 @@ class RTDValidator:
             else:
                 self.log(f"Value range: [{min_val:.2f}, {max_val:.2f}]", "SUCCESS")
 
-        # Check 5: Index continuity
-        if hasattr(df.index, "is_monotonic_increasing"):
-            result["index_monotonic"] = df.index.is_monotonic_increasing
+        # Check 5: Row uniqueness on dataset keys
+        duplicate_rows = 0
+        duplicate_key_label = None
 
-        # Check 6: Duplicate rows/columns
-        result["duplicate_rows"] = df.index.duplicated().sum()
+        if {"industry", "vintage"}.issubset(df.columns):
+            duplicate_rows = int(df.duplicated(subset=["industry", "vintage"]).sum())
+            duplicate_key_label = "industry-vintage"
+        elif {"industry", "release"}.issubset(df.columns):
+            duplicate_rows = int(df.duplicated(subset=["industry", "release"]).sum())
+            duplicate_key_label = "industry-release"
+        else:
+            duplicate_rows = int(df.duplicated().sum())
+            duplicate_key_label = "full-row"
+
+        result["duplicate_rows"] = duplicate_rows
         result["duplicate_cols"] = df.columns.duplicated().sum()
 
         if result["duplicate_rows"] > 0:
-            self.log(f"Found {result['duplicate_rows']} duplicate rows", "WARNING")
-            self.warnings.append(f"{dataset_name}: {result['duplicate_rows']} duplicate rows")
+            self.log(
+                f"Found {result['duplicate_rows']} duplicate {duplicate_key_label} rows",
+                "WARNING",
+            )
+            self.warnings.append(
+                f"{dataset_name}: {result['duplicate_rows']} duplicate {duplicate_key_label} rows"
+            )
 
         if result["duplicate_cols"] > 0:
             self.log(f"Found {result['duplicate_cols']} duplicate columns", "ERROR")
