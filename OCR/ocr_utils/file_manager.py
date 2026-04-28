@@ -30,10 +30,7 @@ class PDFFileInfo:
         return f"PDFFileInfo({self.filename}, year={self.year}, issue={self.issue}, pages={self.num_pages})"
 
 
-def discover_pdfs(
-    pdf_dir: str,
-    year: int
-) -> List[Path]:
+def discover_pdfs(pdf_dir: str, year: int) -> List[Path]:
     """
     Discover all PDF files for a specific year.
 
@@ -56,7 +53,7 @@ def discover_pdfs(
     # Sort by issue number
     def extract_issue(path: Path) -> int:
         # Extract issue number from filename: ns_XX_YYYY.pdf
-        match = re.search(r'ns_(\d+)_\d{4}\.pdf', path.name)
+        match = re.search(r"ns_(\d+)_\d{4}\.pdf", path.name)
         if match:
             return int(match.group(1))
         return 0
@@ -67,10 +64,7 @@ def discover_pdfs(
     return pdf_files
 
 
-def discover_all_pdfs(
-    pdf_dir: str,
-    years: range
-) -> List[Path]:
+def discover_all_pdfs(pdf_dir: str, years: range) -> List[Path]:
     """
     Discover all PDFs across multiple years.
 
@@ -91,10 +85,7 @@ def discover_all_pdfs(
     return all_pdfs
 
 
-def determine_pdf_structure(
-    year: int,
-    years_single_page: List[int]
-) -> Tuple[int, List[str]]:
+def determine_pdf_structure(year: int, years_single_page: List[int]) -> Tuple[int, List[str]]:
     """
     Determine PDF structure based on year.
 
@@ -115,11 +106,7 @@ def determine_pdf_structure(
         return (2, ["table_1", "table_2"])
 
 
-def get_output_path(
-    pdf_path: Path,
-    output_dir: str,
-    table_type: str
-) -> Path:
+def get_output_path(pdf_path: Path, output_dir: str, table_type: str) -> Path:
     """
     Get output CSV path for a PDF.
 
@@ -132,14 +119,14 @@ def get_output_path(
         Output CSV path (e.g., OCR/output/table_1/1994/ns-03-1994.csv)
     """
     # Extract year from filename
-    match = re.search(r'_(\d{4})\.pdf$', pdf_path.name)
+    match = re.search(r"_(\d{4})\.pdf$", pdf_path.name)
     if not match:
         raise ValueError(f"Cannot extract year from filename: {pdf_path.name}")
 
     year = match.group(1)
 
     # Convert filename: ns_XX_YYYY.pdf → ns-XX-YYYY.csv
-    csv_filename = pdf_path.stem.replace('_', '-') + '.csv'
+    csv_filename = pdf_path.stem.replace("_", "-") + ".csv"
 
     # Build output path
     output_path = Path(output_dir) / table_type / year / csv_filename
@@ -147,10 +134,7 @@ def get_output_path(
     return output_path
 
 
-def ensure_output_directories(
-    output_dir: str,
-    years: range
-) -> None:
+def ensure_output_directories(output_dir: str, years: range) -> None:
     """
     Create output directory structure.
 
@@ -195,8 +179,7 @@ def cleanup_temp_images(temp_dir: str) -> None:
 
 
 def write_needs_review_list(
-    needs_review: List[Dict],
-    output_file: str = "OCR/needs_review.txt"
+    needs_review: List[Dict], output_file: str = "OCR/needs_review.txt"
 ) -> None:
     """
     Write list of files needing manual review.
@@ -208,7 +191,7 @@ def write_needs_review_list(
     output_path = Path(output_file)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write("Files Needing Manual Review\n")
         f.write("=" * 80 + "\n\n")
 
@@ -218,9 +201,9 @@ def write_needs_review_list(
             f.write(f"Total files: {len(needs_review)}\n\n")
 
             for file_info in needs_review:
-                filename = file_info.get('filename', 'N/A')
-                confidence = file_info.get('confidence', 0.0)
-                issues = file_info.get('issues', [])
+                filename = file_info.get("filename", "N/A")
+                confidence = file_info.get("confidence", 0.0)
+                issues = file_info.get("issues", [])
 
                 f.write(f"{filename}\n")
                 f.write(f"  Confidence: {confidence:.1%}\n")
@@ -240,8 +223,7 @@ if __name__ == "__main__":
     import sys
 
     logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     # Test PDF discovery

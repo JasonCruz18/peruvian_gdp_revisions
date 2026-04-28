@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class TesseractNotConfiguredError(Exception):
     """Raised when Tesseract is not properly installed or configured."""
+
     pass
 
 
@@ -40,7 +41,7 @@ def check_tesseract_installation() -> None:
         )
 
 
-def check_tesseract_languages(required_langs: list = ['spa', 'eng']) -> None:
+def check_tesseract_languages(required_langs: list = ["spa", "eng"]) -> None:
     """
     Verify required language packs are installed.
 
@@ -73,7 +74,7 @@ def run_tesseract_ocr(
     language: str = "spa+eng",
     psm: int = 6,
     oem: int = 3,
-    config: Optional[str] = None
+    config: Optional[str] = None,
 ) -> Tuple[str, float]:
     """
     Execute Tesseract OCR on preprocessed image.
@@ -98,24 +99,18 @@ def run_tesseract_ocr(
         # Run OCR
         logger.debug(f"Running Tesseract: lang={language}, psm={psm}, oem={oem}")
 
-        ocr_text = pytesseract.image_to_string(
-            image,
-            lang=language,
-            config=config
-        )
+        ocr_text = pytesseract.image_to_string(image, lang=language, config=config)
 
         # Get detailed data with confidence scores
         ocr_data = pytesseract.image_to_data(
-            image,
-            lang=language,
-            config=config,
-            output_type=pytesseract.Output.DICT
+            image, lang=language, config=config, output_type=pytesseract.Output.DICT
         )
 
         # Calculate average confidence
         confidences = [
-            float(conf) for conf in ocr_data['conf']
-            if conf != '-1'  # -1 indicates no confidence (empty block)
+            float(conf)
+            for conf in ocr_data["conf"]
+            if conf != "-1"  # -1 indicates no confidence (empty block)
         ]
 
         if confidences:
@@ -154,33 +149,33 @@ def post_process_ocr_text(raw_text: str) -> str:
 
     # Fix common digit misrecognitions in numeric contexts
     # Pattern: digit-O-digit → digit-0-digit
-    text = re.sub(r'(\d)O(\d)', r'\g<1>0\g<2>', text)
-    text = re.sub(r'(\d)O(\s)', r'\g<1>0\g<2>', text)
-    text = re.sub(r'(\s)O(\d)', r'\g<1>0\g<2>', text)
+    text = re.sub(r"(\d)O(\d)", r"\g<1>0\g<2>", text)
+    text = re.sub(r"(\d)O(\s)", r"\g<1>0\g<2>", text)
+    text = re.sub(r"(\s)O(\d)", r"\g<1>0\g<2>", text)
 
     # Pattern: digit-l-digit → digit-1-digit
-    text = re.sub(r'(\d)l(\d)', r'\g<1>1\g<2>', text)
-    text = re.sub(r'(\d)l(\s)', r'\g<1>1\g<2>', text)
+    text = re.sub(r"(\d)l(\d)", r"\g<1>1\g<2>", text)
+    text = re.sub(r"(\d)l(\s)", r"\g<1>1\g<2>", text)
 
     # Pattern: digit-S → digit-5 (less confident, only at end)
-    text = re.sub(r'(\d)S(\s)', r'\g<1>5\g<2>', text)
+    text = re.sub(r"(\d)S(\s)", r"\g<1>5\g<2>", text)
 
     # Remove common stray characters from table borders
-    stray_chars = ['|', '}', '{', '~', '`', '^']
+    stray_chars = ["|", "}", "{", "~", "`", "^"]
     for char in stray_chars:
-        text = text.replace(char, '')
+        text = text.replace(char, "")
 
     # Fix decimal separators (comma → period in Spanish numeric context)
     # Pattern: digit,digit → digit.digit
-    text = re.sub(r'(\d),(\d)', r'\g<1>.\g<2>', text)
+    text = re.sub(r"(\d),(\d)", r"\g<1>.\g<2>", text)
 
     # Normalize whitespace
-    text = re.sub(r'[ \t]+', ' ', text)  # Multiple spaces → single space
-    text = re.sub(r'\n\s+\n', '\n\n', text)  # Multiple blank lines → double newline
+    text = re.sub(r"[ \t]+", " ", text)  # Multiple spaces → single space
+    text = re.sub(r"\n\s+\n", "\n\n", text)  # Multiple blank lines → double newline
 
     # Remove leading/trailing whitespace from lines
-    lines = [line.strip() for line in text.split('\n')]
-    text = '\n'.join(lines)
+    lines = [line.strip() for line in text.split("\n")]
+    text = "\n".join(lines)
 
     logger.debug("Applied post-processing corrections")
     return text
@@ -200,19 +195,16 @@ def extract_confidence_scores(ocr_data: Dict) -> Dict[str, float]:
     """
     word_confidences = {}
 
-    for i, word in enumerate(ocr_data['text']):
+    for i, word in enumerate(ocr_data["text"]):
         if word.strip():  # Non-empty word
-            conf = ocr_data['conf'][i]
-            if conf != '-1':
+            conf = ocr_data["conf"][i]
+            if conf != "-1":
                 word_confidences[word] = float(conf) / 100.0
 
     return word_confidences
 
 
-def identify_low_confidence_words(
-    ocr_data: Dict,
-    threshold: float = 0.70
-) -> list:
+def identify_low_confidence_words(ocr_data: Dict, threshold: float = 0.70) -> list:
     """
     Identify words with confidence below threshold.
 
@@ -225,10 +217,10 @@ def identify_low_confidence_words(
     """
     low_confidence = []
 
-    for i, word in enumerate(ocr_data['text']):
+    for i, word in enumerate(ocr_data["text"]):
         if word.strip():
-            conf = ocr_data['conf'][i]
-            if conf != '-1':
+            conf = ocr_data["conf"][i]
+            if conf != "-1":
                 confidence = float(conf) / 100.0
                 if confidence < threshold:
                     low_confidence.append((word, confidence))
@@ -240,10 +232,7 @@ def identify_low_confidence_words(
 
 
 def run_ocr_with_validation(
-    image: np.ndarray,
-    language: str = "spa+eng",
-    psm: int = 6,
-    oem: int = 3
+    image: np.ndarray, language: str = "spa+eng", psm: int = 6, oem: int = 3
 ) -> Dict[str, any]:
     """
     Run OCR with comprehensive validation and metadata extraction.
@@ -272,10 +261,7 @@ def run_ocr_with_validation(
     # Get detailed data
     config = f"--psm {psm} --oem {oem}"
     ocr_data = pytesseract.image_to_data(
-        image,
-        lang=language,
-        config=config,
-        output_type=pytesseract.Output.DICT
+        image, lang=language, config=config, output_type=pytesseract.Output.DICT
     )
 
     # Extract metadata
@@ -283,21 +269,23 @@ def run_ocr_with_validation(
     low_conf_words = identify_low_confidence_words(ocr_data, threshold=0.70)
 
     result = {
-        'text': raw_text,
-        'text_cleaned': cleaned_text,
-        'confidence': confidence,
-        'word_count': len([w for w in ocr_data['text'] if w.strip()]),
-        'low_confidence_words': low_conf_words,
-        'metadata': {
-            'language': language,
-            'psm': psm,
-            'oem': oem,
-            'word_confidences': word_confidences
-        }
+        "text": raw_text,
+        "text_cleaned": cleaned_text,
+        "confidence": confidence,
+        "word_count": len([w for w in ocr_data["text"] if w.strip()]),
+        "low_confidence_words": low_conf_words,
+        "metadata": {
+            "language": language,
+            "psm": psm,
+            "oem": oem,
+            "word_confidences": word_confidences,
+        },
     }
 
-    logger.info(f"OCR validation complete: {result['word_count']} words, "
-                f"{len(low_conf_words)} low-confidence")
+    logger.info(
+        f"OCR validation complete: {result['word_count']} words, "
+        f"{len(low_conf_words)} low-confidence"
+    )
 
     return result
 
@@ -309,14 +297,13 @@ if __name__ == "__main__":
     from pathlib import Path
 
     logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     # Check Tesseract installation
     try:
         check_tesseract_installation()
-        check_tesseract_languages(['spa', 'eng'])
+        check_tesseract_languages(["spa", "eng"])
         print("✓ Tesseract is properly configured\n")
     except TesseractNotConfiguredError as e:
         print(f"✗ Tesseract configuration error:\n{e}")
@@ -346,21 +333,21 @@ if __name__ == "__main__":
     print(f"  Word count: {result['word_count']}")
     print(f"  Low-confidence words: {len(result['low_confidence_words'])}")
 
-    if result['low_confidence_words']:
+    if result["low_confidence_words"]:
         print(f"\n  Problematic words:")
-        for word, conf in result['low_confidence_words'][:10]:  # Show first 10
+        for word, conf in result["low_confidence_words"][:10]:  # Show first 10
             print(f"    '{word}': {conf:.1%}")
 
     print(f"\nOCR Text (first 500 chars):")
     print("-" * 60)
-    print(result['text_cleaned'][:500])
+    print(result["text_cleaned"][:500])
     print("-" * 60)
 
     # Save result
     output_dir = Path("OCR/temp_images/test")
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    with open(output_dir / "ocr_output.txt", 'w', encoding='utf-8') as f:
-        f.write(result['text_cleaned'])
+    with open(output_dir / "ocr_output.txt", "w", encoding="utf-8") as f:
+        f.write(result["text_cleaned"])
 
     print(f"\n✓ Full OCR output saved to: {output_dir}/ocr_output.txt")

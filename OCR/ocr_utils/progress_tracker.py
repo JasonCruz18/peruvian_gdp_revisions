@@ -53,7 +53,7 @@ class ProgressTracker:
         """
         if self.checkpoint_file.exists():
             try:
-                with open(self.checkpoint_file, 'r', encoding='utf-8') as f:
+                with open(self.checkpoint_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 logger.info(f"Loaded checkpoint: {len(data.get('files', {}))} files tracked")
                 return data
@@ -62,14 +62,14 @@ class ProgressTracker:
 
         # Create new checkpoint
         data = {
-            'created': datetime.now().isoformat(),
-            'last_updated': datetime.now().isoformat(),
-            'total_pdfs': 0,
-            'processed': 0,
-            'successful': 0,
-            'needs_review': 0,
-            'failed': 0,
-            'files': {}
+            "created": datetime.now().isoformat(),
+            "last_updated": datetime.now().isoformat(),
+            "total_pdfs": 0,
+            "processed": 0,
+            "successful": 0,
+            "needs_review": 0,
+            "failed": 0,
+            "files": {},
         }
 
         logger.info("Created new checkpoint")
@@ -79,18 +79,15 @@ class ProgressTracker:
         """
         Save checkpoint to disk.
         """
-        self.data['last_updated'] = datetime.now().isoformat()
+        self.data["last_updated"] = datetime.now().isoformat()
 
-        with open(self.checkpoint_file, 'w', encoding='utf-8') as f:
+        with open(self.checkpoint_file, "w", encoding="utf-8") as f:
             json.dump(self.data, f, indent=2, ensure_ascii=False)
 
         logger.debug(f"Checkpoint saved: {self.checkpoint_file}")
 
     def mark_completed(
-        self,
-        pdf_path: str,
-        confidence: float,
-        table_type: Optional[str] = None
+        self, pdf_path: str, confidence: float, table_type: Optional[str] = None
     ) -> None:
         """
         Mark PDF as successfully processed.
@@ -102,26 +99,21 @@ class ProgressTracker:
         """
         pdf_name = Path(pdf_path).name
 
-        self.data['files'][pdf_name] = {
-            'status': 'completed',
-            'confidence': confidence,
-            'table_type': table_type,
-            'timestamp': datetime.now().isoformat()
+        self.data["files"][pdf_name] = {
+            "status": "completed",
+            "confidence": confidence,
+            "table_type": table_type,
+            "timestamp": datetime.now().isoformat(),
         }
 
-        self.data['processed'] += 1
-        self.data['successful'] += 1
+        self.data["processed"] += 1
+        self.data["successful"] += 1
 
         self.save_checkpoint()
 
         logger.info(f"Marked completed: {pdf_name} ({confidence:.1%})")
 
-    def mark_needs_review(
-        self,
-        pdf_path: str,
-        confidence: float,
-        issues: List[str]
-    ) -> None:
+    def mark_needs_review(self, pdf_path: str, confidence: float, issues: List[str]) -> None:
         """
         Mark PDF as needing manual review.
 
@@ -132,25 +124,21 @@ class ProgressTracker:
         """
         pdf_name = Path(pdf_path).name
 
-        self.data['files'][pdf_name] = {
-            'status': 'needs_review',
-            'confidence': confidence,
-            'issues': issues,
-            'timestamp': datetime.now().isoformat()
+        self.data["files"][pdf_name] = {
+            "status": "needs_review",
+            "confidence": confidence,
+            "issues": issues,
+            "timestamp": datetime.now().isoformat(),
         }
 
-        self.data['processed'] += 1
-        self.data['needs_review'] += 1
+        self.data["processed"] += 1
+        self.data["needs_review"] += 1
 
         self.save_checkpoint()
 
         logger.warning(f"Marked needs review: {pdf_name} ({confidence:.1%}, {len(issues)} issues)")
 
-    def mark_failed(
-        self,
-        pdf_path: str,
-        error: str
-    ) -> None:
+    def mark_failed(self, pdf_path: str, error: str) -> None:
         """
         Mark PDF as failed.
 
@@ -160,14 +148,14 @@ class ProgressTracker:
         """
         pdf_name = Path(pdf_path).name
 
-        self.data['files'][pdf_name] = {
-            'status': 'failed',
-            'error': error,
-            'timestamp': datetime.now().isoformat()
+        self.data["files"][pdf_name] = {
+            "status": "failed",
+            "error": error,
+            "timestamp": datetime.now().isoformat(),
         }
 
-        self.data['processed'] += 1
-        self.data['failed'] += 1
+        self.data["processed"] += 1
+        self.data["failed"] += 1
 
         self.save_checkpoint()
 
@@ -184,7 +172,7 @@ class ProgressTracker:
             True if processed, False otherwise
         """
         pdf_name = Path(pdf_path).name
-        return pdf_name in self.data['files']
+        return pdf_name in self.data["files"]
 
     def get_status(self, pdf_path: str) -> Optional[str]:
         """
@@ -197,10 +185,10 @@ class ProgressTracker:
             Status string or None if not processed
         """
         pdf_name = Path(pdf_path).name
-        file_data = self.data['files'].get(pdf_name)
+        file_data = self.data["files"].get(pdf_name)
 
         if file_data:
-            return file_data.get('status')
+            return file_data.get("status")
 
         return None
 
@@ -214,10 +202,7 @@ class ProgressTracker:
         Returns:
             List of pending PDF paths
         """
-        pending = [
-            pdf for pdf in all_pdfs
-            if not self.is_processed(pdf)
-        ]
+        pending = [pdf for pdf in all_pdfs if not self.is_processed(pdf)]
 
         logger.info(f"Pending PDFs: {len(pending)} / {len(all_pdfs)}")
         return pending
@@ -231,13 +216,15 @@ class ProgressTracker:
         """
         needs_review = []
 
-        for filename, file_data in self.data['files'].items():
-            if file_data.get('status') == 'needs_review':
-                needs_review.append({
-                    'filename': filename,
-                    'confidence': file_data.get('confidence', 0.0),
-                    'issues': file_data.get('issues', [])
-                })
+        for filename, file_data in self.data["files"].items():
+            if file_data.get("status") == "needs_review":
+                needs_review.append(
+                    {
+                        "filename": filename,
+                        "confidence": file_data.get("confidence", 0.0),
+                        "issues": file_data.get("issues", []),
+                    }
+                )
 
         return needs_review
 
@@ -248,31 +235,31 @@ class ProgressTracker:
         Returns:
             Dictionary with statistics
         """
-        total = self.data['processed']
-        successful = self.data['successful']
-        needs_review = self.data['needs_review']
-        failed = self.data['failed']
+        total = self.data["processed"]
+        successful = self.data["successful"]
+        needs_review = self.data["needs_review"]
+        failed = self.data["failed"]
 
         # Calculate success rate
         success_rate = (successful / total * 100) if total > 0 else 0.0
 
         # Calculate average confidence
         confidences = [
-            file_data.get('confidence', 0.0)
-            for file_data in self.data['files'].values()
-            if file_data.get('confidence') is not None
+            file_data.get("confidence", 0.0)
+            for file_data in self.data["files"].values()
+            if file_data.get("confidence") is not None
         ]
         avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
 
         stats = {
-            'total_pdfs': self.data['total_pdfs'],
-            'processed': total,
-            'successful': successful,
-            'needs_review': needs_review,
-            'failed': failed,
-            'pending': self.data['total_pdfs'] - total,
-            'success_rate': success_rate,
-            'avg_confidence': avg_confidence
+            "total_pdfs": self.data["total_pdfs"],
+            "processed": total,
+            "successful": successful,
+            "needs_review": needs_review,
+            "failed": failed,
+            "pending": self.data["total_pdfs"] - total,
+            "success_rate": success_rate,
+            "avg_confidence": avg_confidence,
         }
 
         return stats
@@ -284,7 +271,7 @@ class ProgressTracker:
         Args:
             total: Total PDF count
         """
-        self.data['total_pdfs'] = total
+        self.data["total_pdfs"] = total
         self.save_checkpoint()
 
     def reset(self) -> None:
@@ -294,14 +281,14 @@ class ProgressTracker:
         logger.warning("Resetting all progress!")
 
         self.data = {
-            'created': datetime.now().isoformat(),
-            'last_updated': datetime.now().isoformat(),
-            'total_pdfs': 0,
-            'processed': 0,
-            'successful': 0,
-            'needs_review': 0,
-            'failed': 0,
-            'files': {}
+            "created": datetime.now().isoformat(),
+            "last_updated": datetime.now().isoformat(),
+            "total_pdfs": 0,
+            "processed": 0,
+            "successful": 0,
+            "needs_review": 0,
+            "failed": 0,
+            "files": {},
         }
 
         self.save_checkpoint()
@@ -315,7 +302,9 @@ class ProgressTracker:
         print("\nOCR Pipeline Progress Summary")
         print("=" * 60)
         print(f"Total PDFs: {stats['total_pdfs']}")
-        print(f"Processed: {stats['processed']} ({stats['processed']/stats['total_pdfs']*100:.1f}%)")
+        print(
+            f"Processed: {stats['processed']} ({stats['processed']/stats['total_pdfs']*100:.1f}%)"
+        )
         print(f"  ✓ Successful: {stats['successful']}")
         print(f"  ⚠ Needs Review: {stats['needs_review']}")
         print(f"  ✗ Failed: {stats['failed']}")
@@ -330,8 +319,7 @@ if __name__ == "__main__":
     import sys
 
     logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     # Create test tracker
@@ -346,9 +334,7 @@ if __name__ == "__main__":
 
     # Mark some for review
     tracker.mark_needs_review(
-        "ns_11_1994.pdf",
-        0.78,
-        ["Missing columns", "Low confidence in sector names"]
+        "ns_11_1994.pdf", 0.78, ["Missing columns", "Low confidence in sector names"]
     )
 
     # Mark one failed
@@ -364,7 +350,7 @@ if __name__ == "__main__":
         print("-" * 60)
         for file_info in needs_review:
             print(f"  {file_info['filename']} ({file_info['confidence']:.1%})")
-            for issue in file_info['issues']:
+            for issue in file_info["issues"]:
                 print(f"    - {issue}")
 
     print(f"\n✓ Test complete. Checkpoint saved to: OCR/checkpoints/test_progress.json")

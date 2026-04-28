@@ -32,12 +32,7 @@ def detect_horizontal_lines(image: np.ndarray, min_line_length: int = 40) -> Lis
     horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (min_line_length, 1))
 
     # Detect horizontal lines
-    detect_horizontal = cv2.morphologyEx(
-        image,
-        cv2.MORPH_OPEN,
-        horizontal_kernel,
-        iterations=2
-    )
+    detect_horizontal = cv2.morphologyEx(image, cv2.MORPH_OPEN, horizontal_kernel, iterations=2)
 
     # Find row positions with lines
     # Sum across width - high values indicate horizontal lines
@@ -50,10 +45,7 @@ def detect_horizontal_lines(image: np.ndarray, min_line_length: int = 40) -> Lis
     return line_positions
 
 
-def find_table_separator(
-    image: np.ndarray,
-    horizontal_lines: List[int]
-) -> Optional[int]:
+def find_table_separator(image: np.ndarray, horizontal_lines: List[int]) -> Optional[int]:
     """
     Find the separator between upper and lower tables.
 
@@ -87,8 +79,7 @@ def find_table_separator(
 
 
 def extract_upper_table(
-    image: np.ndarray,
-    upper_ratio: Tuple[float, float] = (0.0, 0.5)
+    image: np.ndarray, upper_ratio: Tuple[float, float] = (0.0, 0.5)
 ) -> np.ndarray:
     """
     Extract upper table region (growth rates) from page.
@@ -118,8 +109,10 @@ def extract_upper_table(
     # Crop to upper portion
     upper_table = image[start_y:end_y, :]
 
-    logger.info(f"Extracted upper table: {upper_table.shape[0]}x{upper_table.shape[1]} "
-                f"({upper_ratio[0]:.0%}-{upper_ratio[1]:.0%} of page)")
+    logger.info(
+        f"Extracted upper table: {upper_table.shape[0]}x{upper_table.shape[1]} "
+        f"({upper_ratio[0]:.0%}-{upper_ratio[1]:.0%} of page)"
+    )
 
     return upper_table
 
@@ -187,9 +180,7 @@ def validate_table_region(image: np.ndarray, min_text_density: float = 0.05) -> 
     return is_valid
 
 
-def detect_table_boundaries(
-    image: np.ndarray
-) -> Optional[Tuple[int, int, int, int]]:
+def detect_table_boundaries(image: np.ndarray) -> Optional[Tuple[int, int, int, int]]:
     """
     Detect table boundaries (x_min, y_min, x_max, y_max).
 
@@ -257,8 +248,7 @@ if __name__ == "__main__":
     from pathlib import Path
 
     logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     if len(sys.argv) < 2:

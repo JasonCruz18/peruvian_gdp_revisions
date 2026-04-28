@@ -24,7 +24,7 @@ pyyaml>=6.0
 # System Requirements (install separately):
 # - Tesseract OCR 5.x: https://github.com/UB-Mannheim/tesseract/wiki
 #   * Must include Spanish (spa) and English (eng) language packs
-#   * Add to PATH: C:\Program Files\Tesseract-OCR
+#   * Add to PATH: /path/to/tesseract
 #
 # - Poppler (for pdf2image): https://github.com/oschwartz10612/poppler-windows/releases
 #   * Extract and add bin/ to PATH

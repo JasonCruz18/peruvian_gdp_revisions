@@ -49,7 +49,7 @@ class ImagePreprocessor:
         median_kernel_size: int = 3,
         skew_angle_threshold: float = 0.5,
         thinning: bool = False,
-        border_size: int = 10
+        border_size: int = 10,
     ):
         """
         Initialize image preprocessor with configuration.
@@ -101,11 +101,7 @@ class ImagePreprocessor:
             logger.debug(f"Converting PDF to PNG: {pdf_file.name} at {dpi} DPI")
 
             # Convert all pages
-            pil_images = convert_from_path(
-                str(pdf_file),
-                dpi=dpi,
-                fmt='png'
-            )
+            pil_images = convert_from_path(str(pdf_file), dpi=dpi, fmt="png")
 
             # Convert PIL images to numpy arrays
             images = [np.array(img) for img in pil_images]
@@ -150,12 +146,7 @@ class ImagePreprocessor:
             Binary image (0 or 255)
         """
         # Otsu's binarization
-        _, binary = cv2.threshold(
-            image,
-            0,
-            255,
-            cv2.THRESH_BINARY + cv2.THRESH_OTSU
-        )
+        _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
         logger.debug("Applied adaptive binarization (Otsu)")
         return binary
@@ -227,15 +218,11 @@ class ImagePreprocessor:
             return image
 
         # Rotate to correct skew
-        (h, w) = image.shape[:2]
+        h, w = image.shape[:2]
         center = (w // 2, h // 2)
         M = cv2.getRotationMatrix2D(center, angle, 1.0)
         rotated = cv2.warpAffine(
-            image,
-            M,
-            (w, h),
-            flags=cv2.INTER_CUBIC,
-            borderMode=cv2.BORDER_REPLICATE
+            image, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE
         )
 
         logger.debug(f"Corrected skew: {angle:.2f}°")
@@ -271,13 +258,11 @@ class ImagePreprocessor:
         new_width = int(image.shape[1] * scale_factor)
 
         # Upscale using bicubic interpolation
-        scaled = cv2.resize(
-            image,
-            (new_width, min_height),
-            interpolation=cv2.INTER_CUBIC
-        )
+        scaled = cv2.resize(image, (new_width, min_height), interpolation=cv2.INTER_CUBIC)
 
-        logger.debug(f"Scaled image: {current_height}px → {min_height}px (factor: {scale_factor:.2f})")
+        logger.debug(
+            f"Scaled image: {current_height}px → {min_height}px (factor: {scale_factor:.2f})"
+        )
         return scaled
 
     def enhance_contrast(self, image: np.ndarray) -> np.ndarray:
@@ -297,12 +282,13 @@ class ImagePreprocessor:
             return image
 
         clahe = cv2.createCLAHE(
-            clipLimit=self.clahe_clip_limit,
-            tileGridSize=self.clahe_tile_grid_size
+            clipLimit=self.clahe_clip_limit, tileGridSize=self.clahe_tile_grid_size
         )
         enhanced = clahe.apply(image)
 
-        logger.debug(f"Applied CLAHE (clip={self.clahe_clip_limit}, grid={self.clahe_tile_grid_size})")
+        logger.debug(
+            f"Applied CLAHE (clip={self.clahe_clip_limit}, grid={self.clahe_tile_grid_size})"
+        )
         return enhanced
 
     def apply_thinning(self, image: np.ndarray) -> np.ndarray:
@@ -355,10 +341,7 @@ class ImagePreprocessor:
             return image
 
         # Crop borders
-        cropped = image[
-            border_size:h-border_size,
-            border_size:w-border_size
-        ]
+        cropped = image[border_size : h - border_size, border_size : w - border_size]
 
         logger.debug(f"Removed {border_size}px borders")
         return cropped
@@ -368,7 +351,7 @@ class ImagePreprocessor:
         pdf_path: str,
         page_num: int = 0,
         save_intermediate: bool = False,
-        output_dir: Optional[str] = None
+        output_dir: Optional[str] = None,
     ) -> np.ndarray:
         """
         Complete preprocessing pipeline: Execute all steps in sequence.
@@ -444,11 +427,7 @@ class ImagePreprocessor:
         return clean
 
     def _save_intermediate(
-        self,
-        image: np.ndarray,
-        output_dir: str,
-        pdf_stem: str,
-        step_name: str
+        self, image: np.ndarray, output_dir: str, pdf_stem: str, step_name: str
     ) -> None:
         """
         Save intermediate preprocessing image for debugging.
@@ -474,8 +453,7 @@ if __name__ == "__main__":
     import sys
 
     logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     if len(sys.argv) < 2:
@@ -488,10 +466,7 @@ if __name__ == "__main__":
 
     try:
         processed_image = preprocessor.preprocess_for_ocr(
-            pdf_path,
-            page_num=0,
-            save_intermediate=True,
-            output_dir="OCR/temp_images/test"
+            pdf_path, page_num=0, save_intermediate=True, output_dir="OCR/temp_images/test"
         )
 
         print(f"✓ Preprocessing successful")

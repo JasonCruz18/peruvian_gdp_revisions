@@ -18,10 +18,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def validate_csv_structure(
-    df: pd.DataFrame,
-    table_type: str = "table_1"
-) -> List[str]:
+def validate_csv_structure(df: pd.DataFrame, table_type: str = "table_1") -> List[str]:
     """
     Validate CSV structure against expected format.
 
@@ -40,10 +37,10 @@ def validate_csv_structure(
         return errors  # Critical error, stop validation
 
     # Check 2: First two columns must be sector names
-    if df.columns[0] != 'sectores_economicos':
+    if df.columns[0] != "sectores_economicos":
         errors.append(f"First column should be 'sectores_economicos', got '{df.columns[0]}'")
 
-    if df.columns[1] != 'economic_sectors':
+    if df.columns[1] != "economic_sectors":
         errors.append(f"Second column should be 'economic_sectors', got '{df.columns[1]}'")
 
     # Check 3: Minimum number of rows (sectors)
@@ -51,17 +48,17 @@ def validate_csv_structure(
         errors.append(f"Too few sectors: {len(df)} < 8")
 
     # Check 4: Expected sectors present
-    required_sectors_es = ['agropecuario', 'pesca', 'manufactura', 'construccion', 'pbi']
-    required_sectors_en = ['agriculture', 'fishing', 'manufacturing', 'construction', 'gdp']
+    required_sectors_es = ["agropecuario", "pesca", "manufactura", "construccion", "pbi"]
+    required_sectors_en = ["agriculture", "fishing", "manufacturing", "construction", "gdp"]
 
-    if 'sectores_economicos' in df.columns:
-        sectors_es = df['sectores_economicos'].str.lower().tolist()
+    if "sectores_economicos" in df.columns:
+        sectors_es = df["sectores_economicos"].str.lower().tolist()
         for sector in required_sectors_es:
             if not any(sector in s for s in sectors_es):
                 errors.append(f"Missing Spanish sector: {sector}")
 
-    if 'economic_sectors' in df.columns:
-        sectors_en = df['economic_sectors'].str.lower().tolist()
+    if "economic_sectors" in df.columns:
+        sectors_en = df["economic_sectors"].str.lower().tolist()
         for sector in required_sectors_en:
             if not any(sector in s for s in sectors_en):
                 errors.append(f"Missing English sector: {sector}")
@@ -73,7 +70,7 @@ def validate_csv_structure(
             errors.append(f"Column '{col}' is not numeric")
 
     # Check 6: Reasonable value ranges (-100% to +500%)
-    numeric_data = df.iloc[:, 2:].select_dtypes(include='number')
+    numeric_data = df.iloc[:, 2:].select_dtypes(include="number")
     if (numeric_data > 500).any().any():
         errors.append("Unrealistic values > 500% detected")
 
@@ -85,8 +82,7 @@ def validate_csv_structure(
         # Monthly: expect 15-30 columns (2 sector cols + 12-24 months + mean)
         if not (15 <= len(df.columns) <= 35):
             errors.append(
-                f"Unexpected column count for monthly table: {len(df.columns)} "
-                f"(expected 15-35)"
+                f"Unexpected column count for monthly table: {len(df.columns)} " f"(expected 15-35)"
             )
 
     elif table_type == "table_2":
@@ -111,9 +107,7 @@ def validate_csv_structure(
 
 
 def calculate_confidence_score(
-    df: pd.DataFrame,
-    ocr_confidence: float,
-    validation_errors: List[str]
+    df: pd.DataFrame, ocr_confidence: float, validation_errors: List[str]
 ) -> float:
     """
     Calculate combined confidence score.
@@ -141,10 +135,17 @@ def calculate_confidence_score(
         confidence -= 0.1
 
     # Bonus for having all expected sectors
-    expected_sectors = ['agropecuario', 'pesca', 'mineria', 'manufactura',
-                       'construccion', 'comercio', 'pbi']
-    if 'sectores_economicos' in df.columns:
-        sectors = df['sectores_economicos'].str.lower().tolist()
+    expected_sectors = [
+        "agropecuario",
+        "pesca",
+        "mineria",
+        "manufactura",
+        "construccion",
+        "comercio",
+        "pbi",
+    ]
+    if "sectores_economicos" in df.columns:
+        sectors = df["sectores_economicos"].str.lower().tolist()
         found_sectors = sum(1 for exp in expected_sectors if any(exp in s for s in sectors))
         sector_completeness = found_sectors / len(expected_sectors)
         if sector_completeness >= 0.9:
@@ -153,8 +154,10 @@ def calculate_confidence_score(
     # Clamp to [0, 1]
     confidence = max(0.0, min(1.0, confidence))
 
-    logger.debug(f"Confidence score: {confidence:.2%} (OCR: {ocr_confidence:.2%}, "
-                f"errors: {len(validation_errors)}, missing: {missing_ratio:.1%})")
+    logger.debug(
+        f"Confidence score: {confidence:.2%} (OCR: {ocr_confidence:.2%}, "
+        f"errors: {len(validation_errors)}, missing: {missing_ratio:.1%})"
+    )
 
     return confidence
 
@@ -165,7 +168,7 @@ def flag_for_manual_review(
     preprocessed_image_path: str,
     confidence: float,
     issues: List[str],
-    review_dir: str = "OCR/review"
+    review_dir: str = "OCR/review",
 ) -> None:
     """
     Create review package for low-confidence output.
@@ -184,7 +187,7 @@ def flag_for_manual_review(
 
     # Create review subdirectory
     # Structure: review_dir/YYYY/ns-XX-YYYY/
-    year = pdf_file.stem.split('_')[-1]  # Extract year from filename
+    year = pdf_file.stem.split("_")[-1]  # Extract year from filename
     review_subdir = Path(review_dir) / year / pdf_file.stem
     review_subdir.mkdir(parents=True, exist_ok=True)
 
@@ -202,7 +205,7 @@ def flag_for_manual_review(
 
     # Generate issues report
     issues_file = review_subdir / "issues.txt"
-    with open(issues_file, 'w', encoding='utf-8') as f:
+    with open(issues_file, "w", encoding="utf-8") as f:
         f.write(f"OCR Review Required\n")
         f.write(f"=" * 60 + "\n\n")
         f.write(f"PDF: {pdf_file.name}\n")
@@ -237,9 +240,7 @@ def flag_for_manual_review(
 
 
 def should_flag_for_review(
-    confidence: float,
-    validation_errors: List[str],
-    threshold: float = 0.85
+    confidence: float, validation_errors: List[str], threshold: float = 0.85
 ) -> bool:
     """
     Determine if output should be flagged for manual review.
@@ -257,9 +258,10 @@ def should_flag_for_review(
         return True
 
     # Flag if critical validation errors present
-    critical_keywords = ['too few', 'missing', 'not numeric', 'unrealistic']
+    critical_keywords = ["too few", "missing", "not numeric", "unrealistic"]
     critical_errors = [
-        err for err in validation_errors
+        err
+        for err in validation_errors
         if any(keyword in err.lower() for keyword in critical_keywords)
     ]
 
@@ -290,14 +292,16 @@ def generate_validation_report(results: Dict[str, any]) -> str:
     report.append(f"Confidence Scores:")
     report.append(f"  OCR Confidence: {results.get('ocr_confidence', 0):.1%}")
     report.append(f"  Combined Score: {results.get('combined_confidence', 0):.1%}")
-    report.append(f"  Status: {'PASS' if results.get('combined_confidence', 0) >= 0.85 else 'NEEDS REVIEW'}")
+    report.append(
+        f"  Status: {'PASS' if results.get('combined_confidence', 0) >= 0.85 else 'NEEDS REVIEW'}"
+    )
     report.append(f"")
 
     report.append(f"DataFrame Shape: {results.get('shape', 'N/A')}")
     report.append(f"Missing Values: {results.get('missing_count', 0)}")
     report.append(f"")
 
-    errors = results.get('validation_errors', [])
+    errors = results.get("validation_errors", [])
     if errors:
         report.append(f"Validation Errors ({len(errors)}):")
         for i, error in enumerate(errors, 1):
@@ -315,8 +319,7 @@ if __name__ == "__main__":
     import sys
 
     logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     if len(sys.argv) < 2:
@@ -328,7 +331,7 @@ if __name__ == "__main__":
 
     # Load CSV
     try:
-        df = pd.read_csv(csv_file, sep=';', encoding='utf-8-sig')
+        df = pd.read_csv(csv_file, sep=";", encoding="utf-8-sig")
         print(f"Loaded CSV: {csv_file}")
         print(f"Shape: {df.shape}\n")
     except Exception as e:
@@ -362,13 +365,13 @@ if __name__ == "__main__":
 
     # Generate report
     results = {
-        'filename': Path(csv_file).name,
-        'table_type': table_type,
-        'ocr_confidence': ocr_conf,
-        'combined_confidence': combined_conf,
-        'shape': df.shape,
-        'missing_count': df.isnull().sum().sum(),
-        'validation_errors': errors
+        "filename": Path(csv_file).name,
+        "table_type": table_type,
+        "ocr_confidence": ocr_conf,
+        "combined_confidence": combined_conf,
+        "shape": df.shape,
+        "missing_count": df.isnull().sum().sum(),
+        "validation_errors": errors,
     }
 
     print(f"\n" + generate_validation_report(results))

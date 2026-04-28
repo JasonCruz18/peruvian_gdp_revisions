@@ -26,58 +26,50 @@ logger = logging.getLogger(__name__)
 
 # Sector name mappings (Spanish → standardized Spanish)
 SECTOR_MAPPINGS_ES = {
-    'agropecuario': 'agropecuario',
-    'agro pecuario': 'agropecuario',
-    'agricultura': 'agropecuario',
-    'agriculture': 'agropecuario',
-
-    'pesca': 'pesca',
-    'fishing': 'pesca',
-
-    'mineria': 'mineria e hidrocarburos',
-    'minería': 'mineria e hidrocarburos',
-    'mineria e hidrocarburos': 'mineria e hidrocarburos',
-    'minería e hidrocarburos': 'mineria e hidrocarburos',
-    'mineria y hidrocarburos': 'mineria e hidrocarburos',
-    'mining': 'mineria e hidrocarburos',
-    'mining and fuel': 'mineria e hidrocarburos',
-
-    'manufactura': 'manufactura',
-    'manufacturing': 'manufactura',
-
-    'electricidad': 'electricidad y agua',
-    'electricidad y agua': 'electricidad y agua',
-    'electricity': 'electricidad y agua',
-    'electricity and water': 'electricidad y agua',
-
-    'construccion': 'construccion',
-    'construcción': 'construccion',
-    'construction': 'construccion',
-
-    'comercio': 'comercio',
-    'commerce': 'comercio',
-
-    'otros servicios': 'otros servicios',
-    'other services': 'otros servicios',
-    'servicios': 'otros servicios',
-    'services': 'otros servicios',
-
-    'pbi': 'pbi',
-    'gdp': 'pbi',
-    'total': 'pbi',
+    "agropecuario": "agropecuario",
+    "agro pecuario": "agropecuario",
+    "agricultura": "agropecuario",
+    "agriculture": "agropecuario",
+    "pesca": "pesca",
+    "fishing": "pesca",
+    "mineria": "mineria e hidrocarburos",
+    "minería": "mineria e hidrocarburos",
+    "mineria e hidrocarburos": "mineria e hidrocarburos",
+    "minería e hidrocarburos": "mineria e hidrocarburos",
+    "mineria y hidrocarburos": "mineria e hidrocarburos",
+    "mining": "mineria e hidrocarburos",
+    "mining and fuel": "mineria e hidrocarburos",
+    "manufactura": "manufactura",
+    "manufacturing": "manufactura",
+    "electricidad": "electricidad y agua",
+    "electricidad y agua": "electricidad y agua",
+    "electricity": "electricidad y agua",
+    "electricity and water": "electricidad y agua",
+    "construccion": "construccion",
+    "construcción": "construccion",
+    "construction": "construccion",
+    "comercio": "comercio",
+    "commerce": "comercio",
+    "otros servicios": "otros servicios",
+    "other services": "otros servicios",
+    "servicios": "otros servicios",
+    "services": "otros servicios",
+    "pbi": "pbi",
+    "gdp": "pbi",
+    "total": "pbi",
 }
 
 # English equivalents
 SECTOR_MAPPINGS_EN = {
-    'agropecuario': 'agriculture and livestock',
-    'pesca': 'fishing',
-    'mineria e hidrocarburos': 'mining and fuel',
-    'manufactura': 'manufacturing',
-    'electricidad y agua': 'electricity and water',
-    'construccion': 'construction',
-    'comercio': 'commerce',
-    'otros servicios': 'other services',
-    'pbi': 'gdp',
+    "agropecuario": "agriculture and livestock",
+    "pesca": "fishing",
+    "mineria e hidrocarburos": "mining and fuel",
+    "manufactura": "manufacturing",
+    "electricidad y agua": "electricity and water",
+    "construccion": "construction",
+    "comercio": "commerce",
+    "otros servicios": "other services",
+    "pbi": "gdp",
 }
 
 
@@ -101,25 +93,51 @@ def parse_table_structure(ocr_text: str, table_type: str = "table_1") -> pd.Data
     # Known sector keywords for identification (Spanish and English)
     KNOWN_SECTORS = [
         # Spanish
-        'agropecuario', 'agricola', 'agrícola', 'pecuario',
-        'pesca', 'mineria', 'minería', 'mineria metalica', 'minería metálica',
-        'petroleo', 'petróleo', 'manufactura', 'procesadores', 'resto industria',
-        'construccion', 'construcción', 'gobierno', 'otros', 'comercio', 'resto',
-        'pbi', 'electricidad', 'servicios',
+        "agropecuario",
+        "agricola",
+        "agrícola",
+        "pecuario",
+        "pesca",
+        "mineria",
+        "minería",
+        "mineria metalica",
+        "minería metálica",
+        "petroleo",
+        "petróleo",
+        "manufactura",
+        "procesadores",
+        "resto industria",
+        "construccion",
+        "construcción",
+        "gobierno",
+        "otros",
+        "comercio",
+        "resto",
+        "pbi",
+        "electricidad",
+        "servicios",
         # English (for bilingual PDFs 2000+)
-        'agriculture', 'farming', 'livestock',
-        'fishing',
-        'mining', 'mining and fuel', 'metallic mining',
-        'petroleum', 'crude oil',
-        'manufacturing',
-        'construction',
-        'government',
-        'commerce', 'trade',
-        'services', 'other services',
-        'gdp', 'electricity'
+        "agriculture",
+        "farming",
+        "livestock",
+        "fishing",
+        "mining",
+        "mining and fuel",
+        "metallic mining",
+        "petroleum",
+        "crude oil",
+        "manufacturing",
+        "construction",
+        "government",
+        "commerce",
+        "trade",
+        "services",
+        "other services",
+        "gdp",
+        "electricity",
     ]
 
-    lines = [line.strip() for line in ocr_text.split('\n') if line.strip()]
+    lines = [line.strip() for line in ocr_text.split("\n") if line.strip()]
 
     if not lines:
         raise ValueError("Empty OCR text")
@@ -129,10 +147,28 @@ def parse_table_structure(ocr_text: str, table_type: str = "table_1") -> pd.Data
     for line in lines:
         # Skip header/title lines (Spanish and English)
         line_upper = line.upper()
-        if any(keyword in line_upper for keyword in ['CUADRO', 'PRODUCTO', 'BRUTO', 'INTERNO', 'VARIACION',
-                                                       'GROSS', 'DOMESTIC', 'PRODUCT', 'TABLE', 'GROWTH']):
+        if any(
+            keyword in line_upper
+            for keyword in [
+                "CUADRO",
+                "PRODUCTO",
+                "BRUTO",
+                "INTERNO",
+                "VARIACION",
+                "GROSS",
+                "DOMESTIC",
+                "PRODUCT",
+                "TABLE",
+                "GROWTH",
+            ]
+        ):
             continue
-        if line.startswith('Ene.') or line.startswith('PO ') or line.startswith('1/') or line.startswith('Jan.'):
+        if (
+            line.startswith("Ene.")
+            or line.startswith("PO ")
+            or line.startswith("1/")
+            or line.startswith("Jan.")
+        ):
             continue
 
         # Check if line starts with a known sector (fuzzy matching for OCR errors)
@@ -146,8 +182,8 @@ def parse_table_structure(ocr_text: str, table_type: str = "table_1") -> pd.Data
             # Fuzzy match for OCR errors (allow 1-2 character differences in first 6 chars)
             if len(known_sector) >= 4 and len(line_lower) >= 4:
                 # Check if first few characters are similar (handles "agropeciano"→"agropecuario", "menera"→"mineria")
-                line_prefix = line_lower[:min(6, len(known_sector))]
-                sector_prefix = known_sector[:min(6, len(known_sector))]
+                line_prefix = line_lower[: min(6, len(known_sector))]
+                sector_prefix = known_sector[: min(6, len(known_sector))]
                 # Count matching characters in prefix
                 matches = sum(c1 == c2 for c1, c2 in zip(line_prefix, sector_prefix))
                 if matches >= len(sector_prefix) - 2:  # Allow 2 mismatches
@@ -166,7 +202,7 @@ def parse_table_structure(ocr_text: str, table_type: str = "table_1") -> pd.Data
 
             for token in tokens:
                 # Check if token looks numeric (digits, negative signs, decimals)
-                if re.search(r'[-−=~]?\d', token):
+                if re.search(r"[-−=~]?\d", token):
                     found_first_number = True
                     value_tokens.append(token)
                 elif found_first_number:
@@ -175,7 +211,7 @@ def parse_table_structure(ocr_text: str, table_type: str = "table_1") -> pd.Data
                     sector_tokens.append(token)
 
             if sector_tokens and value_tokens:
-                sector_name = ' '.join(sector_tokens)
+                sector_name = " ".join(sector_tokens)
                 rows.append([sector_name] + value_tokens)
 
     if not rows:
@@ -232,10 +268,7 @@ def standardize_sector_names(df: pd.DataFrame) -> pd.DataFrame:
         sectors_en.append(sector_en)
 
     # Create new DataFrame with standardized sectors
-    result = pd.DataFrame({
-        'sectores_economicos': sectors_es,
-        'economic_sectors': sectors_en
-    })
+    result = pd.DataFrame({"sectores_economicos": sectors_es, "economic_sectors": sectors_en})
 
     # Append numeric columns (skip first column which was sectors)
     numeric_cols = df.iloc[:, 1:].copy()
@@ -260,7 +293,7 @@ def clean_numeric_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     for col in numeric_cols:
         # Convert to numeric, coercing errors
-        df[col] = pd.to_numeric(df[col], errors='coerce')
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
     logger.debug(f"Cleaned {len(numeric_cols)} numeric columns")
     return df
@@ -278,7 +311,7 @@ def format_column_names(df: pd.DataFrame, table_type: str = "table_1") -> pd.Dat
         DataFrame with properly formatted column names
     """
     # First two columns are always the same
-    new_columns = ['sectores_economicos', 'economic_sectors']
+    new_columns = ["sectores_economicos", "economic_sectors"]
 
     # Format remaining columns based on table type
     for col in df.columns[2:]:
@@ -287,11 +320,13 @@ def format_column_names(df: pd.DataFrame, table_type: str = "table_1") -> pd.Dat
         if table_type == "table_1":
             # Monthly format: YYYY_mmm (e.g., 2000_ene, 2000_feb)
             # Try to extract year and month
-            match = re.search(r'(\d{4})', col_str)
+            match = re.search(r"(\d{4})", col_str)
             if match:
                 year = match.group(1)
                 # Month abbreviation (ene, feb, mar, etc.)
-                month_match = re.search(r'(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)', col_str, re.I)
+                month_match = re.search(
+                    r"(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)", col_str, re.I
+                )
                 if month_match:
                     month = month_match.group(1).lower()
                     new_columns.append(f"{year}_{month}")
@@ -304,24 +339,24 @@ def format_column_names(df: pd.DataFrame, table_type: str = "table_1") -> pd.Dat
         elif table_type == "table_2":
             # Quarterly format: YYYY_Q (e.g., 2000_1, 2000_2, 2000_3, 2000_4)
             # or annual: YYYY_year (e.g., 2000_year)
-            match = re.search(r'(\d{4})', col_str)
+            match = re.search(r"(\d{4})", col_str)
             if match:
                 year = match.group(1)
                 # Quarter (I, II, III, IV or 1, 2, 3, 4)
-                quarter_match = re.search(r'(IV|III|II|I|[1-4])', col_str)
+                quarter_match = re.search(r"(IV|III|II|I|[1-4])", col_str)
                 if quarter_match:
                     quarter = quarter_match.group(1)
                     # Convert roman to number
-                    if quarter == 'I':
-                        quarter = '1'
-                    elif quarter == 'II':
-                        quarter = '2'
-                    elif quarter == 'III':
-                        quarter = '3'
-                    elif quarter == 'IV':
-                        quarter = '4'
+                    if quarter == "I":
+                        quarter = "1"
+                    elif quarter == "II":
+                        quarter = "2"
+                    elif quarter == "III":
+                        quarter = "3"
+                    elif quarter == "IV":
+                        quarter = "4"
                     new_columns.append(f"{year}_{quarter}")
-                elif 'year' in col_str.lower() or 'año' in col_str.lower():
+                elif "year" in col_str.lower() or "año" in col_str.lower():
                     new_columns.append(f"{year}_year")
                 else:
                     new_columns.append(col_str)
@@ -341,10 +376,7 @@ def format_column_names(df: pd.DataFrame, table_type: str = "table_1") -> pd.Dat
 
 
 def format_as_semicolon_csv(
-    df: pd.DataFrame,
-    output_path: str,
-    separator: str = ";",
-    encoding: str = "utf-8-sig"
+    df: pd.DataFrame, output_path: str, separator: str = ";", encoding: str = "utf-8-sig"
 ) -> None:
     """
     Save DataFrame as semicolon-separated CSV with UTF-8 BOM.
@@ -360,21 +392,13 @@ def format_as_semicolon_csv(
     output_file = Path(output_path)
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    df.to_csv(
-        output_file,
-        sep=separator,
-        encoding=encoding,
-        index=False,
-        na_rep=""
-    )
+    df.to_csv(output_file, sep=separator, encoding=encoding, index=False, na_rep="")
 
     logger.info(f"Saved CSV: {output_file.name} ({len(df)} rows x {len(df.columns)} cols)")
 
 
 def convert_ocr_to_csv(
-    ocr_text: str,
-    output_path: str,
-    table_type: str = "table_1"
+    ocr_text: str, output_path: str, table_type: str = "table_1"
 ) -> pd.DataFrame:
     """
     Complete OCR→CSV conversion pipeline.
@@ -416,8 +440,7 @@ if __name__ == "__main__":
     import sys
 
     logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     if len(sys.argv) < 3:
@@ -433,7 +456,7 @@ if __name__ == "__main__":
     table_type = "table_2" if "table_2" in output_csv or "quarterly" in output_csv else "table_1"
 
     # Load OCR text
-    with open(ocr_text_file, 'r', encoding='utf-8') as f:
+    with open(ocr_text_file, "r", encoding="utf-8") as f:
         ocr_text = f.read()
 
     print(f"Loaded OCR text: {len(ocr_text)} characters")
@@ -452,5 +475,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"✗ Conversion failed: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

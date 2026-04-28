@@ -48,9 +48,7 @@ def validate_rtd_dataframe(
     for col in required_columns:
         null_count = df[col].isna().sum()
         if null_count > 0:
-            raise ValueError(
-                f"{stage_name}: Column '{col}' has {null_count} null values"
-            )
+            raise ValueError(f"{stage_name}: Column '{col}' has {null_count} null values")
 
     # Check for target period columns (tp_*)
     tp_cols = [c for c in df.columns if c.startswith("tp_")]
@@ -58,8 +56,7 @@ def validate_rtd_dataframe(
         raise ValueError(f"{stage_name}: No target period columns (tp_*) found")
 
     logger.debug(
-        f"{stage_name} validation passed: {df.shape[0]} rows, "
-        f"{len(tp_cols)} target periods"
+        f"{stage_name} validation passed: {df.shape[0]} rows, " f"{len(tp_cols)} target periods"
     )
 
 
@@ -114,9 +111,7 @@ def validate_input_exists(
         FileNotFoundError: If input path doesn't exist
     """
     if not input_path.exists():
-        raise FileNotFoundError(
-            f"{stage_name}: Input path not found: {input_path}"
-        )
+        raise FileNotFoundError(f"{stage_name}: Input path not found: {input_path}")
 
     logger.debug(f"{stage_name}: Input validated: {input_path}")
 
@@ -135,17 +130,12 @@ def validate_output_created(
         FileNotFoundError: If output was not created
     """
     if not output_path.exists():
-        raise FileNotFoundError(
-            f"{stage_name}: Output file was not created: {output_path}"
-        )
+        raise FileNotFoundError(f"{stage_name}: Output file was not created: {output_path}")
 
     # Check file is not empty
     if output_path.stat().st_size == 0:
-        raise ValueError(
-            f"{stage_name}: Output file is empty: {output_path}"
-        )
+        raise ValueError(f"{stage_name}: Output file is empty: {output_path}")
 
     logger.debug(
-        f"{stage_name}: Output validated: {output_path} "
-        f"({output_path.stat().st_size:,} bytes)"
+        f"{stage_name}: Output validated: {output_path} " f"({output_path.stat().st_size:,} bytes)"
     )

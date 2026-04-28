@@ -28,7 +28,6 @@ from tqdm import tqdm
 
 from peru_gdp_rtd.utils.progress import progress_bar
 
-
 # ==============================================================================================
 # PDF Metadata Extraction
 # ==============================================================================================
@@ -495,10 +494,7 @@ def apply_base_year_sentinel(
             missing_labels.append(csv_file_label)
 
     if missing_labels:
-        print(
-            "WARNING: Missing input RTDs (skipping): "
-            + ", ".join(sorted(missing_labels))
-        )
+        print("WARNING: Missing input RTDs (skipping): " + ", ".join(sorted(missing_labels)))
 
     if not available_inputs:
         print(
@@ -709,10 +705,7 @@ def convert_to_benchmark_dataset(
         available_inputs.append((csv_label_clean, benchmark_label_clean, csv_path, output_path))
 
     if missing_labels:
-        print(
-            "WARNING: Missing input RTDs (skipping): "
-            + ", ".join(sorted(missing_labels))
-        )
+        print("WARNING: Missing input RTDs (skipping): " + ", ".join(sorted(missing_labels)))
 
     if not available_inputs:
         print(

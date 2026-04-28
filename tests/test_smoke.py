@@ -40,8 +40,10 @@ def test_config_paths():
     # Check that paths exist
     assert settings.paths.data_root.parent.exists()
     # Check that data_root contains "gdp" or "peru" (flexible for different repo names)
-    assert ("gdp" in str(settings.paths.data_root).lower() or
-            "peru" in str(settings.paths.data_root).lower())
+    assert (
+        "gdp" in str(settings.paths.data_root).lower()
+        or "peru" in str(settings.paths.data_root).lower()
+    )
 
     # Check path names
     assert settings.paths.data_root.name == "data"

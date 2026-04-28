@@ -188,7 +188,7 @@ class RecordManager:
 │ Scraping │ │ Process│ │ Clean │ │ Trans│ │   Utils     │
 │  Layer   │ │  Layer │ │ Layer │ │ Layer│ │   Layer     │
 │          │ │        │ │       │ │      │ │             │
-│ - BCRP   │ │ - PDF  │ │ - 70+ │ │ - RTD│ │ - Alerts    │
+│ - BCRP   │ │ - PDF  │ │ - 70+ │ │ - RTD│ │ - Records    │
 │   Scraper│ │   Proc │ │   Func│ │   Concat │ - Records   │
 │ - Driver │ │ - File │ │ - Old │ │ - Meta│ │ - Progress  │
 │   Mgmt   │ │   Org  │ │   Clean│ │ - Release│ │ Tracking│
@@ -284,12 +284,7 @@ print(settings.project.name)  # "Peru GDP RTD"
 
 **Key Functions**:
 ```python
-def pdf_downloader(
-    browser: str = "chrome",
-    headless: bool = False,
-    max_downloads: int = 60,
-    rate_limit: Tuple[float, float] = (1.0, 3.0),
-) -> None:
+def pdf_downloader(settings: Settings) -> None:
     """Download PDFs from BCRP Weekly Reports."""
 ```
 

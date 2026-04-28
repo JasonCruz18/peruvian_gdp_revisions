@@ -37,7 +37,7 @@ This OCR (Optical Character Recognition) pipeline extracts GDP growth rate table
 ```bash
 # Install Tesseract OCR 5.x
 # Download from: https://github.com/UB-Mannheim/tesseract/wiki
-# Install to: C:\Program Files\Tesseract-OCR
+# Install to any location and add the executable directory to PATH
 # IMPORTANT: Include Spanish (spa) and English (eng) language packs during installation
 # Add to PATH
 
@@ -321,11 +321,11 @@ paths:
 
 **Solution:**
 1. Verify Tesseract is installed: `tesseract --version`
-2. Add to PATH if needed (Windows): `C:\Program Files\Tesseract-OCR`
+2. Add the Tesseract installation directory to PATH if needed.
 3. Or set path explicitly in code:
    ```python
    import pytesseract
-   pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+   pytesseract.pytesseract.tesseract_cmd = r'/path/to/tesseract'
    ```
 
 ### "Poppler not found" Error

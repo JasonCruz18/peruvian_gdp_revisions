@@ -18,7 +18,7 @@ def setup_logging(
     log_file: Optional[str] = "OCR/logs/ocr_pipeline.log",
     level: str = "INFO",
     format_string: Optional[str] = None,
-    console_output: bool = True
+    console_output: bool = True,
 ) -> None:
     """
     Configure logging for OCR pipeline.
@@ -48,7 +48,7 @@ def setup_logging(
         log_path = Path(log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
-        file_handler = logging.FileHandler(log_path, encoding='utf-8')
+        file_handler = logging.FileHandler(log_path, encoding="utf-8")
         file_handler.setLevel(numeric_level)
         file_handler.setFormatter(logging.Formatter(format_string))
         logger.addHandler(file_handler)
@@ -84,11 +84,7 @@ def get_logger(name: str) -> logging.Logger:
 
 if __name__ == "__main__":
     # Test logger
-    setup_logging(
-        log_file="OCR/logs/test.log",
-        level="DEBUG",
-        console_output=True
-    )
+    setup_logging(log_file="OCR/logs/test.log", level="DEBUG", console_output=True)
 
     logger = get_logger(__name__)
 

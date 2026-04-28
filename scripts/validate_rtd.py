@@ -139,7 +139,7 @@ class RTDValidator:
                 self.log(f"Value range: [{min_val:.2f}, {max_val:.2f}]", "SUCCESS")
 
         # Check 5: Index continuity
-        if hasattr(df.index, 'is_monotonic_increasing'):
+        if hasattr(df.index, "is_monotonic_increasing"):
             result["index_monotonic"] = df.index.is_monotonic_increasing
 
         # Check 6: Duplicate rows/columns
@@ -179,7 +179,8 @@ class RTDValidator:
             "Monthly Benchmark": vintages_dir / settings.output_files["monthly_benchmark"],
             "Quarterly Benchmark": vintages_dir / settings.output_files["quarterly_benchmark"],
             "BY-Adjusted Monthly RTD": vintages_dir / settings.output_files["by_adjusted_monthly"],
-            "BY-Adjusted Quarterly RTD": vintages_dir / settings.output_files["by_adjusted_quarterly"],
+            "BY-Adjusted Quarterly RTD": vintages_dir
+            / settings.output_files["by_adjusted_quarterly"],
         }
 
         self.log("=" * 60, "INFO")
@@ -239,10 +240,10 @@ class RTDValidator:
         df = pd.DataFrame(results)
 
         # Expand nested dictionaries
-        if 'shape' in df.columns:
-            df['rows'] = df['shape'].apply(lambda x: x[0] if x else None)
-            df['cols'] = df['shape'].apply(lambda x: x[1] if x else None)
-            df = df.drop('shape', axis=1)
+        if "shape" in df.columns:
+            df["rows"] = df["shape"].apply(lambda x: x[0] if x else None)
+            df["cols"] = df["shape"].apply(lambda x: x[1] if x else None)
+            df = df.drop("shape", axis=1)
 
         df.to_csv(output_path, index=False)
         self.log(f"Report exported to: {output_path}", "SUCCESS")
@@ -250,9 +251,7 @@ class RTDValidator:
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Validate Peru GDP Real-Time Dataset quality"
-    )
+    parser = argparse.ArgumentParser(description="Validate Peru GDP Real-Time Dataset quality")
     parser.add_argument(
         "--dataset",
         type=str,
@@ -283,7 +282,7 @@ def main():
 
     if not data_dir.exists():
         print(f"ERROR: Data directory not found: {data_dir}")
-        print(f"Please run the pipeline first: python scripts/update_rtd.py")
+        print("Please run the pipeline first: python scripts/update_rtd.py")
         sys.exit(1)
 
     # Initialize validator

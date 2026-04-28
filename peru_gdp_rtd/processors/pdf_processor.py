@@ -64,9 +64,7 @@ def shortened_pdf(pdf_file: str, pages: List[int], output_folder: str) -> int:
         Output filename mirrors the source filename.
     """
     if PdfReader is None or PdfWriter is None:
-        raise ImportError(
-            "pypdf is required for PDF shortening. Install with `pip install pypdf`."
-        )
+        raise ImportError("pypdf is required for PDF shortening. Install with `pip install pypdf`.")
     if not pages:
         return 0
 

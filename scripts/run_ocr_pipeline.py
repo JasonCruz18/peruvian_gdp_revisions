@@ -16,42 +16,61 @@ Institution: Universidad del Pacífico - CIUP
 Date: January 2026
 """
 
-import sys
-import argparse
-from pathlib import Path
-from typing import List, Dict, Optional
-from tqdm import tqdm
+# ─────────────────────────────────────────────────────────────────────────────
+# Standard library imports
+# ─────────────────────────────────────────────────────────────────────────────
+
+import argparse  # Parse OCR execution options from the command line.
+import sys  # Update the import path and return process exit codes.
+from pathlib import Path  # Build project-relative paths for OCR inputs and outputs.
+from typing import Dict  # Describe per-file OCR processing results.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Third-party imports
+# ─────────────────────────────────────────────────────────────────────────────
+
+from tqdm import tqdm  # Display progress bars while processing PDF batches.
 
 # Add OCR directory to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from OCR.ocr_config.settings import load_settings
-from OCR.ocr_processors.image_preprocessor import ImagePreprocessor
-from OCR.ocr_processors.table_extractor import extract_upper_table
+from OCR.ocr_config.settings import load_settings  # Load OCR pipeline settings from YAML.
+from OCR.ocr_processors.image_preprocessor import (
+    ImagePreprocessor,
+)  # Prepare scanned pages for OCR.
+from OCR.ocr_processors.table_extractor import (
+    extract_upper_table,
+)  # Crop the relevant table region.
 from OCR.ocr_processors.ocr_engine import (
-    run_ocr_with_validation,
     check_tesseract_installation,
-    check_tesseract_languages
+    check_tesseract_languages,
+    run_ocr_with_validation,
 )
-from OCR.ocr_processors.csv_converter import convert_ocr_to_csv
+from OCR.ocr_processors.csv_converter import (
+    convert_ocr_to_csv,
+)  # Convert OCR text into structured CSVs.
 from OCR.ocr_processors.validator import (
-    validate_csv_structure,
     calculate_confidence_score,
     flag_for_manual_review,
     should_flag_for_review,
-    generate_validation_report
+    validate_csv_structure,
 )
-from OCR.ocr_utils.progress_tracker import ProgressTracker
-from OCR.ocr_utils.logger import setup_logging, get_logger
+from OCR.ocr_utils.progress_tracker import (
+    ProgressTracker,
+)  # Track completed, pending, and failed files.
+from OCR.ocr_utils.logger import get_logger, setup_logging  # Configure OCR log output.
 from OCR.ocr_utils.file_manager import (
-    discover_all_pdfs,
-    determine_pdf_structure,
-    get_output_path,
-    ensure_output_directories,
     cleanup_temp_images,
-    write_needs_review_list
+    determine_pdf_structure,
+    discover_all_pdfs,
+    ensure_output_directories,
+    get_output_path,
+    write_needs_review_list,
 )
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Module logger
+# ─────────────────────────────────────────────────────────────────────────────
 
 logger = get_logger(__name__)
 
@@ -74,59 +93,46 @@ Examples:
   python scripts/run_ocr_pipeline.py --resume           # Resume from checkpoint
   python scripts/run_ocr_pipeline.py --verify           # Verify outputs only
   python scripts/run_ocr_pipeline.py -v --save-images   # Debug mode
-        """
+        """,
+    )
+
+    parser.add_argument("--year", type=int, help="Process single year (e.g., 2000)")
+
+    parser.add_argument("--years", type=str, help='Process year range (e.g., "1994-2000")')
+
+    parser.add_argument("--resume", action="store_true", help="Resume from last checkpoint")
+
+    parser.add_argument(
+        "--verify", action="store_true", help="Verify existing outputs without reprocessing"
     )
 
     parser.add_argument(
-        '--year',
-        type=int,
-        help='Process single year (e.g., 2000)'
+        "--force", action="store_true", help="Force reprocess even if output exists"
     )
 
     parser.add_argument(
-        '--years',
+        "--save-images",
+        action="store_true",
+        help="Save intermediate preprocessed images for debugging",
+    )
+
+    parser.add_argument(
+        "--config",
         type=str,
-        help='Process year range (e.g., "1994-2000")'
+        default="OCR/ocr_config/config.yaml",
+        help="Path to configuration file",
     )
 
     parser.add_argument(
-        '--resume',
-        action='store_true',
-        help='Resume from last checkpoint'
-    )
-
-    parser.add_argument(
-        '--verify',
-        action='store_true',
-        help='Verify existing outputs without reprocessing'
-    )
-
-    parser.add_argument(
-        '--force',
-        action='store_true',
-        help='Force reprocess even if output exists'
-    )
-
-    parser.add_argument(
-        '--save-images',
-        action='store_true',
-        help='Save intermediate preprocessed images for debugging'
-    )
-
-    parser.add_argument(
-        '--config',
-        type=str,
-        default='OCR/ocr_config/config.yaml',
-        help='Path to configuration file'
-    )
-
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Enable verbose (DEBUG) logging'
+        "-v", "--verbose", action="store_true", help="Enable verbose (DEBUG) logging"
     )
 
     return parser.parse_args()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# OCR processing helpers
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 def process_single_pdf(
@@ -134,7 +140,7 @@ def process_single_pdf(
     settings: any,
     preprocessor: ImagePreprocessor,
     tracker: ProgressTracker,
-    save_images: bool = False
+    save_images: bool = False,
 ) -> Dict[str, any]:
     """
     Process a single PDF through complete OCR workflow.
@@ -150,20 +156,19 @@ def process_single_pdf(
         Dictionary with processing results
     """
     result = {
-        'pdf': pdf_path.name,
-        'success': False,
-        'tables_processed': [],
-        'confidence_scores': {},
-        'flagged_for_review': False,
-        'error': None
+        "pdf": pdf_path.name,
+        "success": False,
+        "tables_processed": [],
+        "confidence_scores": {},
+        "flagged_for_review": False,
+        "error": None,
     }
 
     try:
         # Determine PDF structure
-        year = int(pdf_path.stem.split('_')[-1])
+        year = int(pdf_path.stem.split("_")[-1])
         num_pages, tables_to_extract = determine_pdf_structure(
-            year,
-            settings.pdf_structure.years_single_page
+            year, settings.pdf_structure.years_single_page
         )
 
         logger.info(f"Processing {pdf_path.name}: {num_pages} page(s), tables={tables_to_extract}")
@@ -179,18 +184,14 @@ def process_single_pdf(
             temp_dir = str(settings.paths.temp_images_dir / pdf_path.stem) if save_images else None
 
             preprocessed_image = preprocessor.preprocess_for_ocr(
-                str(pdf_path),
-                page_num=page_num,
-                save_intermediate=save_images,
-                output_dir=temp_dir
+                str(pdf_path), page_num=page_num, save_intermediate=save_images, output_dir=temp_dir
             )
 
             # Step 2: Extract upper table
             logger.debug(f"  Extracting upper table")
 
             upper_table = extract_upper_table(
-                preprocessed_image,
-                upper_ratio=settings.table_extraction.upper_table_region_ratio
+                preprocessed_image, upper_ratio=settings.table_extraction.upper_table_region_ratio
             )
 
             # Step 3: Run OCR
@@ -200,7 +201,7 @@ def process_single_pdf(
                 upper_table,
                 language=settings.tesseract.language,
                 psm=settings.tesseract.psm,
-                oem=settings.tesseract.oem
+                oem=settings.tesseract.oem,
             )
 
             # Step 4: Convert to CSV
@@ -209,9 +210,7 @@ def process_single_pdf(
             output_path = get_output_path(pdf_path, str(settings.paths.csv_output_root), table_type)
 
             df = convert_ocr_to_csv(
-                ocr_result['text_cleaned'],
-                str(output_path),
-                table_type=table_type
+                ocr_result["text_cleaned"], str(output_path), table_type=table_type
             )
 
             # Step 5: Validate
@@ -220,16 +219,12 @@ def process_single_pdf(
             validation_errors = validate_csv_structure(df, table_type)
 
             combined_confidence = calculate_confidence_score(
-                df,
-                ocr_result['confidence'],
-                validation_errors
+                df, ocr_result["confidence"], validation_errors
             )
 
             # Step 6: Flag for review if needed
             if should_flag_for_review(
-                combined_confidence,
-                validation_errors,
-                settings.validation.confidence_threshold
+                combined_confidence, validation_errors, settings.validation.confidence_threshold
             ):
                 preprocessed_path = temp_dir + "/09_final.png" if save_images else ""
 
@@ -240,40 +235,35 @@ def process_single_pdf(
                         preprocessed_path,
                         combined_confidence,
                         validation_errors,
-                        str(settings.paths.review_dir)
+                        str(settings.paths.review_dir),
                     )
-                    result['flagged_for_review'] = True
+                    result["flagged_for_review"] = True
                 except (PermissionError, OSError) as e:
                     logger.warning(f"Could not create review package: {e}")
-                    result['flagged_for_review'] = False
+                    result["flagged_for_review"] = False
 
             # Record results
-            result['tables_processed'].append(table_type)
-            result['confidence_scores'][table_type] = combined_confidence
+            result["tables_processed"].append(table_type)
+            result["confidence_scores"][table_type] = combined_confidence
 
             logger.info(f"  ✓ {table_type}: {combined_confidence:.1%} confidence")
 
         # Mark as completed
-        avg_confidence = sum(result['confidence_scores'].values()) / len(result['confidence_scores'])
+        avg_confidence = sum(result["confidence_scores"].values()) / len(
+            result["confidence_scores"]
+        )
 
-        if result['flagged_for_review']:
-            tracker.mark_needs_review(
-                str(pdf_path),
-                avg_confidence,
-                validation_errors
-            )
+        if result["flagged_for_review"]:
+            tracker.mark_needs_review(str(pdf_path), avg_confidence, validation_errors)
         else:
-            tracker.mark_completed(
-                str(pdf_path),
-                avg_confidence
-            )
+            tracker.mark_completed(str(pdf_path), avg_confidence)
 
-        result['success'] = True
+        result["success"] = True
         logger.info(f"✓ Completed: {pdf_path.name}")
 
     except Exception as e:
         logger.error(f"✗ Failed: {pdf_path.name} - {e}")
-        result['error'] = str(e)
+        result["error"] = str(e)
         tracker.mark_failed(str(pdf_path), str(e))
 
     return result
@@ -301,7 +291,7 @@ def run_pipeline(args: argparse.Namespace) -> int:
         if args.year:
             years = [args.year]
         elif args.years:
-            start, end = map(int, args.years.split('-'))
+            start, end = map(int, args.years.split("-"))
             years = list(range(start, end + 1))
         else:
             # Default: all years (1994-2012)
@@ -348,7 +338,7 @@ def run_pipeline(args: argparse.Namespace) -> int:
             median_kernel_size=settings.preprocessing.median_kernel_size,
             skew_angle_threshold=settings.preprocessing.skew_angle_threshold,
             thinning=settings.preprocessing.thinning,
-            border_size=settings.preprocessing.border_size
+            border_size=settings.preprocessing.border_size,
         )
 
         # Process PDFs with progress bar
@@ -359,11 +349,7 @@ def run_pipeline(args: argparse.Namespace) -> int:
         with tqdm(total=len(pdfs_to_process), desc="OCR Processing", unit="PDF") as pbar:
             for pdf_path in pdfs_to_process:
                 result = process_single_pdf(
-                    pdf_path,
-                    settings,
-                    preprocessor,
-                    tracker,
-                    save_images=args.save_images
+                    pdf_path, settings, preprocessor, tracker, save_images=args.save_images
                 )
 
                 results.append(result)
@@ -428,6 +414,11 @@ def verify_outputs(args: argparse.Namespace) -> int:
         return 1
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Entry point
+# ─────────────────────────────────────────────────────────────────────────────
+
+
 def main() -> int:
     """
     Main entry point.
@@ -440,11 +431,7 @@ def main() -> int:
 
     # Setup logging
     log_level = "DEBUG" if args.verbose else "INFO"
-    setup_logging(
-        log_file="OCR/logs/ocr_pipeline.log",
-        level=log_level,
-        console_output=True
-    )
+    setup_logging(log_file="OCR/logs/ocr_pipeline.log", level=log_level, console_output=True)
 
     logger.info("=" * 60)
     logger.info("OCR Pipeline for Peru GDP Real-Time Dataset")
@@ -453,7 +440,7 @@ def main() -> int:
     # Check Tesseract installation
     try:
         check_tesseract_installation()
-        check_tesseract_languages(['spa', 'eng'])
+        check_tesseract_languages(["spa", "eng"])
         logger.info("✓ Tesseract OCR is properly configured")
     except Exception as e:
         logger.error(f"✗ Tesseract configuration error:\n{e}")
