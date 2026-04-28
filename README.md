@@ -238,6 +238,12 @@ All outputs are written to `data/output/` with extension based on `features.pers
 - `monthly_gdp_releases_adjusted_benchmark.<ext>`
 - `quarterly_gdp_releases_adjusted_benchmark.<ext>`
 
+### Notes on Interpretation
+
+- Wide vintage and release panels are expected to contain many `NaN` values because not every target period is available at every publication date or revision step.
+- The sentinel value `-999999.0` appears only in base-year-adjusted datasets and marks observations affected by base-year methodology changes.
+- Some extreme values may reflect real publication outcomes, benchmark revisions, base-year transitions, or source-table peculiarities. See `docs/DATA_DICTIONARY.md` for interpretation guidance.
+
 ---
 
 ## Visual Guide

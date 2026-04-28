@@ -306,6 +306,31 @@ The dataset uses standardized English names. Original Spanish names from BCRP ar
 
 ---
 
+In wide-format vintages and releases datasets, missingness can be high even when the data product is behaving correctly. This is a structural feature of real-time panels:
+
+- In vintages files, each row is one publication snapshot, so many future `tp_*` columns are naturally unavailable at that vintage.
+- In releases files, later revision columns remain `NaN` until those revisions actually occur.
+- Missingness should therefore be interpreted relative to publication timing, not as evidence of a pipeline failure by itself.
+
+---
+
+### Large-Magnitude Values
+
+Some observations may fall outside a simple screening range such as `[-50, 50]`. These values should be interpreted carefully, but they are not automatically coding errors.
+
+Potential sources include:
+
+- genuine extreme short-run movements in specific sectors or unusual reporting periods
+- benchmark revisions and methodological changes
+- base-year transitions
+- source-table peculiarities inherited from the published Weekly Reports
+
+Examples flagged during validation include values such as `990.00`, `232.50`, and `-90.40`. These should be reviewed substantively when used in analysis, especially if they appear in a small number of target periods or sectors.
+
+The sentinel value `-999999.0` is different from those cases: it is an intentional marker for base-year-affected observations in adjusted datasets and should not be treated as an economic growth rate.
+
+---
+
 ## Time Period Notation
 
 ### Monthly Periods
