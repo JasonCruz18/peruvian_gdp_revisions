@@ -81,8 +81,13 @@ def relocate_last_columns(df: pd.DataFrame) -> pd.DataFrame:
 
         insert_value_1 = df.iloc[0, -2]
         insert_value_1 = str(insert_value_1)
-        df.iloc[:, -1] = df.iloc[:, -1].astype("object")
-        df.iloc[0, -1] = insert_value_1
+        columns = [df.iloc[:, idx].copy() for idx in range(len(df.columns))]
+        columns[-1] = columns[-1].astype("object")
+        columns[-1].iat[0] = insert_value_1
+        rebuilt_df = pd.concat(columns, axis=1)
+        rebuilt_df.columns = df.columns
+        rebuilt_df.index = df.index
+        df = rebuilt_df
 
         df.iloc[0, -2] = np.nan
     return df

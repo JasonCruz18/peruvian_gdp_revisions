@@ -93,6 +93,8 @@ def build_table_1_vintages(
         "new_processed": 0,
         "old_skipped": 0,
         "new_skipped": 0,
+        "old_failed": 0,
+        "new_failed": 0,
     }
 
     logger.info(">> Starting Table 1 vintages (monthly GDP)...")
@@ -129,6 +131,7 @@ def build_table_1_vintages(
         )
         stats["old_processed"] = old_stats["processed"]
         stats["old_skipped"] = old_stats["skipped"]
+        stats["old_failed"] = old_stats["failed"]
 
     # Process NEW PDF files (timestamp-based, no record files needed)
     if new_pdf_path.exists():
@@ -142,6 +145,7 @@ def build_table_1_vintages(
         )
         stats["new_processed"] = new_stats["processed"]
         stats["new_skipped"] = new_stats["skipped"]
+        stats["new_failed"] = new_stats["failed"]
 
     # Summary
     stats["total_processed"] = stats["old_processed"] + stats["new_processed"]
@@ -153,15 +157,19 @@ def build_table_1_vintages(
     logger.info(">> Summary (Table 1 vintages):")
     logger.info(
         f">> OLD CSV input: {old_label} "
-        f"(processed {stats['old_processed']}, skipped {stats['old_skipped']})"
+        f"(processed {stats['old_processed']}, skipped {stats['old_skipped']}, failed {stats['old_failed']})"
     )
     logger.info(
         f">> NEW PDF input: {new_label} "
-        f"(processed {stats['new_processed']}, skipped {stats['new_skipped']})"
+        f"(processed {stats['new_processed']}, skipped {stats['new_skipped']}, failed {stats['new_failed']})"
     )
     logger.info(f">> Output folder: {output_path}")
     logger.info(f">> Total vintages created: {stats['total_processed']}")
     logger.info(f">> Time elapsed: {elapsed} seconds")
+
+    total_failed = stats["old_failed"] + stats["new_failed"]
+    if total_failed:
+        raise RuntimeError(f"Table 1 vintages failed for {total_failed} source files.")
 
     return stats
 
@@ -202,6 +210,8 @@ def build_table_2_vintages(
         "new_processed": 0,
         "old_skipped": 0,
         "new_skipped": 0,
+        "old_failed": 0,
+        "new_failed": 0,
     }
 
     logger.info(">> Starting Table 2 vintages (quarterly/annual GDP)...")
@@ -238,6 +248,7 @@ def build_table_2_vintages(
         )
         stats["old_processed"] = old_stats["processed"]
         stats["old_skipped"] = old_stats["skipped"]
+        stats["old_failed"] = old_stats["failed"]
 
     # Process NEW PDF files (timestamp-based, no record files needed)
     if new_pdf_path.exists():
@@ -251,6 +262,7 @@ def build_table_2_vintages(
         )
         stats["new_processed"] = new_stats["processed"]
         stats["new_skipped"] = new_stats["skipped"]
+        stats["new_failed"] = new_stats["failed"]
 
     # Summary
     stats["total_processed"] = stats["old_processed"] + stats["new_processed"]
@@ -262,15 +274,19 @@ def build_table_2_vintages(
     logger.info(">> Summary (Table 2 vintages):")
     logger.info(
         f">> OLD CSV input: {old_label} "
-        f"(processed {stats['old_processed']}, skipped {stats['old_skipped']})"
+        f"(processed {stats['old_processed']}, skipped {stats['old_skipped']}, failed {stats['old_failed']})"
     )
     logger.info(
         f">> NEW PDF input: {new_label} "
-        f"(processed {stats['new_processed']}, skipped {stats['new_skipped']})"
+        f"(processed {stats['new_processed']}, skipped {stats['new_skipped']}, failed {stats['new_failed']})"
     )
     logger.info(f">> Output folder: {output_path}")
     logger.info(f">> Total vintages created: {stats['total_processed']}")
     logger.info(f">> Time elapsed: {elapsed} seconds")
+
+    total_failed = stats["old_failed"] + stats["new_failed"]
+    if total_failed:
+        raise RuntimeError(f"Table 2 vintages failed for {total_failed} source files.")
 
     return stats
 
@@ -285,7 +301,7 @@ def _process_old_csv_table_1(
     """Process OLD CSV files for Table 1 using timestamp-based incremental processing."""
     from peru_gdp_rtd.orchestration.validation import needs_processing
 
-    stats = {"processed": 0, "skipped": 0}
+    stats = {"processed": 0, "skipped": 0, "failed": 0}
     old_csv_path = Path(old_csv_folder)
     prep = VintagesPreparator()
     cleaner = OldTableCleaner()
@@ -320,11 +336,11 @@ def _process_old_csv_table_1(
                 issue, yr = parse_ns_meta(csv_file.name)
                 if not issue or not yr:
                     logger.error(f"Failed to parse WR metadata from {csv_file.name}")
-                    stats["skipped"] += 1
+                    stats["failed"] += 1
                     continue
                 if month_order_map.get(csv_file.name) is None:
                     logger.error(f"Missing month order mapping for {csv_file.name}")
-                    stats["skipped"] += 1
+                    stats["failed"] += 1
                     continue
                 clean_table.insert(0, "year", int(yr))
                 clean_table.insert(1, "wr", int(issue))
@@ -348,6 +364,7 @@ def _process_old_csv_table_1(
 
             except Exception as e:
                 logger.error(f"Failed to process {csv_file.name}: {e}")
+                stats["failed"] += 1
                 continue
 
     return stats
@@ -363,7 +380,7 @@ def _process_new_pdf_table_1(
     """Process NEW PDF files for Table 1 using timestamp-based incremental processing."""
     from peru_gdp_rtd.orchestration.validation import needs_processing
 
-    stats = {"processed": 0, "skipped": 0}
+    stats = {"processed": 0, "skipped": 0, "failed": 0}
     new_pdf_path = Path(new_pdf_folder)
     prep = VintagesPreparator()
     cleaner = NewTableCleaner()
@@ -377,12 +394,12 @@ def _process_new_pdf_table_1(
         issue, yr = parse_ns_meta(pdf_file.name)
         if not issue or not yr:
             logger.error(f"Failed to parse WR metadata from {pdf_file.name}")
-            stats["skipped"] += 1
+            stats["failed"] += 1
             continue
         year = str(yr)
         if month_order_map.get(pdf_file.name) is None:
             logger.error(f"Missing month order mapping for {pdf_file.name}")
-            stats["skipped"] += 1
+            stats["failed"] += 1
             continue
 
         output_year_folder = Path(output_folder) / year
@@ -400,7 +417,7 @@ def _process_new_pdf_table_1(
             raw_table = extract_table(str(pdf_file), page=1)
             if raw_table is None:
                 logger.error(f"No table extracted from {pdf_file.name} page 1")
-                stats["skipped"] += 1
+                stats["failed"] += 1
                 continue
 
             # Clean table
@@ -427,6 +444,7 @@ def _process_new_pdf_table_1(
 
         except Exception as e:
             logger.error(f"Failed to process {pdf_file.name}: {e}")
+            stats["failed"] += 1
             continue
 
     return stats
@@ -442,7 +460,7 @@ def _process_old_csv_table_2(
     """Process OLD CSV files for Table 2 using timestamp-based incremental processing."""
     from peru_gdp_rtd.orchestration.validation import needs_processing
 
-    stats = {"processed": 0, "skipped": 0}
+    stats = {"processed": 0, "skipped": 0, "failed": 0}
     old_csv_path = Path(old_csv_folder)
     prep = VintagesPreparator()
     cleaner = OldTableCleaner()
@@ -477,11 +495,11 @@ def _process_old_csv_table_2(
                 issue, yr = parse_ns_meta(csv_file.name)
                 if not issue or not yr:
                     logger.error(f"Failed to parse WR metadata from {csv_file.name}")
-                    stats["skipped"] += 1
+                    stats["failed"] += 1
                     continue
                 if month_order_map.get(csv_file.name) is None:
                     logger.error(f"Missing month order mapping for {csv_file.name}")
-                    stats["skipped"] += 1
+                    stats["failed"] += 1
                     continue
                 clean_table.insert(0, "year", int(yr))
                 clean_table.insert(1, "wr", int(issue))
@@ -505,6 +523,7 @@ def _process_old_csv_table_2(
 
             except Exception as e:
                 logger.error(f"Failed to process {csv_file.name}: {e}")
+                stats["failed"] += 1
                 continue
 
     return stats
@@ -520,7 +539,7 @@ def _process_new_pdf_table_2(
     """Process NEW PDF files for Table 2 using timestamp-based incremental processing."""
     from peru_gdp_rtd.orchestration.validation import needs_processing
 
-    stats = {"processed": 0, "skipped": 0}
+    stats = {"processed": 0, "skipped": 0, "failed": 0}
     new_pdf_path = Path(new_pdf_folder)
     prep = VintagesPreparator()
     cleaner = NewTableCleaner()
@@ -534,12 +553,12 @@ def _process_new_pdf_table_2(
         issue, yr = parse_ns_meta(pdf_file.name)
         if not issue or not yr:
             logger.error(f"Failed to parse WR metadata from {pdf_file.name}")
-            stats["skipped"] += 1
+            stats["failed"] += 1
             continue
         year = str(yr)
         if month_order_map.get(pdf_file.name) is None:
             logger.error(f"Missing month order mapping for {pdf_file.name}")
-            stats["skipped"] += 1
+            stats["failed"] += 1
             continue
 
         output_year_folder = Path(output_folder) / year
@@ -557,7 +576,7 @@ def _process_new_pdf_table_2(
             raw_table = extract_table(str(pdf_file), page=2)
             if raw_table is None:
                 logger.error(f"No table extracted from {pdf_file.name} page 2")
-                stats["skipped"] += 1
+                stats["failed"] += 1
                 continue
 
             # Clean table
@@ -584,6 +603,7 @@ def _process_new_pdf_table_2(
 
         except Exception as e:
             logger.error(f"Failed to process {pdf_file.name}: {e}")
+            stats["failed"] += 1
             continue
 
     return stats

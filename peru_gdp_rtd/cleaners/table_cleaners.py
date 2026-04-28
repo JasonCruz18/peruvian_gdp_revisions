@@ -190,31 +190,46 @@ def clean_columns_values(df: pd.DataFrame) -> pd.DataFrame:
         DataFrame with normalized columns and values.
     """
     # Normalize column headers
-    df.columns = df.columns.str.lower()
-    df.columns = [
+    normalized_columns = pd.Index(df.columns).str.lower()
+    normalized_columns = [
         (
             unicodedata.normalize("NFKD", col).encode("ASCII", "ignore").decode("utf-8")
             if isinstance(col, str)
             else col
         )
-        for col in df.columns
+        for col in normalized_columns
     ]
-    df.columns = df.columns.str.replace(" ", "_").str.replace("ano", "year").str.replace("-", "_")
+    normalized_columns = pd.Index(normalized_columns)
+    normalized_columns = (
+        normalized_columns.str.replace(" ", "_").str.replace("ano", "year").str.replace("-", "_")
+    )
 
-    # Clean values
-    for col in df.columns:
-        df.loc[:, col] = df[col].apply(lambda x: remove_tildes(x) if isinstance(x, str) else x)
-        df.loc[:, col] = df[col].apply(
+    # Clean values column-by-column and rebuild the dataframe so duplicate names and dtype
+    # transitions do not trigger pandas assignment errors.
+    cleaned_columns = []
+    for idx in range(len(df.columns)):
+        series = df.iloc[:, idx].astype("object").copy()
+        series = series.apply(lambda x: remove_tildes(x) if isinstance(x, str) else x)
+        series = series.apply(
             lambda x: str(x).replace(",", ".") if isinstance(x, (int, float, str)) else x
         )
+        cleaned_columns.append(series)
 
-    # Lowercase and clean sector columns
-    df.loc[:, "sectores_economicos"] = df["sectores_economicos"].str.lower()
-    df.loc[:, "economic_sectors"] = df["economic_sectors"].str.lower()
-    df.loc[:, "sectores_economicos"] = df["sectores_economicos"].apply(remove_rare_characters)
-    df.loc[:, "economic_sectors"] = df["economic_sectors"].apply(remove_rare_characters)
+    cleaned_df = pd.concat(cleaned_columns, axis=1)
+    cleaned_df.columns = normalized_columns
+    cleaned_df.index = df.index
 
-    return df
+    # Lowercase and clean the first occurrence of the sector label columns.
+    for sector_col in ["sectores_economicos", "economic_sectors"]:
+        match_positions = np.flatnonzero(cleaned_df.columns == sector_col)
+        if len(match_positions) == 0:
+            continue
+        idx = int(match_positions[0])
+        cleaned_df.iloc[:, idx] = (
+            cleaned_df.iloc[:, idx].astype(str).str.lower().apply(remove_rare_characters)
+        )
+
+    return cleaned_df
 
 
 def convert_float(df: pd.DataFrame) -> pd.DataFrame:
@@ -227,10 +242,19 @@ def convert_float(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with numeric columns converted (errors coerced to NaN).
     """
-    excluded_columns = ["sectores_economicos", "economic_sectors"]
-    columns_to_convert = [col for col in df.columns if col not in excluded_columns]
-    df[columns_to_convert] = df[columns_to_convert].apply(pd.to_numeric, errors="coerce")
-    return df
+    excluded_columns = {"sectores_economicos", "economic_sectors"}
+    converted_columns = []
+
+    for idx, col in enumerate(df.columns):
+        series = df.iloc[:, idx].copy()
+        if col not in excluded_columns:
+            series = pd.to_numeric(series, errors="coerce")
+        converted_columns.append(series)
+
+    converted_df = pd.concat(converted_columns, axis=1)
+    converted_df.columns = df.columns
+    converted_df.index = df.index
+    return converted_df
 
 
 def relocate_last_column(df: pd.DataFrame) -> pd.DataFrame:
@@ -260,13 +284,14 @@ def clean_first_row(df: pd.DataFrame) -> pd.DataFrame:
     """
     from peru_gdp_rtd.cleaners.text_cleaners import remove_rare_characters_first_row
 
-    for col in df.columns:
-        if df[col].dtype == "object":
-            if isinstance(df.at[0, col], str):
-                df.at[0, col] = df.at[0, col].lower()
-                df.at[0, col] = remove_tildes(df.at[0, col])
-                df.at[0, col] = remove_rare_characters_first_row(df.at[0, col])
-                df.at[0, col] = df.at[0, col].replace("ano", "year")
+    for idx in range(len(df.columns)):
+        value = df.iat[0, idx]
+        if isinstance(value, str):
+            value = value.lower()
+            value = remove_tildes(value)
+            value = remove_rare_characters_first_row(value)
+            value = value.replace("ano", "year")
+            df.iat[0, idx] = value
     return df
 
 
@@ -300,8 +325,12 @@ def spaces_se_es(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with trimmed sector labels.
     """
-    df["sectores_economicos"] = df["sectores_economicos"].str.strip()
-    df["economic_sectors"] = df["economic_sectors"].str.strip()
+    for sector_col in ["sectores_economicos", "economic_sectors"]:
+        match_positions = np.flatnonzero(df.columns == sector_col)
+        if len(match_positions) == 0:
+            continue
+        idx = int(match_positions[0])
+        df.iloc[:, idx] = df.iloc[:, idx].astype(str).str.strip()
     return df
 
 
@@ -318,11 +347,19 @@ def replace_services(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with unified service sector names.
     """
-    if ("servicios" in df["sectores_economicos"].values) and (
-        "services" in df["economic_sectors"].values
-    ):
-        df["sectores_economicos"].replace({"servicios": "otros servicios"}, inplace=True)
-        df["economic_sectors"].replace({"services": "other services"}, inplace=True)
+    se_positions = np.flatnonzero(df.columns == "sectores_economicos")
+    es_positions = np.flatnonzero(df.columns == "economic_sectors")
+    if len(se_positions) == 0 or len(es_positions) == 0:
+        return df
+
+    se_idx = int(se_positions[0])
+    es_idx = int(es_positions[0])
+    se_series = df.iloc[:, se_idx].copy()
+    es_series = df.iloc[:, es_idx].copy()
+
+    if ("servicios" in se_series.values) and ("services" in es_series.values):
+        df.iloc[:, se_idx] = se_series.replace({"servicios": "otros servicios"})
+        df.iloc[:, es_idx] = es_series.replace({"services": "other services"})
     return df
 
 
@@ -338,10 +375,14 @@ def replace_mineria(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with standardized mining sector name.
     """
-    if ("mineria" in df["sectores_economicos"].values) and (
-        "mineria e hidrocarburos" not in df["sectores_economicos"].values
-    ):
-        df["sectores_economicos"].replace({"mineria": "mineria e hidrocarburos"}, inplace=True)
+    match_positions = np.flatnonzero(df.columns == "sectores_economicos")
+    if len(match_positions) == 0:
+        return df
+
+    idx = int(match_positions[0])
+    series = df.iloc[:, idx].copy()
+    if ("mineria" in series.values) and ("mineria e hidrocarburos" not in series.values):
+        df.iloc[:, idx] = series.replace({"mineria": "mineria e hidrocarburos"})
     return df
 
 
@@ -357,8 +398,14 @@ def replace_mining(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with standardized mining sector name.
     """
-    if "mining and fuels" in df["economic_sectors"].values:
-        df["economic_sectors"].replace({"mining and fuels": "mining and fuel"}, inplace=True)
+    match_positions = np.flatnonzero(df.columns == "economic_sectors")
+    if len(match_positions) == 0:
+        return df
+
+    idx = int(match_positions[0])
+    series = df.iloc[:, idx].copy()
+    if "mining and fuels" in series.values:
+        df.iloc[:, idx] = series.replace({"mining and fuels": "mining and fuel"})
     return df
 
 
@@ -373,10 +420,17 @@ def rounding_values(df: pd.DataFrame, decimals: int = 1) -> pd.DataFrame:
     Returns:
         DataFrame with rounded values.
     """
-    for col in df.columns:
-        if df[col].dtype == "float64":
-            df[col] = df[col].round(decimals)
-    return df
+    rounded_columns = []
+    for idx in range(len(df.columns)):
+        series = df.iloc[:, idx].copy()
+        if pd.api.types.is_float_dtype(series):
+            series = series.round(decimals)
+        rounded_columns.append(series)
+
+    rounded_df = pd.concat(rounded_columns, axis=1)
+    rounded_df.columns = df.columns
+    rounded_df.index = df.index
+    return rounded_df
 
 
 def drop_rare_caracter_row(df: pd.DataFrame) -> pd.DataFrame:
